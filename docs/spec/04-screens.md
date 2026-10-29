@@ -5,7 +5,7 @@ data on every screen comes from the engine described in
 [05-architecture.md](05-architecture.md).
 
 The look — palette, gradient title, group headers, size bars, spinner, rounded panel — is the
-look of the prototype in `spikes/checkscreen/`, which the owner looked at and accepted. The
+look of the `ccc check` prototype, which the owner looked at and accepted. The
 list screen below is that prototype's screen. The statements marked **Assumed** describe
 what the prototype did not have and the owner has not seen.
 

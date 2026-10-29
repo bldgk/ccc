@@ -44,9 +44,8 @@ Two questions could not be settled on paper. Both spikes are done.
 
 ### The `ccc check` screen
 
-The prototype is in `spikes/checkscreen/`, a self-contained Go module; its
-[README](../../spikes/checkscreen/README.md) holds the findings in full. It detects and
-measures and contains no code that removes anything.
+The prototype was a throwaway Go module, since removed. It detected and measured and
+contained no code that removes anything.
 
 Result: the Charm libraries do what the comparison table above assumes.
 
