@@ -124,6 +124,24 @@ prototype, which the owner looked at and accepted. The list screen below
 is that prototype&#39;s screen. The statements marked
 <strong>Assumed</strong> describe what the prototype did not have and
 the owner has not seen.</p>
+<h2 class="unnumbered unlisted" id="the-frame-of-every-screen">The
+frame of every screen</h2>
+<p>The list, the confirmation and cleaning take the whole terminal
+window, in width and in height, and share the same frame:</p>
+<ul>
+<li>The title line at the top, with the state of the scan on its
+right.</li>
+<li>The content of the screen: the list, or the panel of the
+confirmation and of cleaning.</li>
+<li>A status band: one line across the whole width on a dark background.
+Its left side says what the screen is doing or what is marked; its right
+side holds a total, where the screen has one.</li>
+<li>Under the band, the help line: the keys of the screen, each key in
+the accent colour and its action dimmed, separated by <code>•</code>. A
+help line wider than the window is cut off with <code>…</code>.</li>
+</ul>
+<p>The band and the help line stay at the bottom of the window however
+short the content is.</p>
 <h2 class="unnumbered unlisted" id="the-list--ccc-check-ccc">The
 list — <code>ccc check</code>, <code>ccc</code></h2>
 <ul>
@@ -136,13 +154,20 @@ measured row, and the size.</li>
 &quot;not measured&quot; with the reason; &quot;could not be determined&quot; with the
 reason. Rows appear and fill in as the scan delivers them. A place that
 is not present has no row.</li>
-<li>A footer with the keys and with the count and the total size of the
-marked rows.</li>
+<li>The status band holds the count and the total size of the marked
+rows on the left, and the total size of everything &quot;clean everything&quot;
+covers on the right, with <code>+</code> while places are still being
+measured.</li>
 <li>Keys: arrows or <code>j</code>/<code>k</code> move,
 <code>g</code>/<code>G</code> jump to the first and last row, space
 marks a row, <code>a</code> marks or unmarks everything that &quot;clean
 everything&quot; covers — never a row of installed versions — Enter asks to
-clean the marked rows, <code>q</code> or Ctrl-C quits.</li>
+clean the marked rows, <code>?</code> shows or hides the full help,
+<code>q</code> or Ctrl-C quits.</li>
+<li>The help line names the moving keys together and the other keys one
+by one. <code>?</code> replaces it with the full help: every key of the
+list with its action, in columns — moving, marking, the rest.
+<code>?</code> again brings the short line back.</li>
 <li>A row that could not be determined cannot be marked.</li>
 <li>An entry file of the user that failed to load is shown under the
 list with its reason. <strong>Assumed.</strong></li>
@@ -156,8 +181,10 @@ never shown at the bottom without one of its rows.
 </ul>
 <h2 class="unnumbered unlisted" id="the-confirmation">The
 confirmation</h2>
-<p>Enter with at least one marked row opens a panel: the marked rows
-with their sizes, their total, and the two keys — <code>y</code> cleans,
+<p>Enter with at least one marked row opens a panel across the whole
+width and height of the content: the marked rows, each with its size at
+the right edge. The status band says how many rows will be cleaned and
+their total; the help line holds the two keys — <code>y</code> cleans,
 any other key returns to the list with the marks kept. Enter with
 nothing marked does nothing. <strong>Assumed:</strong> the keys.</p>
 <h2 class="unnumbered unlisted" id="cleaning-and-the-result">Cleaning
@@ -167,11 +194,15 @@ and the result</h2>
 <li>The panel stays and each row gets a state: waiting, being cleaned
 (spinner), cleaned with the size freed, failed with the message of the
 tool.</li>
-<li>When the last row is done the panel shows the total freed and the
-number of failed rows. Any key starts a new scan and returns to the
-list.</li>
+<li>While rows are cleaned, the status band says how many rows are done
+of how many, and the size freed so far; the help line says that Ctrl-C
+stops after the current row.</li>
+<li>When the last row is done the status band shows the total freed and
+the number of failed rows. Any key starts a new scan and returns to the
+list; Ctrl-C quits.</li>
 <li>Ctrl-C during cleaning stops before the next row; the row in
-progress finishes.</li>
+progress finishes. The status band then says that cleaning stops after
+the current row.</li>
 </ul>
 <h2 class="unnumbered unlisted" id="ccc---clean-ccc--c"><code>ccc --clean</code>,
 <code>ccc -c</code></h2>

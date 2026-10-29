@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"github.com/bldgk/ccc/internal/engine"
 	"github.com/bldgk/ccc/internal/entry"
@@ -117,7 +118,7 @@ func TestConfirmationProceedsOnlyOnY(t *testing.T) {
 
 	s.press("enter")
 	text := s.text()
-	for _, want := range []string{"alpha · cache", "1.5 kB", "scratch · /work/scratch", "700 B", "total  2.2 kB"} {
+	for _, want := range []string{"alpha · cache", "1.5 kB", "scratch · /work/scratch", "700 B", "clean 2 rows · total 2.2 kB"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("the confirmation lacks %q:\n%s", want, text)
 		}
@@ -150,7 +151,7 @@ func TestFailedRowDoesNotStopTheOthers(t *testing.T) {
 		t.Fatalf("removed %q, want %q: the row after the failed one was not cleaned", got, want)
 	}
 	text := s.text()
-	for _, want := range []string{"✓ freed 1.5 kB", "✗ failed", "boom: the cache is locked", "✓ freed 700 B", "freed  2.2 kB · 1 failed"} {
+	for _, want := range []string{"✓ freed 1.5 kB", "✗ failed", "boom: the cache is locked", "✓ freed 700 B", "freed 2.2 kB · 1 failed"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("the result lacks %q:\n%s", want, text)
 		}
@@ -179,7 +180,7 @@ func TestUnknownFreedSizeIsNotANumber(t *testing.T) {
 	s.mark(rowDark, rowScratch)
 
 	s.press("enter")
-	if text := s.text(); !strings.Contains(text, "total  700 B · 1 not measured") {
+	if text := s.text(); !strings.Contains(text, "total 700 B · 1 not measured") {
 		t.Fatalf("the confirmation does not say that a row has no size:\n%s", text)
 	}
 	s.press("y")
@@ -188,7 +189,7 @@ func TestUnknownFreedSizeIsNotANumber(t *testing.T) {
 		t.Fatalf("totals %+v, want %+v", got, want)
 	}
 	text := s.text()
-	for _, want := range []string{"✓ freed size unknown", "the size before cleaning is not known", "freed  700 B · 0 failed · 1 with freed size unknown"} {
+	for _, want := range []string{"✓ freed size unknown", "the size before cleaning is not known", "freed 700 B · 0 failed · 1 with freed size unknown"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("the result lacks %q:\n%s", want, text)
 		}
@@ -281,19 +282,71 @@ func TestQuit(t *testing.T) {
 func TestPanelFitsALowWindow(t *testing.T) {
 	_, eng := fixture(t)
 	s := scanned(t, eng)
-	s.m.Update(tea.WindowSizeMsg{Width: 60, Height: 14})
+	s.m.Update(tea.WindowSizeMsg{Width: 60, Height: 10})
 	s.press("a")
 	s.mark(rowChainV1, rowChainV2)
 	s.press("enter")
 
 	text := s.text()
-	if lines := strings.Count(text, "\n") + 1; lines > 14 {
-		t.Fatalf("the panel takes %d lines of a window of 14:\n%s", lines, text)
+	if lines := strings.Count(text, "\n") + 1; lines > 10 {
+		t.Fatalf("the panel takes %d lines of a window of 10:\n%s", lines, text)
 	}
-	for _, want := range []string{"↓ ", " more", "total  "} {
+	for _, want := range []string{"↓ ", " more", "total "} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("the panel lacks %q:\n%s", want, text)
 		}
+	}
+}
+
+// The status band and the help line are the last lines of the window, however short the
+// content above them is.
+func TestFooterStaysAtTheBottomOfTheWindow(t *testing.T) {
+	_, eng := fixture(t)
+	s := scanned(t, eng)
+	s.m.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
+	s.mark(rowAlpha)
+
+	for _, screen := range []struct{ name, band, help string }{
+		{"the list", "marked 1 · 1.5 kB", "q quit"},
+		{"the confirmation", "clean 1 row · total 1.5 kB", "any other key back"},
+	} {
+		lines := strings.Split(s.text(), "\n")
+		if len(lines) != 40 {
+			t.Fatalf("%s takes %d lines of a window of 40:\n%s", screen.name, len(lines), s.text())
+		}
+		if band := lines[38]; !strings.Contains(band, screen.band) || lipgloss.Width(band) != 100 {
+			t.Fatalf("%s: line 39 is %q, want the status band across 100 columns with %q", screen.name, band, screen.band)
+		}
+		if help := lines[39]; !strings.Contains(help, screen.help) {
+			t.Fatalf("%s: the last line is %q, want the help with %q", screen.name, help, screen.help)
+		}
+		s.press("enter")
+	}
+}
+
+func TestQuestionMarkTogglesTheFullHelp(t *testing.T) {
+	_, eng := fixture(t)
+	s := scanned(t, eng)
+	s.m.Update(tea.WindowSizeMsg{Width: 100, Height: 40})
+	short := s.text()
+	if !strings.Contains(short, "? more") || strings.Contains(short, "down") {
+		t.Fatalf("the list does not start with the short help:\n%s", short)
+	}
+
+	s.press("?")
+	full := s.text()
+	for _, want := range []string{"↑/k", "↓/j", "first", "last", "mark", "all caches", "clean", "? ", "less", "quit"} {
+		if !strings.Contains(full, want) {
+			t.Fatalf("the full help lacks %q:\n%s", want, full)
+		}
+	}
+	if lines := strings.Count(full, "\n") + 1; lines != 40 {
+		t.Fatalf("with the full help the list takes %d lines of a window of 40:\n%s", lines, full)
+	}
+
+	s.press("?")
+	if got := s.text(); got != short {
+		t.Fatalf("a second ? does not bring the short help back:\n%s", got)
 	}
 }
 

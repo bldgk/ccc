@@ -10,6 +10,7 @@ var (
 	cViolet = lipgloss.Color("#BD93F9")
 	cSky    = lipgloss.Color("#8BE9FD")
 	cDim    = lipgloss.Color("#7F849C")
+	cBand   = lipgloss.Color("#44475A")
 
 	sDim     = lipgloss.NewStyle().Foreground(cDim)
 	sBold    = lipgloss.NewStyle().Bold(true)

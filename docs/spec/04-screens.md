@@ -9,6 +9,22 @@ look of the `ccc check` prototype, which the owner looked at and accepted. The
 list screen below is that prototype's screen. The statements marked **Assumed** describe
 what the prototype did not have and the owner has not seen.
 
+## The frame of every screen
+
+The list, the confirmation and cleaning take the whole terminal window, in width and in
+height, and share the same frame:
+
+- The title line at the top, with the state of the scan on its right.
+- The content of the screen: the list, or the panel of the confirmation and of cleaning.
+- A status band: one line across the whole width on a dark background. Its left side says
+  what the screen is doing or what is marked; its right side holds a total, where the screen
+  has one.
+- Under the band, the help line: the keys of the screen, each key in the accent colour and
+  its action dimmed, separated by ` • `. A help line wider than the window is cut off with
+  `…`.
+
+The band and the help line stay at the bottom of the window however short the content is.
+
 ## The list — `ccc check`, `ccc`
 
 - A title line with the name of the program.
@@ -18,10 +34,16 @@ what the prototype did not have and the owner has not seen.
 - A row is in one of these states: being measured (spinner); a size; "not measured" with the
   reason; "could not be determined" with the reason. Rows appear and fill in as the scan
   delivers them. A place that is not present has no row.
-- A footer with the keys and with the count and the total size of the marked rows.
+- The status band holds the count and the total size of the marked rows on the left, and the
+  total size of everything "clean everything" covers on the right, with `+` while places are
+  still being measured.
 - Keys: arrows or `j`/`k` move, `g`/`G` jump to the first and last row, space marks a row,
   `a` marks or unmarks everything that "clean everything" covers — never a row of installed
-  versions — Enter asks to clean the marked rows, `q` or Ctrl-C quits.
+  versions — Enter asks to clean the marked rows, `?` shows or hides the full help, `q` or
+  Ctrl-C quits.
+- The help line names the moving keys together and the other keys one by one. `?` replaces it
+  with the full help: every key of the list with its action, in columns — moving, marking,
+  the rest. `?` again brings the short line back.
 - A row that could not be determined cannot be marked.
 - An entry file of the user that failed to load is shown under the list with its reason.
   **Assumed.**
@@ -32,9 +54,11 @@ what the prototype did not have and the owner has not seen.
 
 ## The confirmation
 
-Enter with at least one marked row opens a panel: the marked rows with their sizes, their
-total, and the two keys — `y` cleans, any other key returns to the list with the marks kept.
-Enter with nothing marked does nothing. **Assumed:** the keys.
+Enter with at least one marked row opens a panel across the whole width and height of the
+content: the marked rows, each with its size at the right edge. The status band says how many
+rows will be cleaned and their total; the help line holds the two keys — `y` cleans, any other
+key returns to the list with the marks kept. Enter with nothing marked does nothing.
+**Assumed:** the keys.
 
 ## Cleaning and the result
 
@@ -42,9 +66,12 @@ Enter with nothing marked does nothing. **Assumed:** the keys.
 
 - The panel stays and each row gets a state: waiting, being cleaned (spinner), cleaned with the
   size freed, failed with the message of the tool.
-- When the last row is done the panel shows the total freed and the number of failed rows.
-  Any key starts a new scan and returns to the list.
-- Ctrl-C during cleaning stops before the next row; the row in progress finishes.
+- While rows are cleaned, the status band says how many rows are done of how many, and the
+  size freed so far; the help line says that Ctrl-C stops after the current row.
+- When the last row is done the status band shows the total freed and the number of failed
+  rows. Any key starts a new scan and returns to the list; Ctrl-C quits.
+- Ctrl-C during cleaning stops before the next row; the row in progress finishes. The status
+  band then says that cleaning stops after the current row.
 
 ## `ccc --clean`, `ccc -c`
 

@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	sizeWidth     = 11
-	maxBarWidth   = 22
-	maxPanelWidth = 60
+	sizeWidth   = 11
+	maxBarWidth = 22
 )
 
 type line struct {
@@ -159,35 +158,91 @@ func (m *Model) status() string {
 	return sOK.Render("✓ done")
 }
 
-func (m *Model) footer(w int) []string {
-	marked := m.markedRows()
-	sum, unmeasured := sizeSum(marked)
-	left := sBold.Render(fmt.Sprintf("marked %d", len(marked))) + sDim.Render(" · ") + sAccent.Render(FormatSize(sum))
-	if unmeasured > 0 {
-		left += sDim.Render(" · ") + sWarn.Render(fmt.Sprintf("%d not measured", unmeasured))
+// onBand renders text in a style on the background of the status band.
+func onBand(style lipgloss.Style, text string) string {
+	return style.Background(cBand).Render(text)
+}
+
+// statusBand is one line across the whole width on the band's background: left at the
+// start, right at the end. A right side that does not fit is dropped.
+func statusBand(w int, left, right string) string {
+	edge := onBand(sDim, " ")
+	gap := w - 2 - lipgloss.Width(left) - lipgloss.Width(right)
+	if gap < 1 {
+		right = ""
+		left = ansi.Truncate(left, w-2, "")
+		gap = w - 2 - lipgloss.Width(left)
 	}
-	var covered []engine.Row
-	for _, row := range m.eng.Everything(m.known()) {
-		if row.State == engine.Measured {
-			covered = append(covered, row)
+	return edge + left + onBand(sDim, strings.Repeat(" ", max(0, gap))) + right + edge
+}
+
+func rowsText(n int) string {
+	if n == 1 {
+		return "1 row"
+	}
+	return fmt.Sprintf("%d rows", n)
+}
+
+// band is the status band of the current screen.
+func (m *Model) band(w int) string {
+	var left, right string
+	switch m.stage {
+	case stageList:
+		marked := m.markedRows()
+		sum, unmeasured := sizeSum(marked)
+		left = onBand(sBold, fmt.Sprintf("marked %d", len(marked))) + onBand(sDim, " · ") + onBand(sAccent, FormatSize(sum))
+		if unmeasured > 0 {
+			left += onBand(sDim, " · ") + onBand(sWarn, fmt.Sprintf("%d not measured", unmeasured))
+		}
+		var covered []engine.Row
+		for _, row := range m.eng.Everything(m.known()) {
+			if row.State == engine.Measured {
+				covered = append(covered, row)
+			}
+		}
+		all, _ := sizeSum(covered)
+		more := ""
+		if m.pending() > 0 {
+			more = "+"
+		}
+		right = onBand(sDim, "all caches ") + onBand(sBold, FormatSize(all)+more)
+	case stageConfirm:
+		rows := make([]engine.Row, len(m.items))
+		for i, item := range m.items {
+			rows[i] = item.row
+		}
+		sum, unmeasured := sizeSum(rows)
+		left = onBand(sBold, "clean "+rowsText(len(rows))) + onBand(sDim, " · ") + onBand(sAccent, "total "+FormatSize(sum))
+		if unmeasured > 0 {
+			left += onBand(sDim, " · ") + onBand(sWarn, fmt.Sprintf("%d not measured", unmeasured))
+		}
+	case stageCleaning:
+		if m.stopping {
+			left = onBand(sWarn, "stopping after the current row")
+		} else {
+			left = onBand(sBold, fmt.Sprintf("cleaning %d/%d", m.current+1, len(m.items)))
+		}
+		right = onBand(sDim, "freed ") + onBand(sBold, FormatSize(m.totals().Freed))
+	case stageResult:
+		totals := m.totals()
+		failed := sDim
+		if totals.Failed > 0 {
+			failed = sErr
+		}
+		left = onBand(sAccent, "freed "+FormatSize(totals.Freed)) + onBand(sDim, " · ") + onBand(failed, fmt.Sprintf("%d failed", totals.Failed))
+		if totals.Unknown > 0 {
+			left += onBand(sDim, " · ") + onBand(sWarn, fmt.Sprintf("%d with freed size unknown", totals.Unknown))
+		}
+		if rest := len(m.items) - m.current; rest > 0 {
+			left += onBand(sDim, fmt.Sprintf(" · %d not cleaned", rest))
 		}
 	}
-	all, _ := sizeSum(covered)
-	more := ""
-	if m.pending() > 0 {
-		more = "+"
-	}
-	right := sDim.Render("all caches ") + sBold.Render(FormatSize(all)+more)
-	gap := max(1, w-lipgloss.Width(left)-lipgloss.Width(right))
-	hints := "↑↓/jk move · g/G first/last · space mark · a all caches · enter clean · q quit"
-	if lipgloss.Width(hints) > w {
-		hints = "jk move · g/G · space mark · a all · ⏎ clean · q"
-	}
-	return []string{
-		sDim.Render(strings.Repeat("─", w)),
-		ansi.Truncate(left+strings.Repeat(" ", gap)+right, w, ""),
-		sDim.Render(ansi.Truncate(hints, w, "…")),
-	}
+	return statusBand(w, left, right)
+}
+
+// footer is the bottom of every screen: the status band and the help under it.
+func (m *Model) footer(w int) []string {
+	return append([]string{m.band(w)}, strings.Split(m.helpLines(w), "\n")...)
 }
 
 func (m *Model) render() string {
@@ -206,7 +261,7 @@ func (m *Model) render() string {
 	lines := m.bodyLines(w)
 	avail := len(lines)
 	if m.h > 0 {
-		avail = max(3, m.h-2-len(foot)-len(under))
+		avail = max(3, m.h-1-len(foot)-len(under))
 	}
 	// A list that does not fit gives up two lines to say how many rows are out of view.
 	clipped := len(lines) > avail
@@ -309,7 +364,9 @@ func (m *Model) itemState(i int) (state string, message string) {
 }
 
 func (m *Model) panel(w int) string {
-	inner := max(20, min(w-8, maxPanelWidth))
+	foot := m.footer(w)
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(cAccent).Padding(1, 2).Width(w)
+	inner := max(20, w-box.GetHorizontalFrameSize())
 
 	var lines []panelLine
 	for i, item := range m.items {
@@ -323,51 +380,16 @@ func (m *Model) panel(w int) string {
 		}
 	}
 
-	var closing []string
-	var hint string
-	switch m.stage {
-	case stageConfirm:
-		rows := make([]engine.Row, len(m.items))
-		for i, item := range m.items {
-			rows[i] = item.row
-		}
-		sum, unmeasured := sizeSum(rows)
-		total := sAccent.Render("total  " + FormatSize(sum))
-		if unmeasured > 0 {
-			total += sDim.Render(" · ") + sWarn.Render(fmt.Sprintf("%d not measured", unmeasured))
-		}
-		closing = []string{sDim.Render(strings.Repeat("─", inner)), total}
-		hint = "y clean · any other key back"
-	case stageCleaning:
-		hint = "ctrl+c stop after the current row"
-		if m.stopping {
-			hint = "stopping after the current row"
-		}
-	case stageResult:
-		totals := m.totals()
-		failed := sDim
-		if totals.Failed > 0 {
-			failed = sErr
-		}
-		total := sAccent.Render("freed  "+FormatSize(totals.Freed)) + sDim.Render(" · ") + failed.Render(fmt.Sprintf("%d failed", totals.Failed))
-		if totals.Unknown > 0 {
-			total += sDim.Render(" · ") + sWarn.Render(fmt.Sprintf("%d with freed size unknown", totals.Unknown))
-		}
-		if left := len(m.items) - m.current; left > 0 {
-			total += sDim.Render(" · " + fmt.Sprintf("%d not cleaned", left))
-		}
-		closing = []string{sDim.Render(strings.Repeat("─", inner)), ansi.Truncate(total, inner, "…")}
-		hint = "press any key to scan again"
-	}
-
-	// Lines around the panel's rows: title, blank, border and padding, the closing
-	// lines, blank, hint, and the two lines that say how many rows are out of view.
+	// The panel fills the window between the title line and the footer.
 	budget := len(lines)
 	if m.h > 0 {
-		budget = max(1, m.h-(1+1+4+len(closing)+2+2))
+		box = box.Height(max(box.GetVerticalFrameSize()+1, m.h-1-len(foot)))
+		budget = max(1, box.GetHeight()-box.GetVerticalFrameSize())
 	}
 	start, end := 0, len(lines)
 	if len(lines) > budget {
+		// Two lines say how many rows are out of view.
+		budget = max(1, budget-2)
 		focus := 0
 		for i, l := range lines {
 			if l.item == min(m.current, len(m.items)-1) && m.stage != stageConfirm {
@@ -399,8 +421,5 @@ func (m *Model) panel(w int) string {
 	if below > 0 {
 		content = append(content, sDim.Render(fmt.Sprintf("↓ %d more", below)))
 	}
-	content = append(content, closing...)
-
-	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(cAccent).Padding(1, 2).MaxWidth(w)
-	return "\n" + box.Render(strings.Join(content, "\n")) + "\n\n" + sDim.Render(hint)
+	return box.Render(strings.Join(content, "\n")) + "\n" + strings.Join(foot, "\n")
 }

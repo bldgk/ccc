@@ -505,6 +505,8 @@ func (m *AddModel) render() string {
 	return strings.Join(append(out, "", sDim.Render(ansi.Truncate(hint, w, "…"))), "\n")
 }
 
+const maxPanelWidth = 60
+
 func panelBox(w int) (lipgloss.Style, int) {
 	inner := max(20, min(w-8, maxPanelWidth))
 	return lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(cAccent).Padding(1, 2).MaxWidth(w), inner

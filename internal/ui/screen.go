@@ -4,6 +4,8 @@ import (
 	"context"
 	"slices"
 
+	"charm.land/bubbles/v2/help"
+	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -57,6 +59,9 @@ type Model struct {
 	eng      Engine
 	problems []Problem
 	spin     spinner.Model
+	help     help.Model
+	// fullHelp shows every key of the list in columns instead of the short help line.
+	fullHelp bool
 
 	rows   []listRow
 	marked map[rowKey]bool
@@ -78,7 +83,7 @@ type Model struct {
 
 func NewModel(eng Engine, problems []Problem) *Model {
 	sp := spinner.New(spinner.WithSpinner(spinner.MiniDot), spinner.WithStyle(lipgloss.NewStyle().Foreground(cAccent)))
-	return &Model{eng: eng, problems: problems, spin: sp, marked: map[rowKey]bool{}, w: 80}
+	return &Model{eng: eng, problems: problems, spin: sp, help: newHelp(), marked: map[rowKey]bool{}, w: 80}
 }
 
 // Run shows the screen until the user quits.
@@ -257,7 +262,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, cmd
 	case tea.KeyPressMsg:
-		return m.key(msg.String())
+		return m.key(msg)
 	}
 	return m, nil
 }
@@ -269,10 +274,10 @@ func (m *Model) quit() (tea.Model, tea.Cmd) {
 	return m, tea.Quit
 }
 
-func (m *Model) key(key string) (tea.Model, tea.Cmd) {
+func (m *Model) key(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch m.stage {
 	case stageConfirm:
-		if key != "y" {
+		if !key.Matches(msg, keys.Yes) {
 			m.stage = stageList
 			m.items = nil
 			return m, nil
@@ -282,29 +287,29 @@ func (m *Model) key(key string) (tea.Model, tea.Cmd) {
 		m.stopping = false
 		return m, tea.Batch(m.cleanRow(0), m.spin.Tick)
 	case stageCleaning:
-		if key == "ctrl+c" {
+		if key.Matches(msg, keys.Stop) {
 			m.stopping = true
 		}
 		return m, nil
 	case stageResult:
-		if key == "ctrl+c" {
+		if key.Matches(msg, keys.ForceQuit) {
 			return m.quit()
 		}
 		return m, m.startScan()
 	}
 
-	switch key {
-	case "q", "ctrl+c":
+	switch {
+	case key.Matches(msg, keys.Quit):
 		return m.quit()
-	case "up", "k":
+	case key.Matches(msg, keys.Up):
 		m.cursor = max(0, m.cursor-1)
-	case "down", "j":
+	case key.Matches(msg, keys.Down):
 		m.cursor = max(0, min(len(m.rows)-1, m.cursor+1))
-	case "g":
+	case key.Matches(msg, keys.First):
 		m.cursor = 0
-	case "G":
+	case key.Matches(msg, keys.Last):
 		m.cursor = max(0, len(m.rows)-1)
-	case "space":
+	case key.Matches(msg, keys.Mark):
 		if m.cursor < len(m.rows) && !m.rows[m.cursor].pending && canMark(m.rows[m.cursor].Row) {
 			k := keyOf(m.rows[m.cursor].Row)
 			if m.marked[k] {
@@ -313,9 +318,11 @@ func (m *Model) key(key string) (tea.Model, tea.Cmd) {
 				m.marked[k] = true
 			}
 		}
-	case "a":
+	case key.Matches(msg, keys.All):
 		m.toggleEverything()
-	case "enter":
+	case key.Matches(msg, keys.Help):
+		m.fullHelp = !m.fullHelp
+	case key.Matches(msg, keys.Clean):
 		rows := m.markedRows()
 		if len(rows) == 0 {
 			return m, nil
