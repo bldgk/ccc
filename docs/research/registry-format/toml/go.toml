@@ -1,0 +1,34 @@
+# Go: build cache and module cache.
+# Sources: https://pkg.go.dev/cmd/go (go clean, "Build and test caching")
+#          https://go.dev/ref/mod (module cache)
+
+kind = "tool"
+name = "go"
+executable = "go"
+
+[[places]]
+name = "build cache"
+holds = "cache"
+path.command = "go env GOCACHE"
+path.env = "GOCACHE"
+path.default.macos = "~/Library/Caches/go-build"
+# Derived from the documented rule "go-build in the user cache directory";
+# the literal Linux path is not confirmed on a Linux machine. It is wrong
+# when XDG_CACHE_HOME is set and `go` is gone: see README, "Missing from
+# the contract".
+path.default.linux = "~/.cache/go-build"
+measure.by = "disk-usage"
+clean.command = "go clean -cache"
+
+[[places]]
+name = "module cache"
+holds = "cache"
+path.command = "go env GOMODCACHE"
+path.env = "GOMODCACHE"
+# The documented default is $GOPATH/pkg/mod, and GOPATH defaults to ~/go.
+path.default.macos = "~/go/pkg/mod"
+path.default.linux = "~/go/pkg/mod"
+measure.by = "disk-usage"
+# The module cache is created read-only, so removing the directory fails;
+# the tool's own command works either way.
+clean.command = "go clean -modcache"

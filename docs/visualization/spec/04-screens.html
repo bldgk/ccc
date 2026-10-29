@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ccc — screens</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="ccc--screens">ccc —
+screens</h1>
+<p>What <code>ccc</code> shows in the terminal. The commands are in <a href="02-surfaces.html">02-surfaces.md</a>; all
+data on every screen comes from the engine described in <a href="05-architecture.html">05-architecture.md</a>.</p>
+<p>The look — palette, gradient title, group headers, size bars,
+spinner, rounded panel — is the look of the prototype in
+<code>spikes/checkscreen/</code>, which the owner looked at and
+accepted. The list screen below is that prototype&#39;s screen. The
+statements marked <strong>Assumed</strong> describe what the prototype
+did not have and the owner has not seen.</p>
+<h2 class="unnumbered unlisted" id="the-list--ccc-check-ccc">The
+list — <code>ccc check</code>, <code>ccc</code></h2>
+<ul>
+<li>A title line with the name of the program.</li>
+<li>Rows grouped under the name of their entry. A row shows: a mark box,
+the name of the place (and the version name for a row of installed
+versions; the path for a folder), a bar proportional to the largest
+measured row, and the size.</li>
+<li>A row is in one of these states: being measured (spinner); a size;
+&quot;not measured&quot; with the reason; &quot;could not be determined&quot; with the
+reason. Rows appear and fill in as the scan delivers them. A place that
+is not present has no row.</li>
+<li>A footer with the keys and with the count and the total size of the
+marked rows.</li>
+<li>Keys: arrows or <code>j</code>/<code>k</code> move,
+<code>g</code>/<code>G</code> jump to the first and last row, space
+marks a row, <code>a</code> marks or unmarks everything that &quot;clean
+everything&quot; covers — never a row of installed versions — Enter asks to
+clean the marked rows, <code>q</code> or Ctrl-C quits.</li>
+<li>A row that could not be determined cannot be marked.</li>
+<li>An entry file of the user that failed to load is shown under the
+list with its reason. <strong>Assumed.</strong></li>
+<li>When nothing was found, the screen says so in one line.
+<strong>Assumed.</strong></li>
+<li>When the list is taller than the window, it scrolls with the cursor,
+and a line above and a line below the rows say how many rows are out of
+view (<code>↑ 3 more</code>, <code>↓ 9 more</code>). A group name is
+never shown at the bottom without one of its rows.
+<strong>Assumed.</strong></li>
+</ul>
+<h2 class="unnumbered unlisted" id="the-confirmation">The
+confirmation</h2>
+<p>Enter with at least one marked row opens a panel: the marked rows
+with their sizes, their total, and the two keys — <code>y</code> cleans,
+any other key returns to the list with the marks kept. Enter with
+nothing marked does nothing. <strong>Assumed:</strong> the keys.</p>
+<h2 class="unnumbered unlisted" id="cleaning-and-the-result">Cleaning
+and the result</h2>
+<p><strong>Assumed</strong>, all of it:</p>
+<ul>
+<li>The panel stays and each row gets a state: waiting, being cleaned
+(spinner), cleaned with the size freed, failed with the message of the
+tool.</li>
+<li>When the last row is done the panel shows the total freed and the
+number of failed rows. Any key starts a new scan and returns to the
+list.</li>
+<li>Ctrl-C during cleaning stops before the next row; the row in
+progress finishes.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ccc---clean-ccc--c"><code>ccc --clean</code>,
+<code>ccc -c</code></h2>
+<p><strong>Assumed</strong>, all of it:</p>
+<ul>
+<li>No full-screen interface. <code>ccc</code> scans, then cleans,
+printing one line per row as it finishes: the entry, the place, and
+either the size freed or <code>failed</code> with the message.</li>
+<li>The last line is the total freed and the number of failed rows.</li>
+<li>The exit status is 0 when no row failed and 1 otherwise.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="output-that-is-not-a-terminal">Output
+that is not a terminal</h2>
+<p><strong>Assumed</strong>, all of it:</p>
+<ul>
+<li><code>ccc check</code> into a pipe or a file prints the rows as
+aligned text after the scan has finished — entry, place, version, size
+or state with the reason — and removes nothing.</li>
+<li><code>ccc -c</code> prints the same lines as on a terminal, without
+colour.</li>
+<li><code>NO_COLOR</code> turns colour off everywhere.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="adding-a-folder--ccc-add-path">Adding
+a folder — <code>ccc add &lt;path&gt;</code></h2>
+<p><strong>Assumed</strong>, all of it:</p>
+<ul>
+<li>No screen. The path is made absolute, and a path inside the home
+directory is stored with <code>~</code>. The name of the entry is the
+last element of the path; <code>--name</code> gives another one.</li>
+<li><code>ccc</code> prints the file it wrote and the row the folder
+gives: its size, or that the directory does not exist yet.</li>
+<li>The command refuses, with the reason and without writing anything,
+when an entry of the user with that name exists already, or when the
+path is one the removal guards of the architecture would refuse.</li>
+<li>A name taken from the path that equals the name of a shipped entry
+is refused too: the folder would replace that entry by accident. With
+<code>--name</code> it is allowed, and <code>ccc</code> prints that the
+new entry replaces the shipped one.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="adding-a-tool--ccc-add">Adding
+a tool — <code>ccc add</code></h2>
+<p><strong>Assumed</strong>, all of it. A form in the style of the list
+screen, one question at a time:</p>
+<ol>
+<li>The name of the entry and the name of the tool&#39;s executable.</li>
+<li>A place: its name, and whether it holds a cache or installed
+versions.</li>
+<li>Detection: a command of the tool that prints the path, an
+environment variable, a default path — any of the three, at least one.
+For installed versions also the command that lists them and the pattern
+that takes the version name from a line. <code>ccc</code> then runs
+detection and shows the path it found and, for versions, the names it
+listed.</li>
+<li>Space check: disk usage of the path, or a command with the pattern
+that takes the size from its output. <code>ccc</code> runs it and shows
+the size.</li>
+<li>Clean: the tool&#39;s own command, or removal of the directory. Nothing
+is run.</li>
+<li>Whether to add another place; then the entry is shown as the text of
+its file and saved on confirmation. <code>ccc</code> prints the file it
+wrote.</li>
+</ol>
+<ul>
+<li>A step whose check fails shows the reason and lets the user change
+the answers or keep them.</li>
+<li>The form refuses a name an entry of the user already has. A name of
+a shipped entry is allowed and the form says that the new entry replaces
+the shipped one.</li>
+<li>Esc or Ctrl-C leaves the form without writing anything.</li>
+<li>When the input is not a terminal, <code>ccc add</code> without a
+path prints that the form needs a terminal and that an entry file can be
+written by hand, and exits with a non-zero status.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="sizes">Sizes</h2>
+<p>Sizes are shown in decimal units (<code>kB</code>, <code>MB</code>,
+<code>GB</code>), as the tools themselves print them.
+<strong>Assumed.</strong></p>
+</body>
+</html>

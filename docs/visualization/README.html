@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ccc — cute cache cleaner</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="ccc--cute-cache-cleaner">ccc — cute
+cache cleaner</h1>
+<p><code>ccc</code> shows how much disk space the caches of developer
+tools take on your machine, and cleans them. It knows each tool through
+a small text entry that says how to find the tool&#39;s cache, how to
+measure it and how to clean it — with the tool&#39;s own command where the
+tool has one.</p>
+<p>It runs on macOS and Linux.</p>
+<h2 class="unnumbered unlisted" id="build">Build</h2>
+<p>Go 1.26 or newer:</p>
+<pre><code>git clone &lt;this repository&gt;
+cd ccc
+go build -o ccc ./cmd/ccc
+</code></pre>
+<h2 class="unnumbered unlisted" id="use">Use</h2>
+<pre><code>ccc            show the places and their sizes; mark rows and clean them
+ccc check      the same
+ccc --clean    clean every cache place and every folder, without confirmation
+ccc -c         the same
+ccc add        add a tool through a form
+ccc add PATH   add a folder; --name NAME gives the entry another name
+ccc --help     show the usage
+</code></pre>
+<p>On the screen: arrows or <code>j</code>/<code>k</code> move, space
+marks a row, <code>a</code> marks every cache, Enter asks for
+confirmation and <code>y</code> cleans the marked rows, <code>q</code>
+quits.</p>
+<p>Installed toolchain versions are listed one row per version. They are
+never part of &quot;clean everything&quot;: a version is removed only when you
+mark its row.</p>
+<p><code>ccc check | cat</code> prints the rows as plain text and
+removes nothing.</p>
+<h2 class="unnumbered unlisted" id="what-it-knows">What it knows</h2>
+<p>The shipped entries are the files in <a href="../../registry"><code>registry/</code></a>: Cargo, Docker,
+Go, Homebrew, npm, NuGet, pip, pnpm, rustup, sccache, uv. An entry is
+shipped only after its detection and its space check were run on a
+machine that has the tool.</p>
+<p><code>ccc</code> does not walk your projects. A directory inside a
+project — a <code>node_modules</code>, a <code>.next</code>, a build
+output — is cleaned only when you added it with
+<code>ccc add PATH</code>.</p>
+<h2 class="unnumbered unlisted" id="your-own-entries">Your own entries</h2>
+<p>Your entries are TOML files in
+<code>$XDG_CONFIG_HOME/ccc/registry/</code>, or
+<code>~/.config/ccc/registry/</code> when that variable is not set.
+<code>ccc add</code> writes them for you; you can also write one by
+hand. A file with the name of a shipped entry replaces that entry.</p>
+<pre><code>kind = &quot;tool&quot;
+name = &quot;go&quot;
+executable = &quot;go&quot;
+
+[[places]]
+name = &quot;module cache&quot;
+holds = &quot;cache&quot;
+path.command = &quot;go env GOMODCACHE&quot;
+path.env = &quot;GOMODCACHE&quot;
+path.default.linux = &quot;~/go/pkg/mod&quot;
+measure.by = &quot;disk-usage&quot;
+clean.command = &quot;go clean -modcache&quot;
+</code></pre>
+<p>A place without <code>clean.command</code> is cleaned by removing its
+directory. Every key is described in <a href="spec/05-architecture.html#the-entry-file">docs/spec/05-architecture.md</a>.
+A file with a key <code>ccc</code> does not know is rejected with the
+reason, and the other entries still load.</p>
+<h2 class="unnumbered unlisted" id="what-it-will-not-remove">What it will not
+remove</h2>
+<p><code>ccc</code> refuses to remove the root, your home directory, a
+directory that contains it, a path fewer than two levels below the root,
+and a symbolic link. It never asks for administrator rights. Commands of
+an entry run directly, without a shell.</p>
+<h2 class="unnumbered unlisted" id="documents">Documents</h2>
+<p>The requirements, the architecture and the order of building are in
+<a href="spec/INDEX.html">docs/spec/INDEX.md</a>.</p>
+</body>
+</html>

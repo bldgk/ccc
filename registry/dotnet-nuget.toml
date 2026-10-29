@@ -1,0 +1,20 @@
+kind = "tool"
+name = "dotnet-nuget"
+executable = "dotnet"
+
+[[places]]
+name = "global packages"
+holds = "cache"
+path.env = "NUGET_PACKAGES"
+path.default.macos = "~/.nuget/packages"
+path.default.linux = "~/.nuget/packages"
+measure.by = "disk-usage"
+clean.command = "dotnet nuget locals global-packages --clear"
+
+[[places]]
+name = "http cache"
+holds = "cache"
+path.env = "NUGET_HTTP_CACHE_PATH"
+path.default.macos = "~/.local/share/NuGet/http-cache"
+measure.by = "disk-usage"
+clean.command = "dotnet nuget locals http-cache --clear"

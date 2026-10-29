@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Tool cache catalog: JVM, Android, Apple platforms, Flutter,
+.NET, Ruby, PHP, editors</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="tool-cache-catalog-jvm-android-apple-platforms-flutter-net-ruby-php-editors">Tool
+cache catalog: JVM, Android, Apple platforms, Flutter, .NET, Ruby, PHP,
+editors</h1>
+<p>Raw facts for the <code>ccc</code> registry contract. Sources are
+official documentation, plus read-only commands. Verification values per
+field: <code>official-docs</code>, <code>ran-command</code>,
+<code>unverified</code>. Where the official docs are silent (Xcode
+folders, Kotlin/Native, Android SDK subfolders, SwiftUI previews, VS
+Code cache folders, Metro, Carthage paths beyond the Carthage repo
+docs), the field is marked <code>unverified</code> and the secondary
+source is named. No clean/prune/delete command was executed. Tools
+covered: 24 (Gradle, Maven, sbt, Ivy, Coursier, Kotlin/Native, Android
+SDK, Android emulator AVDs, Android Gradle build cache, Xcode, iOS
+Simulator, CocoaPods, Carthage, SwiftPM, Flutter/Dart pub, React Native
+Metro, .NET NuGet, .NET workloads, RubyGems, Bundler, rbenv/RVM,
+Composer, JetBrains, VS Code).</p>
+<p>Cross-cutting observations:
+<code>dotnet nuget locals all --list</code> can print
+<code>http-cache: ~/.local/share/NuGet/http-cache</code>, whereas the
+NuGet docs say <code>.../v3-cache</code>; the command output is
+therefore the source of truth, not the doc default. The help text of
+<code>xcrun simctl delete</code>,
+<code>xcrun simctl runtime delete</code> and
+<code>swift package purge-cache</code> / <code>reset</code> was
+read.</p>
+<hr />
+<h2 class="unnumbered unlisted" id="gradle">Gradle</h2>
+<ul>
+<li><code>name</code>: Gradle; <code>ecosystem</code>: JVM</li>
+<li><code>detect</code>: <code>gradle</code> on PATH, or
+<code>./gradlew</code> in a project, or directory <code>~/.gradle</code>
+(or <code>$GRADLE_USER_HOME</code>) exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>Dependency cache</strong> <code>caches/modules-2</code>
+(downloaded POMs/JARs/metadata). discover: none native; resolve
+<code>${GRADLE_USER_HOME:-~/.gradle}</code>. Override: env
+<code>GRADLE_USER_HOME</code> (also <code>-g/--gradle-user-home</code>,
+not fetched, unverified). Default macOS/Linux:
+<code>~/.gradle/caches/modules-2</code>.</li>
+<li><strong>Other shared caches</strong> <code>caches/jars-9</code>,
+<code>caches/transforms-3</code>, per-version
+<code>caches/&lt;gradle-version&gt;/{generated-gradle-jars,kotlin-dsl,scripts}</code>
+(numeric suffixes change between Gradle versions: glob). Same default
+root.</li>
+<li><strong>Local build cache</strong> <code>caches/build-cache-1</code>
+(suffix versioned). Same root.</li>
+<li><strong>Wrapper distributions</strong> <code>wrapper/dists/</code>
+(one dir per downloaded Gradle version). Default
+<code>~/.gradle/wrapper/dists</code>.</li>
+<li><strong>Daemon registry and logs</strong>
+<code>daemon/&lt;gradle-version&gt;/daemon-&lt;pid&gt;.out.log</code>.
+Default <code>~/.gradle/daemon/</code>.</li>
+<li><strong>Toolchain JDKs</strong> <code>jdks/</code> (JDKs downloaded
+by toolchain provisioning). Default <code>~/.gradle/jdks</code>.</li>
+<li><strong>Per-project</strong>
+<code>&lt;project&gt;/.gradle/&lt;version&gt;</code> and
+<code>&lt;project&gt;/build</code> directories.</li>
+</ol></li>
+<li><code>scope</code>: items 1-6 <code>global</code>; item 7
+<code>per-project</code>, marker: sibling <code>settings.gradle</code> /
+<code>settings.gradle.kts</code> / <code>build.gradle(.kts)</code>.</li>
+<li><code>measure</code>: <code>du -sk</code> of each resolved
+subdirectory (no native usage command).</li>
+<li><code>clean</code>: no native full-wipe command. Gradle self-cleans:
+unused version caches removed after 30 days (release) / 7 days
+(snapshot), downloaded shared-cache files after 30 days, created ones
+after 7 days, daemon logs after 14 days, project
+<code>.gradle/&lt;ver&gt;</code> after 7 days; cleanup runs about once
+per 24h when the daemon stops. Retention is configurable via init script
+under <code>$GRADLE_USER_HOME/init.d</code>
+(<code>releasedWrappers</code>, <code>snapshotWrappers</code>,
+<code>downloadedResources</code>, <code>createdResources</code>,
+<code>buildCache</code>, <code>daemonLogs</code>; <code>cleanup</code> =
+DEFAULT/DISABLED/ALWAYS). Full wipe: <code>delete directory</code>,
+after <code>gradle --stop</code> (stops daemons of the same Gradle
+version only). Per-project: <code>gradle clean</code> (build/ only, not
+verified in fetched page).</li>
+<li><code>regenerable</code>: modules-2
+<code>yes-but-large-download</code>; transforms/jars/build-cache
+<code>yes-but-slow-rebuild</code>; wrapper/dists
+<code>yes-but-large-download</code> (re-downloaded on next
+<code>./gradlew</code>); daemon logs <code>yes</code> (logs are lost);
+jdks <code>yes-but-large-download</code>. Offline machines:
+<code>no</code> in effect.</li>
+<li><code>in_use_hazard</code>: deleting modules-2 or transforms during
+a build/daemon run corrupts the running build (file locks held by
+daemons); removing wrapper/dists/<ver> during a wrapper run breaks that
+run. Stop daemons first (<code>gradle --stop</code>; other-version
+daemons need OS kill).</ver></li>
+<li><code>sources</code>:
+https://docs.gradle.org/current/userguide/directory_layout.html ;
+https://docs.gradle.org/current/userguide/gradle_daemon.html ;
+https://docs.gradle.org/current/userguide/build_cache.html</li>
+<li><code>verification</code>: discover <code>unverified</code> (no
+discover command exists; env var is official-docs); default paths
+<code>official-docs</code>; clean (retention, <code>--stop</code>)
+<code>official-docs</code>; <code>delete directory</code> is
+inference.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="maven">Maven</h2>
+<ul>
+<li><code>name</code>: Maven local repository; <code>ecosystem</code>:
+JVM</li>
+<li><code>detect</code>: <code>mvn</code> on PATH or <code>~/.m2</code>
+exists.</li>
+<li><code>locations</code>: <strong>Local repository</strong>
+(downloaded artifacts and locally <code>install</code>ed artifacts).
+discover: none printing it directly; read
+<code>&lt;localRepository&gt;</code> in <code>~/.m2/settings.xml</code>,
+else default
+(<code>mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout</code>
+is commonly used, <code>unverified</code>). Override:
+<code>&lt;localRepository&gt;</code> in settings.xml (must be absolute);
+<code>-Dmaven.repo.local</code> (not confirmed on the fetched page,
+<code>unverified</code>). Default macOS/Linux:
+<code>~/.m2/repository</code>.</li>
+<li><code>scope</code>: <code>global</code>.</li>
+<li><code>measure</code>: <code>du -sk</code> of the path.</li>
+<li><code>clean</code>: no full-wipe command;
+<code>delete directory</code>. Prune variant native:
+<code>mvn dependency:purge-local-repository</code> (removes the current
+project&#39;s dependencies and re-resolves them by default;
+<code>-DreResolve=false</code> to only delete;
+<code>-DmanualInclude=g:a</code>; <code>-DsnapshotsOnly=true</code>;
+<code>-DresolutionFuzziness=file|version|artifactId|groupId</code>). It
+is project-scoped, not a whole-repo wipe.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>, BUT
+it also holds artifacts installed locally with <code>mvn install</code>
+that exist nowhere else and private-repo artifacts that may no longer be
+downloadable: partially <code>no — contains user data</code> (locally
+built artifacts under your own groupIds, deployed-nowhere
+SNAPSHOTs).</li>
+<li><code>in_use_hazard</code>: running Maven builds fail
+mid-resolution; IDE (IntelliJ/Eclipse) indexes referencing the repo go
+stale.</li>
+<li><code>sources</code>:
+https://maven.apache.org/guides/mini/guide-configuring-maven.html ;
+https://maven.apache.org/plugins/maven-dependency-plugin/purge-local-repository-mojo.html</li>
+<li><code>verification</code>: discover <code>unverified</code>; default
+path <code>official-docs</code>; clean <code>official-docs</code> (purge
+goal), delete-directory inference.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="sbt">sbt</h2>
+<ul>
+<li><code>name</code>: sbt; <code>ecosystem</code>: JVM/Scala</li>
+<li><code>detect</code>: <code>sbt</code> on PATH or <code>~/.sbt</code>
+exists; per-project marker <code>build.sbt</code> /
+<code>project/build.properties</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>Global dir</strong> <code>~/.sbt</code> (contains
+<code>1.0/global.sbt</code>, <code>1.0/plugins/</code>, plus boot dir
+<code>~/.sbt/boot</code> holding downloaded sbt/Scala launchers, boot
+path from memory so <code>unverified</code>). Overrides
+<code>sbt.global.base</code>, <code>sbt.boot.directory</code> (property
+names <code>unverified</code>; not on the fetched page). Default
+<code>~/.sbt</code> on both OSes.</li>
+<li><strong>Dependency resolution</strong> is done by Coursier in sbt
+1.3+, see Coursier; legacy Ivy cache see Ivy.</li>
+<li><strong>Per-project</strong> <code>target/</code> and
+<code>project/target</code>, <code>project/project</code>.</li>
+</ol></li>
+<li><code>scope</code>: 1 global; 3 per-project (marker
+<code>build.sbt</code>).</li>
+<li><code>measure</code>: <code>du -sk</code>; in sbt
+<code>show csrCacheDirectory</code> prints the Coursier cache
+(official-docs).</li>
+<li><code>clean</code>: <code>sbt clean</code> (project
+<code>target/</code>); no native global wipe:
+<code>delete directory</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (boot
+dir re-downloaded). <code>~/.sbt/1.0/global.sbt</code> and
+<code>plugins/</code> are user configuration:
+<code>no — contains user data</code> and must not be deleted.</li>
+<li><code>in_use_hazard</code>: a running sbt server/shell holds
+<code>~/.sbt/boot</code> and <code>target</code> locks.</li>
+<li><code>sources</code>:
+https://www.scala-sbt.org/1.x/docs/Global-Settings.html</li>
+<li><code>verification</code>: discover <code>official-docs</code>
+(<code>show csrCacheDirectory</code>, from the Coursier page); default
+paths: <code>~/.sbt/1.0</code> <code>official-docs</code>, boot dir
+<code>unverified</code>; clean <code>unverified</code> for
+<code>sbt clean</code> (standard, not fetched).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ivy">Ivy</h2>
+<ul>
+<li><code>name</code>: Ivy cache (legacy, sbt &lt; 1.3 and Ant/Ivy
+builds); <code>ecosystem</code>: JVM</li>
+<li><code>detect</code>: <code>~/.ivy2</code> exists.</li>
+<li><code>locations</code>: <code>~/.ivy2/cache</code> (downloaded
+artifacts), <code>~/.ivy2/local</code> (locally published artifacts via
+<code>publishLocal</code>). Override: <code>sbt.ivy.home</code> /
+<code>-Divy.home</code> (names <code>unverified</code>). Default
+<code>~/.ivy2</code> on both OSes.</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk ~/.ivy2/cache</code>.</li>
+<li><code>clean</code>: <code>delete directory</code> for
+<code>cache/</code> only.</li>
+<li><code>regenerable</code>: <code>cache/</code>
+<code>yes-but-large-download</code>; <code>local/</code>
+<code>no — contains user data</code> (artifacts published with
+<code>publishLocal</code> exist only there).</li>
+<li><code>in_use_hazard</code>: running sbt/Ivy builds fail
+resolution.</li>
+<li><code>sources</code>: none found in official docs fetched (the sbt
+Global-Settings page does not mention Ivy home).</li>
+<li><code>verification</code>: discover <code>unverified</code>; default
+paths <code>unverified</code>; clean <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="coursier">Coursier</h2>
+<ul>
+<li><code>name</code>: Coursier (<code>cs</code>);
+<code>ecosystem</code>: JVM</li>
+<li><code>detect</code>: <code>cs</code> or <code>coursier</code> on
+PATH, or cache dir exists.</li>
+<li><code>locations</code>: <strong>Artifact cache</strong>
+<code>.../v1</code>. discover: inside sbt
+<code>show csrCacheDirectory</code>; no standalone CLI command
+documented. Override precedence: CLI <code>--cache</code>, sbt
+<code>coursierCache</code>, env <code>COURSIER_CACHE</code>, Java
+property <code>coursier.cache</code>; sbt also
+<code>-Dsbt.coursier.home</code>. Default macOS:
+<code>~/Library/Caches/Coursier/v1</code>; Linux:
+<code>~/.cache/coursier/v1</code>. Former location
+<code>~/.coursier/cache/v1</code> may still exist on older installs.
+JVM/launcher caches under the same root (<code>jvm/</code> subfolder)
+are from memory, <code>unverified</code>.</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code>.</li>
+<li><code>clean</code>: not documented;
+<code>delete directory</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>.</li>
+<li><code>in_use_hazard</code>: running sbt/mill/scala-cli resolution
+fails or re-downloads.</li>
+<li><code>sources</code>: https://get-coursier.io/docs/cache</li>
+<li><code>verification</code>: discover <code>official-docs</code> (sbt
+only); default paths <code>official-docs</code>; clean
+<code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="kotlinnative-konan">Kotlin/Native
+(<code>~/.konan</code>)</h2>
+<ul>
+<li><code>name</code>: Kotlin/Native data dir; <code>ecosystem</code>:
+JVM/Kotlin</li>
+<li><code>detect</code>: <code>~/.konan</code> exists.</li>
+<li><code>locations</code>: <code>$KONAN_DATA_DIR</code> (default
+<code>~/.konan</code>) holding <code>dependencies/</code> (LLVM and
+sysroot toolchains downloaded from JetBrains CDN),
+<code>kotlin-native-prebuilt-&lt;os&gt;-&lt;arch&gt;-&lt;version&gt;/</code>
+compilers (one per Kotlin version: glob), and <code>cache/</code>
+(compiler caches). Subdir names from search results of Kotlin
+discussion/HACKING.md, not the official docs. Default macOS/Linux:
+<code>~/.konan</code>. One user report says the env var is not honored
+in some Gradle setups.</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code>.</li>
+<li><code>clean</code>: <code>delete directory</code> (per-version
+compiler dirs can be deleted individually).</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>
+(multi-GB toolchains).</li>
+<li><code>in_use_hazard</code>: Gradle builds of native targets fail if
+toolchain removed mid-build.</li>
+<li><code>sources</code>:
+https://kotlinlang.org/docs/native-get-started.html (confirms CDN
+download of <code>konanc</code> dependencies but gives no path); search
+result
+https://discuss.kotlinlang.org/t/change-konan-folder-location/18309</li>
+<li><code>verification</code>: discover <code>unverified</code>; default
+paths <code>unverified</code>; clean <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="kotlin-daemon">Kotlin
+daemon</h2>
+<ul>
+<li><code>name</code>: Kotlin compile daemon; <code>ecosystem</code>:
+JVM</li>
+<li>Decision: no persistent cache of its own that was verifiable.
+Logs/runfiles go to a temp dir (<code>/tmp</code> or
+<code>java.io.tmpdir</code>), from memory, <code>unverified</code>.
+Treat as dropped from the registry; Gradle <code>--stop</code> handles
+the daemon process. <code>verification</code>: all
+<code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="android-sdk">Android
+SDK</h2>
+<ul>
+<li><code>name</code>: Android SDK; <code>ecosystem</code>: Android</li>
+<li><code>detect</code>: <code>sdkmanager</code> or <code>adb</code> on
+PATH, or <code>$ANDROID_HOME</code> exists, or
+<code>~/Library/Android/sdk</code> exists (macOS).</li>
+<li><code>locations</code> (all under the SDK root):
+<code>system-images/android-&lt;api&gt;/&lt;tag&gt;/&lt;abi&gt;</code>,
+<code>build-tools/&lt;version&gt;</code>,
+<code>platforms/android-&lt;api&gt;</code>,
+<code>ndk/&lt;version&gt;</code>, <code>platform-tools</code>,
+<code>emulator</code>, <code>cmdline-tools</code>. discover: env
+<code>ANDROID_HOME</code> (<code>ANDROID_SDK_ROOT</code> deprecated);
+<code>sdkmanager --list</code> (with
+<code>--sdk_root=&lt;path&gt;</code>) lists installed and available.
+Default: macOS <code>~/Library/Android/sdk</code> (docs show it only as
+an example); Linux <code>~/Android/Sdk</code> (Android Studio default,
+<code>unverified</code>).</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code> per subdirectory (<code>sdkmanager --list</code>
+shows packages but no sizes).</li>
+<li><code>clean</code>: native uninstall:
+<code>sdkmanager --uninstall &quot;&lt;sdk-path&gt;&quot;</code> e.g.
+<code>&quot;system-images;android-34;google_apis;arm64-v8a&quot;</code> (syntax
+official; the sample package id is illustrative).
+<code>sdkmanager</code> is marked deprecated in favor of
+<code>android sdk remove</code>. No full wipe.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>; but
+older <code>platforms</code>/<code>build-tools</code> may be pinned by
+projects (builds then try to auto-download).</li>
+<li><code>in_use_hazard</code>: Android Studio / Gradle builds and
+running emulators using the component.</li>
+<li><code>sources</code>: https://developer.android.com/tools/sdkmanager
+; https://developer.android.com/tools/variables</li>
+<li><code>verification</code>: discover <code>official-docs</code>;
+default path macOS <code>official-docs</code> (example only), Linux
+<code>unverified</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="android-emulator-avds">Android
+emulator AVDs</h2>
+<ul>
+<li><code>name</code>: Android Virtual Devices; <code>ecosystem</code>:
+Android</li>
+<li><code>detect</code>: <code>avdmanager</code> / <code>emulator</code>
+on PATH, or <code>~/.android/avd</code> exists.</li>
+<li><code>locations</code>: <code>$ANDROID_AVD_HOME</code> else
+<code>$ANDROID_USER_HOME/avd</code> else <code>$HOME/.android/avd</code>
+(lookup order official). <code>*.avd/</code> directories with
+<code>userdata-qemu.img</code>, <code>sdcard.img</code>, snapshots, plus
+<code>*.ini</code> files next to them. discover:
+<code>avdmanager list avd</code> (official; prints path per AVD).
+Default macOS/Linux <code>~/.android/avd</code>.
+<code>ANDROID_USER_HOME</code> defaults to
+<code>$HOME/.android</code>.</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code> per <code>*.avd</code>.</li>
+<li><code>clean</code>:
+<code>avdmanager delete avd -n &lt;name&gt;</code> (official;
+<code>avdmanager</code> tagged deprecated in favor of Android CLI
+<code>android emulator remove</code>). Deleting the directory alone
+leaves the <code>&lt;name&gt;.ini</code> pointer behind.</li>
+<li><code>regenerable</code>: <code>no — contains user data</code>:
+installed apps, app data, account state, saved snapshots. The AVD
+configuration can be recreated; the data cannot.</li>
+<li><code>in_use_hazard</code>: running emulator holds the image locks
+(<code>*.lock</code> dirs); deleting corrupts a running emulator.</li>
+<li><code>sources</code>:
+https://developer.android.com/studio/command-line/avdmanager ;
+https://developer.android.com/tools/variables</li>
+<li><code>verification</code>: discover <code>official-docs</code>;
+default paths <code>official-docs</code>; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="android-gradle-build-cache">Android
+Gradle build cache</h2>
+<ul>
+<li><code>name</code>: Android Gradle plugin build cache;
+<code>ecosystem</code>: Android</li>
+<li>Decision: the legacy plugin cache
+<code>~/.android/build-cache</code> was replaced by the Gradle build
+cache (<code>caches/build-cache-1</code>), see Gradle. The official page
+returned 404 so this is <code>unverified</code>; treat as part of the
+Gradle entry. Also <code>~/.android/cache</code> (SDK manager download
+cache, <code>unverified</code>) is regenerable.</li>
+<li><code>verification</code>: all <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="xcode">Xcode</h2>
+<ul>
+<li><code>name</code>: Xcode; <code>ecosystem</code>: Apple</li>
+<li><code>detect</code>: <code>xcode-select -p</code> prints a path
+(e.g. <code>/Applications/Xcode.app/Contents/Developer</code>,
+<code>ran-command</code>) or <code>/Applications/Xcode.app</code>
+exists. macOS only.</li>
+<li><code>locations</code> (macOS only; none exist on Linux):
+<ol>
+<li><strong>DerivedData</strong>
+<code>~/Library/Developer/Xcode/DerivedData</code> (per-project dirs
+<code>&lt;ProjectName&gt;-&lt;hash&gt;</code>; also
+<code>ModuleCache.noindex</code>, <code>CompilationCache.noindex</code>
+inside it, <code>ran-command</code>). Relocatable in Xcode Settings &gt;
+Locations; the actual configured path is stored in the Xcode defaults
+(key <code>IDECustomDerivedDataLocation</code>,
+<code>unverified</code>). discover: none native.</li>
+<li><strong>Archives</strong>
+<code>~/Library/Developer/Xcode/Archives/&lt;date&gt;/*.xcarchive</code>.</li>
+<li><strong>iOS DeviceSupport</strong>
+<code>~/Library/Developer/Xcode/iOS DeviceSupport/&lt;version (build)&gt;</code>
+(symbols copied from physical devices); also
+<code>watchOS DeviceSupport</code>, <code>tvOS DeviceSupport</code>,
+<code>iOS Device Logs</code> (names from Apple Developer Forums,
+<code>unverified</code>).</li>
+<li><strong>SwiftUI previews / UserData</strong>
+<code>~/Library/Developer/Xcode/UserData</code> (contains
+<code>Previews</code>, <code>Provisioning Profiles</code>,
+<code>CodeSnippets</code>, <code>KeyBindings</code>, ... from memory,
+<code>unverified</code>). Preview simulators live in CoreSimulator (see
+iOS Simulator).</li>
+<li><strong>Module cache</strong> is inside DerivedData
+(<code>ModuleCache.noindex</code>); older
+<code>~/Library/Caches/com.apple.dt.Xcode*</code> and
+<code>com.apple.dt.xcodebuild</code> are caches.</li>
+<li><strong>XCTestDevices</strong>
+<code>~/Library/Developer/XCTestDevices</code> and
+<strong>DVTDownloads</strong>
+<code>~/Library/Developer/DVTDownloads</code>.</li>
+</ol></li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code> per directory; DerivedData per-project subdirs
+individually.</li>
+<li><code>clean</code>: no native wipe. <code>xcodebuild clean</code>
+cleans a project&#39;s build products, not the directory. Delete directory
+(per-project subdirectory in DerivedData preferred).</li>
+<li><code>regenerable</code>: DerivedData
+<code>yes-but-slow-rebuild</code> (reindexing included); module cache
+<code>yes</code>; DeviceSupport <code>yes-but-large-download</code>
+(re-copied from device on next connect; needs the device); Archives
+<code>no — contains user data</code>: release builds and dSYMs needed to
+symbolicate crash reports, Apple says to retain the archive of every
+distributed build; UserData <code>no — contains user data</code>
+(snippets, key bindings, provisioning profiles).</li>
+<li><code>in_use_hazard</code>: Xcode and <code>xcodebuild</code>
+running: deleting DerivedData while building produces cryptic errors and
+loses indexes; Xcode must be quit first.</li>
+<li><code>sources</code>: no official Apple documentation page found for
+these folders; secondary:
+https://developer.apple.com/forums/thread/768385 (DeviceSupport), web
+search results about Archives/dSYM retention.</li>
+<li><code>verification</code>: discover <code>ran-command</code> for
+<code>xcode-select -p</code>; default paths DerivedData
+<code>ran-command</code> (contents verified), DeviceSupport/Archives
+<code>unverified</code>, clean <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ios-simulator">iOS
+Simulator</h2>
+<ul>
+<li><code>name</code>: iOS Simulator (CoreSimulator);
+<code>ecosystem</code>: Apple</li>
+<li><code>detect</code>: <code>xcrun simctl</code> works
+(<code>ran-command</code>).</li>
+<li><code>locations</code> (macOS only):
+<ol>
+<li><strong>Devices</strong>
+<code>~/Library/Developer/CoreSimulator/Devices/&lt;UUID&gt;/</code>
+(each holds <code>device.plist</code> and <code>data/</code> with
+installed app containers and user data). Also
+<code>~/Library/Developer/CoreSimulator/Caches</code>. discover:
+<code>xcrun simctl list devices</code> (<code>ran-command</code>).</li>
+<li><strong>Runtimes</strong> on recent macOS: stored as disk images,
+under <code>/Library/Developer/CoreSimulator/</code>
+(<code>Images/</code>, <code>Volumes/</code>, <code>Cryptex/</code>,
+<code>Profiles/</code>, <code>Caches/</code>, <code>ran-command</code>
+listing). <code>xcrun simctl runtime list</code> prints them (output not
+run).</li>
+<li>Older runtimes as bundles under
+<code>/Library/Developer/CoreSimulator/Profiles/Runtimes/*.simruntime</code>
+(from memory, <code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code> on Devices; for runtimes
+<code>xcrun simctl runtime list</code> (reports sizes in recent Xcode,
+<code>unverified</code>) or <code>du</code> of
+<code>/Library/Developer/CoreSimulator/Images</code> and
+<code>Volumes</code>.</li>
+<li><code>clean</code> (all read from help text,
+<code>ran-command</code>):
+<ul>
+<li><code>xcrun simctl delete unavailable</code> deletes devices not
+supported by the current Xcode SDK (usage line:
+<code>simctl delete &lt;device&gt; [...] | unavailable | all</code>).</li>
+<li><code>xcrun simctl delete all</code> deletes every device (destroys
+data).</li>
+<li><code>xcrun simctl erase &lt;device|all&gt;</code> resets a device
+to factory state.</li>
+<li><code>xcrun simctl runtime delete &lt;identifier&gt;</code> deletes
+a runtime; <code>--notUsedSinceDays &lt;days&gt;</code> (alias
+<code>-d</code>) deletes runtimes unused for N days;
+<code>--dry-run</code> / <code>-n</code> prints what would be deleted;
+<code>--keep-asset</code> / <code>-k</code>; alias <code>all</code>
+deletes all images. Shuts down booted simulators on the runtime. May
+need to run as the user who owns the runtime; sudo not stated in
+help.</li>
+</ul></li>
+<li><code>regenerable</code>: runtimes
+<code>yes-but-large-download</code> (several GB each); devices
+<code>no — contains user data</code>: apps installed in the simulator
+and their data (databases, keychain, test accounts);
+<code>delete unavailable</code> only touches devices of runtimes no
+longer present, but those are still user data.</li>
+<li><code>in_use_hazard</code>: booted simulators; Xcode running
+tests/previews; <code>runtime delete</code> shuts down booted
+devices.</li>
+<li><code>sources</code>: no Apple web page fetched; the commands&#39; own
+<code>help</code> output was used.</li>
+<li><code>verification</code>: discover <code>ran-command</code>
+(<code>list</code> exists; <code>xcrun simctl help delete</code> and
+<code>runtime help</code> read); default paths <code>ran-command</code>
+for <code>~/Library/Developer/CoreSimulator</code> and
+<code>/Library/Developer/CoreSimulator</code>; clean
+<code>ran-command</code> (help text only, never executed).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="cocoapods">CocoaPods</h2>
+<ul>
+<li><code>name</code>: CocoaPods; <code>ecosystem</code>: Apple</li>
+<li><code>detect</code>: <code>pod</code> on PATH or
+<code>~/.cocoapods</code> / <code>~/Library/Caches/CocoaPods</code>
+exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>Pod cache</strong> <code>~/Library/Caches/CocoaPods</code>
+(downloaded pod sources/specs). Override: env <code>CP_HOME_DIR</code>
+moves both caches and repos. discover: <code>pod cache list</code>
+(shows tree; <code>--short</code> prints relative paths). macOS default
+<code>~/Library/Caches/CocoaPods</code>; Linux
+<code>~/.cache/CocoaPods</code> (<code>unverified</code>).</li>
+<li><strong>Spec repos</strong> <code>~/.cocoapods/repos</code> (git
+clones of specs; the CDN <code>trunk</code> is lightweight; legacy
+<code>master</code> clone is multi-GB). discover:
+<code>pod repo list</code>.</li>
+<li><strong>Per-project</strong> <code>Pods/</code> directory next to
+<code>Podfile</code> (checked-in or not by choice),
+<code>Podfile.lock</code> (never delete).</li>
+</ol></li>
+<li><code>scope</code>: 1-2 <code>global</code>; 3
+<code>per-project</code>, marker sibling <code>Podfile</code>.</li>
+<li><code>measure</code>: <code>du -sk</code>;
+<code>pod cache list</code> for contents;
+<code>pod repo list --count-only</code> counts repos only.</li>
+<li><code>clean</code>: <code>pod cache clean --all</code> (removes all
+cached pods without asking); <code>pod cache clean &lt;NAME&gt;</code>
+for one pod (interactive when several versions);
+<code>pod repo remove &lt;NAME&gt;</code> deletes a spec repo;
+<code>pod repo update</code> refreshes. Per-project:
+<code>rm -rf Pods</code> then <code>pod install</code>.</li>
+<li><code>regenerable</code>: cache <code>yes-but-large-download</code>;
+spec repos <code>yes-but-large-download</code>; <code>Pods/</code>
+<code>yes</code> (needs <code>pod install</code> and network);
+<code>Podfile.lock</code> <code>no — contains user data</code> (pinned
+versions).</li>
+<li><code>in_use_hazard</code>: running <code>pod install</code>; Xcode
+open on a workspace referencing <code>Pods/</code>.</li>
+<li><code>sources</code>:
+https://guides.cocoapods.org/terminal/commands.html ;
+https://guides.cocoapods.org/using/faq.html</li>
+<li><code>verification</code>: discover <code>official-docs</code>;
+default paths <code>official-docs</code> (macOS), Linux
+<code>unverified</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="carthage">Carthage</h2>
+<ul>
+<li><code>name</code>: Carthage; <code>ecosystem</code>: Apple</li>
+<li><code>detect</code>: <code>carthage</code> on PATH or
+<code>~/Library/Caches/org.carthage.CarthageKit</code> exists.</li>
+<li><code>locations</code>: global
+<code>~/Library/Caches/org.carthage.CarthageKit</code> (bare git repos
+and downloaded binaries; safe to delete whole dir or any subfolder,
+repopulated by next <code>carthage checkout</code>); per-project
+<code>Carthage/Checkouts</code> and <code>Carthage/Build</code>. macOS
+only. No override documented.</li>
+<li><code>scope</code>: global + per-project (marker: sibling
+<code>Cartfile</code> / <code>Cartfile.resolved</code>).</li>
+<li><code>measure</code>: <code>du -sk</code>. <code>clean</code>:
+<code>delete directory</code> (no native command).</li>
+<li><code>regenerable</code>: global cache
+<code>yes-but-large-download</code>; <code>Carthage/Build</code>
+<code>yes-but-slow-rebuild</code>; <code>Carthage/Checkouts</code>
+<code>yes</code> unless it uses git submodules (then it holds the user&#39;s
+submodule state).</li>
+<li><code>in_use_hazard</code>: running <code>carthage</code>
+operations.</li>
+<li><code>sources</code>:
+https://github.com/Carthage/Carthage/blob/master/Documentation/Artifacts.md</li>
+<li><code>verification</code>: discover <code>unverified</code>; default
+paths <code>official-docs</code>; clean <code>official-docs</code>
+(manual delete stated).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="swift-package-manager">Swift
+Package Manager</h2>
+<ul>
+<li><code>name</code>: SwiftPM; <code>ecosystem</code>: Apple/Swift
+(also Linux)</li>
+<li><code>detect</code>: <code>swift</code> on PATH.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>Global cache</strong> macOS
+<code>~/Library/Caches/org.swift.swiftpm</code>
+(<code>ran-command</code>: contains <code>artifacts/</code>,
+<code>manifests/</code>, <code>repositories/</code>); Linux
+<code>~/.cache/org.swift.swiftpm</code> (<code>unverified</code>).
+Override: <code>swift package --cache-path &lt;path&gt;</code> (listed
+in help).</li>
+<li><strong>Global config/security</strong> macOS
+<code>~/Library/org.swift.swiftpm</code> (<code>ran-command</code>:
+<code>configuration/</code>, <code>security/</code>,
+<code>collections.json</code>, <code>fingerprints/</code>); Linux
+<code>~/.swiftpm</code> (<code>unverified</code>). Configuration and
+security data is user settings, not cache.</li>
+<li><strong>Per-project</strong> <code>.build</code> (default scratch
+path per help, <code>--scratch-path</code>), also <code>.swiftpm/</code>
+and <code>Package.resolved</code> in project.</li>
+</ol></li>
+<li><code>scope</code>: 1-2 <code>global</code>; 3
+<code>per-project</code>, marker: sibling
+<code>Package.swift</code>.</li>
+<li><code>measure</code>: <code>du -sk</code>.</li>
+<li><code>clean</code> (read from <code>swift package --help</code>,
+<code>ran-command</code>): <code>swift package purge-cache</code>
+(&quot;Purge the global repository cache&quot;); <code>swift package reset</code>
+(&quot;Reset the complete cache/build directory&quot;);
+<code>swift package clean</code> (clears build artifacts, name from help
+list not fully read). Xcode&#39;s File &gt; Packages &gt; Reset Package
+Caches is the GUI equivalent.</li>
+<li><code>regenerable</code>: caches
+<code>yes-but-large-download</code>; <code>.build</code>
+<code>yes-but-slow-rebuild</code>; <code>Package.resolved</code>
+<code>no — contains user data</code> (pinned versions);
+<code>~/Library/org.swift.swiftpm/configuration|security</code>
+<code>no</code> (user settings, trust fingerprints).</li>
+<li><code>in_use_hazard</code>: running <code>swift build</code>/Xcode
+resolving packages; Xcode keeps its own package checkouts inside
+DerivedData (<code>SourcePackages</code>, <code>unverified</code>).</li>
+<li><code>sources</code>: <code>swift package --help</code>. Official
+repo docs fetch returned 404; secondary: Swift forums pitch giving
+<code>~/Library/Caches/org.swift.swiftpm</code>.</li>
+<li><code>verification</code>: discover <code>unverified</code> (no
+discover command; <code>--cache-path</code> only sets); default paths
+macOS <code>ran-command</code>, Linux <code>unverified</code>; clean
+<code>ran-command</code> (help text).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="flutter--dart-pub-cache">Flutter
+/ Dart pub cache</h2>
+<ul>
+<li><code>name</code>: Dart pub cache; <code>ecosystem</code>:
+Flutter/Dart</li>
+<li><code>detect</code>: <code>flutter</code> or <code>dart</code> on
+PATH, or <code>~/.pub-cache</code> exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>Pub cache</strong> <code>hosted/</code>, <code>git/</code>,
+<code>bin/</code> (activated global tool launchers),
+<code>global_packages/</code>. Override env <code>PUB_CACHE</code>.
+Default macOS/Linux <code>$HOME/.pub-cache</code> (official); Windows
+<code>%LOCALAPPDATA%\Pub\Cache</code>.</li>
+<li><strong>Flutter SDK cache</strong>
+<code>&lt;flutter-sdk&gt;/bin/cache</code> (engine artifacts; populated
+by <code>flutter precache</code>) (<code>unverified</code> path).</li>
+<li><strong>Per-project</strong> <code>build/</code> and
+<code>.dart_tool/</code>, marker sibling <code>pubspec.yaml</code>.</li>
+</ol></li>
+<li><code>scope</code>: 1-2 <code>global</code>; 3
+<code>per-project</code>.</li>
+<li><code>measure</code>: <code>du -sk</code>. discover: none documented
+printing it (resolve <code>$PUB_CACHE</code> else
+<code>$HOME/.pub-cache</code>).</li>
+<li><code>clean</code>: <code>dart pub cache clean</code> (or
+<code>flutter pub cache clean</code>): &quot;empty the entire system cache&quot;
+(since Dart 2.14; official; the <code>--force</code> flag is
+<code>unverified</code>, may prompt); <code>dart pub cache repair</code>
+re-downloads all packages; <code>flutter clean</code> deletes
+<code>build/</code> and <code>.dart_tool/</code> (official).
+<code>dart pub cache gc</code> appears in search/general knowledge only:
+<code>unverified</code>.</li>
+<li><code>regenerable</code>: <code>hosted/</code>
+<code>yes-but-large-download</code>; but <code>pub cache clean</code>
+also removes <code>bin/</code> and <code>global_packages/</code> i.e.
+globally activated tools (<code>dart pub global activate</code>), which
+need re-activation: partial <code>no</code> (the activation list is
+lost). <code>git/</code> deps <code>yes</code> unless repository
+gone.</li>
+<li><code>in_use_hazard</code>: running
+<code>dart</code>/<code>flutter</code> commands, analysis server (IDE)
+may break until <code>pub get</code>.</li>
+<li><code>sources</code>: https://dart.dev/tools/pub/cmd/pub-cache ;
+https://dart.dev/tools/pub/environment-variables ;
+https://docs.flutter.dev/reference/flutter-cli</li>
+<li><code>verification</code>: discover <code>unverified</code>; default
+paths <code>official-docs</code>; clean <code>official-docs</code>
+(clean, repair, flutter clean), <code>gc</code> and <code>--force</code>
+<code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="react-native-metro">React
+Native Metro</h2>
+<ul>
+<li><code>name</code>: Metro bundler cache; <code>ecosystem</code>:
+React Native/JS</li>
+<li><code>detect</code>: <code>package.json</code> containing
+<code>react-native</code> and <code>metro.config.js</code>.</li>
+<li><code>locations</code>: Metro&#39;s file cache store
+(<code>FileStore</code>) under <code>os.tmpdir()</code> e.g.
+<code>$TMPDIR/metro-cache</code> on macOS (in docs only as an example
+<code>root</code>, not stated as default: <code>unverified</code>). Also
+<code>$TMPDIR/haste-map-*</code> and
+<code>$TMPDIR/react-native-packager-cache-*</code> (older versions, from
+memory). Also <code>&lt;project&gt;/node_modules/.cache</code>.
+Per-project config <code>cacheStores</code> can redirect.</li>
+<li><code>scope</code>: <code>global</code> (in temp dir) but tied to
+project through config.</li>
+<li><code>measure</code>: <code>du -sk</code> of temp dir matches
+(<code>metro-cache</code>, <code>haste-map-*</code>).</li>
+<li><code>clean</code>:
+<code>npx react-native start --reset-cache</code> /
+<code>npx expo start --clear</code> (reset on next start; flag names
+from memory <code>unverified</code>; Metro&#39;s own docs did not mention
+<code>resetCache</code>). Otherwise delete directory.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code>.</li>
+<li><code>in_use_hazard</code>: running Metro dev server (cache dir
+rewritten).</li>
+<li><code>sources</code>: https://metrobundler.dev/docs/caching/
+(example config only)</li>
+<li><code>verification</code>: discover <code>unverified</code>; default
+paths <code>unverified</code>; clean <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="net-nuget">.NET
+NuGet</h2>
+<ul>
+<li><code>name</code>: NuGet locals; <code>ecosystem</code>: .NET</li>
+<li><code>detect</code>: <code>dotnet</code> (or <code>nuget</code>) on
+PATH; directory <code>~/.nuget</code> exists.</li>
+<li><code>locations</code> (macOS/Linux; each independent):
+<ol>
+<li><strong>global-packages</strong> (expanded packages used directly by
+PackageReference restores). Override env <code>NUGET_PACKAGES</code>,
+config <code>globalPackagesFolder</code>, MSBuild
+<code>RestorePackagesPath</code>. Default
+<code>~/.nuget/packages</code>.</li>
+<li><strong>http-cache</strong> (feed responses, 30-minute expiry).
+Override <code>NUGET_HTTP_CACHE_PATH</code>. Default per docs
+<code>~/.local/share/NuGet/v3-cache</code>, but the actual value on some
+SDK versions is <code>~/.local/share/NuGet/http-cache</code>
+(<code>ran-command</code>).</li>
+<li><strong>temp</strong> (also inter-process lock coordination).
+Override <code>NUGET_SCRATCH</code>. Default macOS
+<code>$TMPDIR/NuGetScratch</code> (observed
+<code>/var/folders/.../T/NuGetScratch</code>); Linux
+<code>/tmp/NuGetScratch&lt;username&gt;</code>.</li>
+<li><strong>plugins-cache</strong> (NuGet 4.8+). Override
+<code>NUGET_PLUGINS_CACHE_PATH</code>. Default
+<code>~/.local/share/NuGet/plugins-cache</code> (macOS and Linux).</li>
+</ol></li>
+<li><code>discover</code>: <code>dotnet nuget locals all --list</code>
+(or one of <code>http-cache|global-packages|temp|plugins-cache</code>
+instead of <code>all</code>); <code>ran-command</code> output:
+<code>http-cache: ...</code>, <code>global-packages: ...</code>,
+<code>temp: ...</code>, <code>plugins-cache: ...</code>. Note some SDK
+versions prefix lines with <code>info :</code>.</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code> of each discovered path.</li>
+<li><code>clean</code>: <code>dotnet nuget locals all --clear</code> or
+per location:
+<code>dotnet nuget locals {http-cache|global-packages|temp|plugins-cache} --clear</code>.
+No native &quot;prune unused&quot; (NuGet GitHub issue 4980 open). Notes: after
+clearing global-packages every project must restore again; locks fail if
+VS or a build holds files.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>
+(global-packages); http-cache and plugins-cache <code>yes</code>; temp
+<code>yes</code>. Local feeds / <code>packages.config</code> offline
+packages may be unrecoverable: <code>no</code> for packages that exist
+only from a local source feed.</li>
+<li><code>in_use_hazard</code>: running restore/build/IDE gives &quot;file in
+use&quot; errors, and parallel clearing can break a concurrent restore.</li>
+<li><code>sources</code>:
+https://learn.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders</li>
+<li><code>verification</code>: discover <code>ran-command</code>;
+default paths <code>official-docs</code> + <code>ran-command</code>
+(mismatch noted for http-cache); clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="net-workloads">.NET
+workloads</h2>
+<ul>
+<li><code>name</code>: .NET SDK workloads; <code>ecosystem</code>:
+.NET</li>
+<li><code>locations</code>: workload packs under the dotnet root
+<code>packs/</code>, <code>sdk-manifests/</code>,
+<code>metadata/workloads/</code>, <code>template-packs/</code> (from
+memory; dotnet root on macOS typically
+<code>/usr/local/share/dotnet</code> or
+<code>/opt/homebrew/...</code>).</li>
+<li><code>discover</code>: <code>dotnet --info</code> (root) and
+<code>dotnet workload list</code> (<code>unverified</code>: not
+fetched).</li>
+<li><code>clean</code>: <code>dotnet workload clean</code> (removes all
+workload packs, <code>unverified</code>; may need <code>sudo</code> when
+dotnet is installed system-wide).
+<code>dotnet workload uninstall &lt;id&gt;</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>.</li>
+<li><code>in_use_hazard</code>: Visual Studio for Mac / MAUI/iOS builds
+in progress.</li>
+<li><code>verification</code>: all <code>unverified</code> (no workload
+doc fetched).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="rubygems">RubyGems</h2>
+<ul>
+<li><code>name</code>: RubyGems; <code>ecosystem</code>: Ruby</li>
+<li><code>detect</code>: <code>gem</code> on PATH.</li>
+<li><code>locations</code>: <strong>Gem install dir</strong> (installed
+gems, <code>cache/*.gem</code> files, docs); discover:
+<code>gem env gemdir</code> (alias for
+<code>gem environment home</code>) and <code>gem env gempath</code>
+(official); <code>ran-command</code> (e.g. macOS system Ruby:
+<code>/Library/Ruby/Gems/2.6.0</code> and user dir
+<code>~/.gem/ruby/2.6.0</code>). Override env <code>GEM_HOME</code>,
+<code>GEM_PATH</code>. Defaults vary by Ruby manager (system, rbenv
+<code>~/.rbenv/versions/&lt;v&gt;/lib/ruby/gems/&lt;abi&gt;</code>, RVM
+<code>~/.rvm/gems/...</code>, Homebrew Ruby), so always run
+discover.</li>
+<li><code>scope</code>: <code>global</code> (per Ruby version).</li>
+<li><code>measure</code>: <code>du -sk $(gem env gemdir)</code>;
+separate <code>cache/</code> subdir holds <code>.gem</code>
+archives.</li>
+<li><code>clean</code>: prune variant <code>gem cleanup</code> removes
+old versions of gems not required by dependencies from GEM_HOME;
+<code>gem cleanup -n</code> is dry run (<code>-n, -d, --dryrun</code>
+printed by help; docs list <code>--dry-run</code>);
+<code>gem cleanup &lt;name&gt;</code> for one gem;
+<code>--[no-]user-install</code>. Full wipe:
+<code>delete directory</code> (breaks installed gems and bundler
+apps).</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>/native
+extensions need compile: <code>yes-but-slow-rebuild</code>.</li>
+<li><code>in_use_hazard</code>: running Ruby apps/Rails servers load
+gems from the dir.</li>
+<li><code>sources</code>:
+https://guides.rubygems.org/command-reference/#gem-cleanup</li>
+<li><code>verification</code>: discover <code>ran-command</code>;
+default paths <code>ran-command</code>/<code>official-docs</code>; clean
+<code>official-docs</code> + <code>ran-command</code> (help text).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="bundler">Bundler</h2>
+<ul>
+<li><code>name</code>: Bundler; <code>ecosystem</code>: Ruby</li>
+<li><code>detect</code>: <code>bundle</code> on PATH; per-project marker
+<code>Gemfile</code>/<code>Gemfile.lock</code>.</li>
+<li><code>locations</code>: gems normally install into the RubyGems dir
+(shared); with <code>bundle config path</code> gems go to a project dir
+(commonly <code>vendor/bundle</code> or <code>.bundle</code>);
+<code>vendor/cache</code> holds <code>.gem</code> files from
+<code>bundle cache</code> (checked-in by choice). discover:
+<code>bundle config get path</code> (<code>ran-command</code>: command
+runs; output is empty when unset),
+<code>bundle exec gem env gemdir</code>.</li>
+<li><code>scope</code>: <code>per-project</code> for
+<code>vendor/bundle</code>, <code>vendor/cache</code>,
+<code>.bundle</code>; marker sibling <code>Gemfile</code>.</li>
+<li><code>clean</code>: <code>bundle clean</code> (&quot;Cleans up unused
+gems in your bundler directory&quot;; options <code>--dry-run</code>,
+<code>--force</code>; <code>ran-command</code> help). Without a
+configured <code>path</code> it refuses unless <code>--force</code>,
+because it would uninstall every gem in the system dir not used by this
+Gemfile: hazard for shared gem dirs.</li>
+<li><code>regenerable</code>: <code>vendor/bundle</code>
+<code>yes-but-slow-rebuild</code>; <code>vendor/cache</code>
+<code>no</code> if relied on for offline deploys.</li>
+<li><code>in_use_hazard</code>: running app servers; with
+<code>--force</code> on the system gem dir other projects&#39; gems
+vanish.</li>
+<li><code>sources</code>: <code>bundle help clean</code>; official man
+pages bundler.io returned empty content.</li>
+<li><code>verification</code>: discover <code>ran-command</code>;
+default paths <code>unverified</code>; clean <code>ran-command</code>
+(help text).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="rbenv--rvm-installed-ruby-versions">rbenv
+/ RVM installed Ruby versions</h2>
+<ul>
+<li><code>name</code>: rbenv, RVM; <code>ecosystem</code>: Ruby</li>
+<li><code>detect</code>: <code>rbenv</code> or <code>rvm</code> on PATH;
+<code>~/.rbenv</code> or <code>~/.rvm</code> exists.</li>
+<li><code>locations</code>:
+<ul>
+<li>rbenv: <code>$(rbenv root)/versions/&lt;version&gt;</code> (each is
+a full Ruby install with its gems inside; glob by version name).
+Override env <code>RBENV_ROOT</code>. Default <code>~/.rbenv</code>
+(both OSes). discover: <code>rbenv root</code>,
+<code>rbenv versions</code>. ruby-build tarball cache
+<code>~/.rbenv/cache</code> (from memory, <code>unverified</code>; env
+<code>RUBY_BUILD_CACHE_PATH</code>).</li>
+<li>RVM: <code>~/.rvm/rubies/</code>, <code>~/.rvm/src/</code>,
+<code>~/.rvm/archives/</code>, <code>~/.rvm/gems/</code> (gemsets),
+<code>~/.rvm/log/</code> (only <code>rubies</code>, <code>src</code>
+confirmed by docs). System-wide install at <code>/usr/local/rvm</code>
+(<code>unverified</code>).</li>
+</ul></li>
+<li><code>scope</code>: <code>global</code>.</li>
+<li><code>clean</code>: rbenv:
+<code>rbenv uninstall &lt;version&gt;</code> (provided by the ruby-build
+plugin, official; <code>-f</code> flag unverified). RVM:
+<code>rvm remove &lt;version&gt;</code> (preferred; removes ruby,
+source, aliases, wrappers, env; <code>--archive</code> also deletes the
+downloaded archive, <code>--gems</code> deletes gemsets) versus
+<code>rvm uninstall &lt;version&gt;</code> (only the rubies folder).
+<code>rvm cleanup all</code> mentioned in no fetched docs:
+<code>unverified</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (compile
+from source). Gems installed only in that version are lost; the global
+default version file <code>~/.rbenv/version</code> /
+<code>.ruby-version</code> references remain (dangling pointer).</li>
+<li><code>in_use_hazard</code>: removing the version a running process,
+shim or a <code>.ruby-version</code> is using breaks that shell/app;
+removing the currently global version breaks every shim.</li>
+<li><code>sources</code>:
+https://github.com/rbenv/rbenv/blob/master/README.md ;
+https://rvm.io/rubies/removing</li>
+<li><code>verification</code>: discover <code>official-docs</code>
+(<code>rbenv root</code>/<code>versions</code>); default paths
+<code>official-docs</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="php-composer">PHP
+Composer</h2>
+<ul>
+<li><code>name</code>: Composer; <code>ecosystem</code>: PHP</li>
+<li><code>detect</code>: <code>composer</code> on PATH or
+<code>~/.composer</code> / <code>~/.cache/composer</code> exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>Cache dir</strong> (downloaded dist archives + VCS clones +
+repo metadata). discover: <code>composer config cache-dir -g</code> (the
+page says cache dir is &quot;configurable via the <code>cache-dir</code>
+option&quot;; the exact CLI call is <code>unverified</code> in the fetched
+page). Override env <code>COMPOSER_CACHE_DIR</code>. Default: macOS
+<code>$COMPOSER_HOME/cache</code> i.e. <code>~/.composer/cache</code>;
+Linux with XDG <code>$XDG_CACHE_HOME/composer</code> (usually
+<code>~/.cache/composer</code>), otherwise
+<code>~/.composer/cache</code>.</li>
+<li><strong>Composer home</strong> (global config, global packages)
+holds user data: discover <code>composer config --global home</code>
+(official). Override <code>COMPOSER_HOME</code>. Default macOS
+<code>~/.composer</code>; Linux XDG
+<code>$XDG_CONFIG_HOME/composer</code> else
+<code>~/.composer</code>.</li>
+<li><strong>Per-project</strong> <code>vendor/</code>, marker sibling
+<code>composer.json</code>.</li>
+</ol></li>
+<li><code>scope</code>: 1-2 <code>global</code>; 3
+<code>per-project</code>.</li>
+<li><code>measure</code>: <code>du -sk</code> of cache dir.</li>
+<li><code>clean</code>: <code>composer clear-cache</code> (aliases
+<code>clearcache</code>, <code>cc</code>): &quot;Deletes all content from
+Composer&#39;s cache directories&quot;; <code>composer clear-cache --gc</code>:
+garbage collection only (prune variant). Home dir has no native
+clean.</li>
+<li><code>regenerable</code>: cache <code>yes-but-large-download</code>;
+<code>COMPOSER_HOME</code> <code>no — contains user data</code>
+(<code>config.json</code>, <code>auth.json</code> credentials, globally
+installed packages).</li>
+<li><code>in_use_hazard</code>: running
+<code>composer install/update</code> concurrently; low.</li>
+<li><code>sources</code>: https://getcomposer.org/doc/03-cli.md</li>
+<li><code>verification</code>: discover <code>official-docs</code>
+(home) / <code>unverified</code> (cache-dir exact CLI); default paths
+<code>official-docs</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="jetbrains-ides">JetBrains
+IDEs</h2>
+<ul>
+<li><code>name</code>: JetBrains IDEs (IntelliJ IDEA, PyCharm, WebStorm,
+GoLand, DataGrip, Android Studio uses Google-named dir);
+<code>ecosystem</code>: Editors</li>
+<li><code>detect</code>: <code>~/Library/Caches/JetBrains</code> (macOS)
+/ <code>~/.cache/JetBrains</code> (Linux) exists; products not
+necessarily on PATH.</li>
+<li><code>locations</code> (per product and per version, directory name
+<code>&lt;Product&gt;&lt;Year.Minor&gt;</code> e.g.
+<code>IntelliJIdea2026.2</code>, glob required):
+<ol>
+<li><strong>System dir (caches, indexes, local history)</strong>: macOS
+<code>~/Library/Caches/JetBrains/&lt;Product&gt;&lt;ver&gt;</code>;
+Linux <code>~/.cache/JetBrains/&lt;Product&gt;&lt;ver&gt;</code>.
+Override <code>idea.system.path</code>.</li>
+<li><strong>Logs</strong>: macOS
+<code>~/Library/Logs/JetBrains/&lt;Product&gt;&lt;ver&gt;</code>; Linux
+<code>~/.cache/JetBrains/&lt;Product&gt;&lt;ver&gt;/log</code>. Override
+<code>idea.log.path</code>.</li>
+<li><strong>Config</strong>: macOS
+<code>~/Library/Application Support/JetBrains/&lt;Product&gt;&lt;ver&gt;</code>;
+Linux <code>~/.config/JetBrains/&lt;Product&gt;&lt;ver&gt;</code>.
+Override <code>idea.config.path</code>. USER DATA (settings,
+keymaps).</li>
+<li><strong>Plugins</strong>: macOS
+<code>.../Application Support/JetBrains/&lt;Product&gt;&lt;ver&gt;/plugins</code>;
+Linux <code>~/.local/share/JetBrains/&lt;Product&gt;&lt;ver&gt;</code>.
+Override <code>idea.plugins.path</code>.</li>
+</ol></li>
+<li>discover: IDE-only: Help &gt; Diagnostic Tools &gt; Special Files
+and Folders (no CLI).</li>
+<li><code>scope</code>: <code>global</code>. <code>measure</code>:
+<code>du -sk</code> per product/version directory.</li>
+<li><code>clean</code>: no CLI. GUI: File &gt; Invalidate Caches
+(removes cache files for all projects in that IDE version; Local History
+kept unless ticked). <code>delete directory</code> for caches and logs
+of IDE versions no longer installed (stale-version directories are the
+main space win).</li>
+<li><code>regenerable</code>: system dir
+<code>yes-but-slow-rebuild</code> (reindexing); BUT Local History lives
+in system dir (<code>no — contains user data</code> for uncommitted
+history); logs <code>yes</code>; config and plugins must not be deleted
+(settings, installed plugins).</li>
+<li><code>in_use_hazard</code>: IDE running holds indexes open; delete
+only when IDE is closed. Orphaned versions are safe to remove.</li>
+<li><code>sources</code>:
+https://www.jetbrains.com/help/idea/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html
+; https://www.jetbrains.com/help/idea/invalidate-caches.html</li>
+<li><code>verification</code>: discover <code>official-docs</code> (GUI
+only); default paths <code>official-docs</code> +
+<code>ran-command</code> (macOS); clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="vs-code">VS
+Code</h2>
+<ul>
+<li><code>name</code>: Visual Studio Code; <code>ecosystem</code>:
+Editors</li>
+<li><code>detect</code>: <code>code</code> on PATH or user-data dir
+exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><strong>User data root</strong> macOS
+<code>~/Library/Application Support/Code</code>; Linux
+<code>~/.config/Code</code> (official via <code>settings.json</code>
+path <code>.../Code/User/settings.json</code>). Override
+<code>--user-data-dir &lt;dir&gt;</code>. Contains <code>User/</code>
+(settings, snippets, keybindings: user data) and many cache-like
+subdirs: <code>Cache</code>, <code>CachedData</code>,
+<code>CachedExtensionVSIXs</code>, <code>Code Cache</code>,
+<code>GPUCache</code>, <code>logs</code>, <code>Crashpad</code>,
+<code>Service Worker</code>,
+<code>User/workspaceStorage/&lt;hash&gt;</code>,
+<code>User/globalStorage</code>, <code>User/History</code> (names from
+memory/knowledge: all <code>unverified</code>).</li>
+<li><strong>Extensions</strong> <code>~/.vscode/extensions</code>
+(official, both OSes). Override <code>--extensions-dir</code> or env
+<code>VSCODE_EXTENSIONS</code>. discover:
+<code>code --list-extensions [--show-versions]</code> (official).</li>
+<li><strong>Workspace storage</strong>
+<code>User/workspaceStorage/&lt;hash&gt;</code> per opened workspace:
+UNSAVED/hot-exit state, search history, extension per-workspace state:
+<code>no — contains user data</code>. Hash dirs map to workspaces via
+<code>workspace.json</code> inside (<code>unverified</code>), allowing
+orphan detection.</li>
+</ol></li>
+<li><code>scope</code>: <code>global</code>.</li>
+<li><code>measure</code>: <code>du -sk</code> per subdirectory.</li>
+<li><code>clean</code>: no native cache clean. Extensions:
+<code>code --uninstall-extension &lt;publisher.extension&gt;</code>
+(official); extension list is user data. Cache subfolders:
+<code>delete directory</code> while VS Code is closed.</li>
+<li><code>regenerable</code>: <code>Cache</code>,
+<code>CachedData</code>, <code>Code Cache</code>, <code>GPUCache</code>,
+<code>CachedExtensionVSIXs</code>, <code>logs</code>: <code>yes</code>;
+extensions <code>yes-but-large-download</code> (reinstall by id;
+marketplace needed); <code>User/</code> settings, snippets, keybindings
+<code>no — contains user data</code>; <code>workspaceStorage</code> and
+<code>History</code> <code>no — contains user data</code> (unsaved
+editor state, local history).</li>
+<li><code>in_use_hazard</code>: running VS Code: deleting cache dirs
+while running can crash windows or lose unsaved hot-exit state; deleting
+extensions in use breaks language servers.</li>
+<li><code>sources</code>:
+https://code.visualstudio.com/docs/configure/settings ;
+https://code.visualstudio.com/docs/editor/command-line ;
+https://code.visualstudio.com/docs/editor/extension-marketplace</li>
+<li><code>verification</code>: discover <code>official-docs</code>;
+default paths: root and extensions <code>official-docs</code>, cache
+subfolders <code>unverified</code>; clean <code>official-docs</code>
+(extension uninstall), cache deletion <code>unverified</code>.</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="contract-observations">Contract
+observations</h2>
+<ol>
+<li><strong>One tool, many locations of different safety.</strong>
+Xcode: DerivedData (safe), Archives (user data: release builds and
+dSYMs), DeviceSupport (large, needs device to regenerate), UserData
+(snippets, key bindings). JetBrains: caches (safe), local history inside
+the same dir (user data), config and plugins (never). VS Code:
+Cache/CachedData (safe), workspaceStorage and History (user data),
+<code>User/</code> settings. Each location needs its own
+<code>safety</code> class, <code>regenerable</code> value and
+<code>default_selected</code> flag, and a tool-level &quot;clean all&quot; must
+not be the union.</li>
+<li><strong>Discover command vs. documented default can
+disagree.</strong> NuGet docs say <code>v3-cache</code>, the command can
+print <code>http-cache</code>; gem dir depends on the Ruby manager;
+Composer/Coursier/pub differ per OS and XDG. The registry must prefer a
+<code>discover</code> command, and fall back to ordered candidate paths
+with env-var override, and record the source (<code>discover</code>,
+<code>env</code>, <code>default</code>) per resolved path. Several tools
+(Gradle, Maven, Kotlin/Native, JetBrains) have NO discover command: need
+<code>env</code>+<code>config key</code>+default resolution (Maven:
+parse <code>settings.xml</code>).</li>
+<li><strong>Versioned/glob directory names.</strong>
+<code>caches/modules-2</code>, <code>build-cache-1</code>,
+<code>jars-9</code>, <code>transforms-3</code> (numeric suffixes
+change); <code>wrapper/dists/&lt;ver&gt;</code>; JetBrains
+<code>&lt;Product&gt;&lt;Year.Minor&gt;</code>;
+<code>~/.rbenv/versions/&lt;v&gt;</code>; Android
+<code>system-images/android-&lt;api&gt;/...</code>,
+<code>build-tools/&lt;ver&gt;</code>; Xcode DerivedData
+<code>&lt;Project&gt;-&lt;hash&gt;</code>; VS Code
+<code>workspaceStorage/&lt;hash&gt;</code>; Kotlin/Native per-version
+compiler dirs. Entries need glob patterns plus per-child granularity
+(size and clean per matched child, e.g. delete only versions not in use,
+or not used for N days).</li>
+<li><strong>Per-project locations with markers.</strong>
+<code>.build</code> + <code>Package.swift</code>, <code>Pods</code> +
+<code>Podfile</code>, <code>Carthage/Build</code> +
+<code>Cartfile</code>, <code>build</code>/<code>.dart_tool</code> +
+<code>pubspec.yaml</code>, <code>vendor</code> +
+<code>composer.json</code>, <code>vendor/bundle</code> +
+<code>Gemfile</code>, <code>target</code> + <code>build.sbt</code>,
+project <code>.gradle</code> + <code>settings.gradle(.kts)</code>. Needs
+<code>walk_markers</code> with sibling-file match, and directories named
+<code>build</code>/<code>vendor</code>/<code>target</code> that are NOT
+caches without the marker. Also files that must never be deleted next to
+them (<code>Package.resolved</code>, <code>Podfile.lock</code>,
+<code>Gemfile.lock</code>).</li>
+<li><strong>Native commands with scope, dry-run and age
+filters.</strong>
+<code>xcrun simctl runtime delete --notUsedSinceDays N --dry-run</code>,
+<code>simctl delete unavailable</code>, <code>gem cleanup -n</code>,
+<code>bundle clean --dry-run</code>,
+<code>composer clear-cache --gc</code>,
+<code>pod cache clean &lt;name&gt;</code>,
+<code>mvn dependency:purge-local-repository</code> (project-scoped,
+re-downloads by default),
+<code>dotnet nuget locals &lt;name&gt; --clear</code>. The contract
+needs a list of clean actions per location (<code>full</code>,
+<code>prune</code>, with <code>args</code>, <code>dry_run_args</code>,
+optional <code>min_age_days</code> parameter), <code>needs_sudo</code>,
+<code>needs_stopped: [process names]</code>, and an action whose effect
+is not a deletion of the measured path (e.g.
+<code>rbenv uninstall</code>, <code>avdmanager delete avd</code>,
+<code>sdkmanager --uninstall</code>).</li>
+<li><strong>Destructive-by-name commands that wipe user data.</strong>
+<code>simctl delete all</code>, <code>simctl erase</code>,
+<code>avdmanager delete avd</code>, <code>pub cache clean</code> (also
+removes globally activated tools), <code>bundle clean --force</code> on
+a shared gem dir, <code>pub cache clean</code> and
+<code>rvm remove --gems</code>. The registry needs a
+<code>destructive_confirm</code> requirement and a flag that the command
+is <code>not_cache</code> (user data) so <code>ccc</code> can refuse in
+non-interactive mode.</li>
+<li><strong>Platform-only entries.</strong> Xcode, iOS Simulator,
+CocoaPods cache path, Carthage, <code>~/Library/*</code> are macOS only;
+SwiftPM and JetBrains have different Linux paths; Linux uses XDG vars.
+Each location needs per-OS path lists, with <code>macOS only</code>
+allowed, and a <code>detect</code> that is OS-aware.</li>
+<li><strong>Process-in-use hazards are first-class data.</strong> Gradle
+daemons (<code>gradle --stop</code> only stops same-version daemons),
+Xcode/xcodebuild, running simulators, emulators, IDEs, Metro, sbt, Ruby
+servers. The contract needs <code>blocking_processes</code> for refusing
+or warning, and a <code>stop_command</code> where one exists.</li>
+<li><strong>Tools without any native command and tools that
+self-clean.</strong> Gradle self-prunes by age with its own retention;
+Maven, Coursier, Ivy, Kotlin/Native, Carthage, VS Code caches, Metro
+have none. <code>native_clean: none -&gt; delete directory</code> must
+be explicit, and the entry may carry <code>self_cleaning: true</code> to
+deprioritize it.</li>
+<li><strong>Shared/system locations outside the home directory.</strong>
+Simulator runtimes at <code>/Library/Developer/CoreSimulator/*</code>,
+system Ruby gems <code>/Library/Ruby/Gems</code>, dotnet workloads under
+the dotnet root, rbenv/RVM system installs. Needs
+<code>owner: user|system</code> and <code>needs_sudo</code>, and these
+should be reported with ownership evidence rather than deleted by
+directory.</li>
+<li><strong>Redirected locations.</strong> Because tools can be
+relocated by env vars, <code>ccc</code> must treat the discovered path
+as authoritative and must never assume <code>~</code>. Several tools
+have the SAME data accessible at two paths (Coursier old
+<code>~/.coursier/cache</code> vs new). The registry needs path
+de-duplication across entries (sbt/Ivy/Coursier share the dependency
+problem; Android build cache folds into Gradle).</li>
+<li><strong>Weak evidence is a first-class field.</strong> Many fields
+here are <code>unverified</code> (Xcode folders, Kotlin/Native, Metro,
+workloads, VS Code cache subfolders, Linux SwiftPM). The registry should
+carry a <code>verification</code> status per field so unverified clean
+actions are shown but not enabled by default.</li>
+</ol>
+</body>
+</html>

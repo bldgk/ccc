@@ -1,0 +1,11 @@
+kind = "tool"
+name = "homebrew"
+executable = "brew"
+
+[[places]]
+name = "download cache"
+holds = "cache"
+path.command = "brew --cache"
+path.env = "HOMEBREW_CACHE"
+path.default.macos = "~/Library/Caches/Homebrew"
+measure.by = "disk-usage"

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ccc — surfaces</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="ccc--surfaces">ccc —
+surfaces</h1>
+<p><code>ccc</code> has one surface: a command-line program. What it
+must do is in <a href="00-requirements.html">00-requirements.md</a>.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Invocation</th>
+<th>What it is</th>
+<th>Decided in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ccc check</code>, <code>ccc</code></td>
+<td>The interactive screen: rows with sizes, marking, cleaning marked
+rows or everything, confirmation, the result after cleaning</td>
+<td>Requirements, &quot;See what takes space&quot; and &quot;Clean a selection&quot;</td>
+</tr>
+<tr>
+<td><code>ccc --clean</code>, <code>ccc -c</code></td>
+<td>Cleans every cache place and every folder without a screen and
+without confirmation, then reports what was freed</td>
+<td>Requirements, &quot;Clean everything&quot;</td>
+</tr>
+<tr>
+<td><code>ccc add</code></td>
+<td>A form that adds a tool through the three steps of the contract</td>
+<td>Requirements, &quot;Add a tool&quot;</td>
+</tr>
+<tr>
+<td><code>ccc add &lt;path&gt;</code></td>
+<td>Adds a folder by path</td>
+<td>Requirements, &quot;Add a folder&quot;</td>
+</tr>
+<tr>
+<td>output that is not a terminal</td>
+<td>What <code>ccc</code> prints into a pipe or a file</td>
+<td>Open point of the requirements</td>
+</tr>
+</tbody>
+</table>
+<p>The registry files are the second thing a user touches directly: TOML
+files, one per tool, in the user&#39;s registry directory. Their schema is
+in <a href="05-architecture.html#the-entry-file">05-architecture.md</a>.</p>
+<p>What each of them shows is in <a href="04-screens.html">04-screens.md</a>.</p>
+</body>
+</html>

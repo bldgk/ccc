@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Registry file format: TOML or YAML</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="registry-file-format-toml-or-yaml">Registry
+file format: TOML or YAML</h1>
+<p>A design spike for the open point &quot;the format of the registry file&quot;
+in <a href="../../spec/00-requirements.html#open">00-requirements.md</a>,
+as described in <a href="../01-discovery.html#the-registry-file-format">01-discovery.md</a>.
+Three real entries are written in both formats with the same field
+names, so the files differ only in format.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tool</th>
+<th>TOML</th>
+<th>YAML</th>
+<th>What it exercises</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go</td>
+<td><a href="../../../research/registry-format/toml/go.toml">toml/go.toml</a></td>
+<td><a href="../../../research/registry-format/yaml/go.yaml">yaml/go.yaml</a></td>
+<td>two directory places; path from a command, a variable, a per-OS
+default; disk usage; the tool&#39;s own clean command</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td><a href="../../../research/registry-format/toml/docker.toml">toml/docker.toml</a></td>
+<td><a href="../../../research/registry-format/yaml/docker.yaml">yaml/docker.yaml</a></td>
+<td>places that are not directories; a size parsed out of command
+output; a precondition</td>
+</tr>
+<tr>
+<td>rustup</td>
+<td><a href="../../../research/registry-format/toml/rustup.toml">toml/rustup.toml</a></td>
+<td><a href="../../../research/registry-format/yaml/rustup.yaml">yaml/rustup.yaml</a></td>
+<td>installed versions: listing, measuring one, removing one</td>
+</tr>
+</tbody>
+</table>
+<p>There is no Go code and no parser here. The field names and their
+meaning below are what the three entries needed; they are a proposal for
+the owner to react to, not a decided schema.</p>
+<h2 class="unnumbered unlisted" id="validation">Validation</h2>
+<ul>
+<li>All three TOML files parse with Python 3.13 <code>tomllib</code>
+(TOML 1.0).</li>
+<li>All three YAML files parse with PyYAML 6.0.3 <code>safe_load</code>
+(a YAML 1.1 parser).</li>
+<li>For each tool the parsed TOML and the parsed YAML are equal as
+data.</li>
+<li>Every &quot;what a typo does&quot; statement below was produced by feeding the
+mutated text to these two parsers. Statements about Go libraries are
+marked as not checked: no Go parser was run.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="where-the-commands-and-paths-come-from">Where
+the commands and paths come from</h2>
+<p>Everything is taken from the catalog in
+<code>docs/research/tool-caches/</code> or from the tools&#39; official
+documentation. Read-only commands were run to confirm output shapes:
+<code>go env</code>, <code>rustup show home</code>,
+<code>rustup toolchain list</code> with <code>--verbose</code> and
+<code>--quiet</code>, <code>docker system df</code> with
+<code>--format</code>, and <code>--help</code> of the Docker prune
+commands. No clean, prune or uninstall command was run.</p>
+<p>Fields that could not be confirmed are marked with a comment in the
+files:</p>
+<ul>
+<li>the literal Linux default of the Go build cache (derived from the
+documented rule, not seen on a Linux machine);</li>
+<li>the exit status of <code>docker info</code> when the daemon cannot
+be reached (the documentation page does not state it; it was only
+observed with a running daemon);</li>
+<li>what <code>rustup toolchain list --quiet</code> prints when no
+toolchain is installed.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="assumptions-the-entries-rely-on">Assumptions
+the entries rely on</h2>
+<p>These are not format questions, but the entries cannot be read
+without them.</p>
+<ul>
+<li>A command is one string. <code>ccc</code> splits it into words the
+way a shell does (quotes group words) and runs it without a shell.
+<code>&#39;{{.Type}} {{.Size}}&#39;</code> in the Docker entry is one
+argument.</li>
+<li>A pattern is a Go regular expression applied to each line of the
+command&#39;s output. The first capture group of the first matching line is
+the value.</li>
+<li>A captured size is a number with a unit as the tool prints it
+(<code>0B</code>, <code>1.2GB</code>); <code>ccc</code> converts
+it.</li>
+<li><code>&lt;path&gt;</code> and <code>&lt;version&gt;</code> in a
+command or a path are replaced by the resolved path of the place and by
+one listed version.</li>
+<li><code>~</code> at the start of a default path is the user&#39;s home
+directory.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="the-field-set">The
+field set</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+<th>Step of the contract</th>
+<th>Needed by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kind</code></td>
+<td><code>tool</code> or <code>folder</code></td>
+<td>the registry: an entry has a kind</td>
+<td>all three</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>the name of the entry shown to the user</td>
+<td>the registry</td>
+<td>all three</td>
+</tr>
+<tr>
+<td><code>executable</code></td>
+<td>the program looked up on <code>PATH</code></td>
+<td>Detection: &quot;its executable is on <code>PATH</code>&quot;</td>
+<td>all three</td>
+</tr>
+<tr>
+<td><code>places</code></td>
+<td>the list of places</td>
+<td>Detection: &quot;an entry lists places&quot;</td>
+<td>all three</td>
+</tr>
+<tr>
+<td><code>places.name</code></td>
+<td>the name of the place, one row or one group of rows</td>
+<td>Detection</td>
+<td>all three</td>
+</tr>
+<tr>
+<td><code>places.holds</code></td>
+<td><code>cache</code> or <code>versions</code></td>
+<td>Detection: &quot;declared either as a cache or as installed
+versions&quot;</td>
+<td>all three; <code>versions</code> only in rustup</td>
+</tr>
+<tr>
+<td><code>places.path</code></td>
+<td>present for a directory place, absent for a place that is not a
+directory</td>
+<td>Detection: &quot;a place is either a directory, or a part of the tool&#39;s
+storage&quot;</td>
+<td>Go, rustup</td>
+</tr>
+<tr>
+<td><code>places.path.command</code></td>
+<td>a command of the tool that prints the path</td>
+<td>Detection: first in the resolution order</td>
+<td>Go, rustup</td>
+</tr>
+<tr>
+<td><code>places.path.env</code></td>
+<td>an environment variable that holds the path</td>
+<td>Detection: second in the resolution order</td>
+<td>Go, rustup</td>
+</tr>
+<tr>
+<td><code>places.path.default.macos</code>, <code>.linux</code></td>
+<td>the default path per operating system</td>
+<td>Detection: third in the resolution order</td>
+<td>Go, rustup</td>
+</tr>
+<tr>
+<td><code>places.path.subdir</code></td>
+<td>a directory name appended to what <code>command</code> and
+<code>env</code> give</td>
+<td>not in the contract, see <a href="#missing-from-the-contract">Missing
+from the contract</a></td>
+<td>rustup</td>
+</tr>
+<tr>
+<td><code>places.list.command</code></td>
+<td>a command that prints the installed versions</td>
+<td>Detection: &quot;the entry says how the versions are listed&quot;</td>
+<td>rustup</td>
+</tr>
+<tr>
+<td><code>places.list.pattern</code></td>
+<td>takes one version name out of one output line</td>
+<td>Detection</td>
+<td>rustup</td>
+</tr>
+<tr>
+<td><code>places.measure.by</code></td>
+<td><code>disk-usage</code>: allocated blocks of a path</td>
+<td>Space check: &quot;the disk usage of the resolved path&quot;</td>
+<td>Go, rustup</td>
+</tr>
+<tr>
+<td><code>places.measure.path</code></td>
+<td>the path measured when it is not the place&#39;s own path; holds
+<code>&lt;version&gt;</code></td>
+<td>Space check applied &quot;to one version at a time&quot;</td>
+<td>rustup</td>
+</tr>
+<tr>
+<td><code>places.measure.command</code></td>
+<td>a command of the tool whose output holds the size</td>
+<td>Space check: &quot;a command of the tool whose output is parsed&quot;</td>
+<td>Docker</td>
+</tr>
+<tr>
+<td><code>places.measure.pattern</code></td>
+<td>takes the size out of the output</td>
+<td>Space check</td>
+<td>Docker</td>
+</tr>
+<tr>
+<td><code>places.measure.requires</code></td>
+<td>a command that must succeed, otherwise the place is &quot;not
+measured&quot;</td>
+<td>Space check: &quot;when measuring needs something that is absent&quot;</td>
+<td>Docker</td>
+</tr>
+<tr>
+<td><code>places.clean.command</code></td>
+<td>the tool&#39;s own clean command; holds <code>&lt;version&gt;</code> for
+a place of versions</td>
+<td>Clean</td>
+<td>all three</td>
+</tr>
+</tbody>
+</table>
+<p>Eighteen fields plus <code>subdir</code>. A Go-like place is seven
+lines of data. Not written because none of the three entries needs them:
+removal of the directory as the clean method, and a step before
+cleaning.</p>
+<p><code>measure.by</code> has a single value in these files. It could
+be dropped and inferred from the absence of
+<code>measure.command</code>; it is kept so that a place says how it is
+measured rather than saying nothing.</p>
+<h2 class="unnumbered unlisted" id="the-open-points-written-as-data">The
+open points, written as data</h2>
+<p>Observations for the owner. Each says what the entry had to contain;
+none is a decision.</p>
+<p><strong>Parsing a tool&#39;s output into a size.</strong> In the Docker
+entry the user types two lines: a command and a pattern (<a href="../../../research/registry-format/toml/docker.toml#L22-L23">toml/docker.toml:22-23</a>,
+<a href="../../../research/registry-format/yaml/docker.yaml#L23-L24">yaml/docker.yaml:23-24</a>).
+The command uses Docker&#39;s own <code>--format</code> template to reduce
+the output to <code>&lt;type&gt; &lt;size&gt;</code> lines, and the
+pattern picks the line and captures the size. So the user has to know
+regular expressions and has to look at the tool&#39;s output once. Two other
+forms were written and set aside:</p>
+<ul>
+<li>A pattern over the default table
+(<code>^Build Cache\s+\d+\s+\d+\s+(\S+)</code>): no template to learn,
+but a longer pattern that depends on the column order.</li>
+<li>No pattern, the tool prints the single value:
+<code>docker system df --format &#39;{{if eq .Type &quot;Build Cache&quot;}}{{.Size}}{{end}}&#39;</code>.
+It works only for tools that have a template language, and it puts
+double quotes inside single quotes, which is the hardest string of the
+spike for TOML (see <a href="#quoting-and-escaping">Quoting</a>).</li>
+</ul>
+<p>A third form, selecting a key from JSON output
+(<code>docker system df --format json</code> prints one object per line
+with the keys <code>Type</code> and <code>Size</code>), needs a selector
+language in <code>ccc</code> and was not written. What the pattern form
+leaves unsaid is the unit: Docker prints decimal units
+(<code>GB</code>), and a tool that prints a bare number would need a
+field naming the unit.</p>
+<p><strong>Measuring one installed version.</strong> Written as the disk
+usage of a path built from the place and the listed name:
+<code>measure.path = &quot;&lt;path&gt;/&lt;version&gt;&quot;</code> (<a href="../../../research/registry-format/toml/rustup.toml#L24-L25">toml/rustup.toml:24-25</a>,
+<a href="../../../research/registry-format/yaml/rustup.yaml#L27-L29">yaml/rustup.yaml:27-29</a>).
+It holds for rustup because a toolchain is a directory of that name. The
+alternative is to let the list command give the path:
+<code>rustup toolchain list --verbose</code> prints
+<code>&lt;name&gt; (active, default) &lt;path&gt;</code> per line, and a
+pattern with two groups would yield both. That needs no
+<code>path</code> and no <code>subdir</code>, but then a rustup
+directory left behind after rustup is removed is never detected.</p>
+<p><strong>The tool&#39;s path command exists but fails.</strong> Nothing in
+an entry expresses this in either format: if the rule is the same for
+every tool it is not data. The rustup entry shows one case where falling
+through is the only way the contract&#39;s &quot;a cache often outlives the tool&quot;
+can work: with rustup removed, <code>rustup show home</code> cannot run,
+and the place is found only through <code>RUSTUP_HOME</code> or the
+default.</p>
+<p><strong>A step that must run before cleaning.</strong> None of the
+three tools needs one. As data it would be one more key next to the
+clean command, <code>clean.before = &quot;sccache --stop-server&quot;</code> in
+TOML or <code>before: sccache --stop-server</code> under
+<code>clean:</code> in YAML; both parse. Several steps would be a list
+of strings, which both formats write without trouble.</p>
+<p><strong>The daemon precondition.</strong>
+<code>measure.requires</code> is repeated in both Docker places (<a href="../../../research/registry-format/toml/docker.toml#L19">toml/docker.toml:19</a>
+and <a href="../../../research/registry-format/toml/docker.toml#L31">:31</a>),
+and the measure command is repeated too. The contract speaks of a
+precondition per place; the file shows that for Docker it is a fact
+about the tool. Cleaning needs the daemon as well, and the entry does
+not say so.</p>
+<p><strong>Which number a Docker row shows.</strong> It is one word in
+the entry: <code>.Size</code> in the template. Changing it to
+<code>.Reclaimable</code> also requires changing the pattern, because
+that column prints <code>1.2GB (60%)</code> for images and
+<code>1.2GB</code> for the build cache.</p>
+<p><strong>Whether Docker images are cleaned by &quot;clean
+everything&quot;.</strong> The images place is declared
+<code>holds = &quot;cache&quot;</code> (<a href="../../../research/registry-format/toml/docker.toml#L30">toml/docker.toml:30</a>),
+which under the current contract puts it in &quot;clean everything&quot;. If the
+answer is no, <code>holds</code> needs a third value or the place needs
+another field; the two values the contract gives cannot express it.</p>
+<p><strong>A place whose tool was uninstalled.</strong> The Go entry&#39;s
+clean commands cannot run without <code>go</code>, and the fallback the
+contract names, removal of the directory, fails on the module cache
+because it is read-only (<a href="../../../research/registry-format/toml/go.toml#L32-L34">toml/go.toml:32-34</a>).
+The entry as written has one clean method per place.</p>
+<p><strong>The command that adds an entry.</strong> With these fields,
+adding a Go-like place is seven answers: name, cache or versions, path
+command, variable, two defaults, clean command. Adding a Docker-like
+place is five, and two of them are a template and a regular
+expression.</p>
+<h2 class="unnumbered unlisted" id="missing-from-the-contract">Missing
+from the contract</h2>
+<p>Things an entry could not be written without, or could not
+express.</p>
+<ol>
+<li><strong>A path that is inside what the tool reports.</strong>
+<code>rustup show home</code> and <code>RUSTUP_HOME</code> give the
+rustup home, while the place is the <code>toolchains</code> directory
+inside it, and the contract forbids using the directory above. The
+rustup entry adds <code>path.subdir</code> for this (<a href="../../../research/registry-format/toml/rustup.toml#L15-L19">toml/rustup.toml:15-19</a>).
+It is the only field in the files that the contract does not call
+for.</li>
+<li><strong>A default path that depends on an environment
+variable.</strong> The Linux default of the Go build cache is
+<code>$XDG_CACHE_HOME/go-build</code>, and
+<code>~/.cache/go-build</code> only when that variable is unset; the
+module cache default is <code>$GOPATH/pkg/mod</code>. The contract
+allows one path per operating system. Nothing was added: the entries
+hold the literal path and say so in a comment (<a href="../../../research/registry-format/toml/go.toml#L15-L19">toml/go.toml:15-19</a>).
+The literal is wrong exactly when the tool is gone and the variable is
+set.</li>
+<li><strong>How one version gets into a command or a path.</strong> The
+contract says the space check and the clean step apply to one version at
+a time, but not how. The rustup entry uses the placeholders
+<code>&lt;version&gt;</code> and <code>&lt;path&gt;</code>.</li>
+<li><strong>Detection of a place that is not a directory.</strong> The
+contract&#39;s three results are defined through a path. For Docker&#39;s build
+cache the entry has nothing to say about &quot;found&quot; or &quot;not present on this
+machine&quot;; nothing was added.</li>
+<li><strong>A precondition for cleaning.</strong> The contract names a
+precondition only under the space check.
+<code>docker builder prune</code> needs the daemon just like
+<code>docker system df</code>. Nothing was added.</li>
+<li><strong>How a command string is run.</strong> Whether a command goes
+through a shell decides what the user may type (pipes,
+<code>$(...)</code>, quotes). The files assume no shell.</li>
+</ol>
+<h2 class="unnumbered unlisted" id="toml-and-yaml-on-these-six-files">TOML
+and YAML on these six files</h2>
+<h3 class="unnumbered unlisted" id="size-and-shape">Size
+and shape</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>TOML</th>
+<th>YAML</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go</td>
+<td>34 lines</td>
+<td>41 lines</td>
+</tr>
+<tr>
+<td>Docker</td>
+<td>35 lines</td>
+<td>38 lines</td>
+</tr>
+<tr>
+<td>rustup</td>
+<td>26 lines</td>
+<td>31 lines</td>
+</tr>
+<tr>
+<td>deepest nesting</td>
+<td>none: every line starts in column 1</td>
+<td>4 levels, 8 spaces (<a href="../../../research/registry-format/yaml/go.yaml#L16">yaml/go.yaml:16</a>)</td>
+</tr>
+<tr>
+<td>quote characters around values</td>
+<td>every value</td>
+<td>none in the three files</td>
+</tr>
+</tbody>
+</table>
+<h3 class="unnumbered unlisted" id="nesting">Nesting</h3>
+<p>The contract nests four deep: entry, place, path, default, operating
+system.</p>
+<p>YAML shows it as indentation. A place reads as an outline, and the
+three steps of the contract are visible as three headings:
+<code>path:</code>, <code>measure:</code>, <code>clean:</code> (<a href="../../../research/registry-format/yaml/go.yaml#L10-L25">yaml/go.yaml:10-25</a>).
+The cost is seven lines that carry only a key and a colon in the Go
+file, and the place of a line in the hierarchy is known only from the
+lines above it.</p>
+<p>TOML&#39;s usual way of nesting, a table header per level, was tried
+first and was the most awkward thing in the spike. A Go place became
+<code>[[places]]</code>, <code>[places.path]</code>,
+<code>[places.path.default]</code>, <code>[places.measure]</code>,
+<code>[places.clean]</code>: five headers for seven values, each
+repeating the word <code>places</code>, with two real traps described
+under <a href="#what-a-typo-does">typos</a>.
+The files use dotted keys instead: one <code>[[places]]</code> header
+and then full key paths (<a href="../../../research/registry-format/toml/go.toml#L9-L21">toml/go.toml:9-21</a>).
+Each line states its whole position,
+<code>path.default.linux = ...</code>, at the price of repeating
+<code>path.</code> five times and <code>measure.</code> three times in
+one place (<a href="../../../research/registry-format/toml/docker.toml#L19-L23">toml/docker.toml:19-23</a>).
+Inline tables were also tried for <code>path</code>; TOML 1.0 does not
+let an inline table span lines, and the one-line form ran past 120
+characters.</p>
+<p>Where YAML is better: a field that became a list inside a place
+(several steps before cleaning, several candidate default paths) stays
+an indented list. In TOML it is an array on one line or a second level
+of <code>[[places.x]]</code> headers, and dotted keys cannot be mixed
+into it.</p>
+<p>Where TOML is better: comments attach to exactly one line. In YAML
+the comment about the Linux default sits four levels deep (<a href="../../../research/registry-format/yaml/go.yaml#L17-L20">yaml/go.yaml:17-20</a>)
+and must be indented to match by convention, and the comment about
+<code>clean</code> had to move above the <code>clean:</code> heading,
+one line away from the command it explains (<a href="../../../research/registry-format/yaml/go.yaml#L38-L41">yaml/go.yaml:38-41</a>
+against <a href="../../../research/registry-format/toml/go.toml#L32-L34">toml/go.toml:32-34</a>).</p>
+<p><code>[[places]]</code> reads slightly wrong: TOML convention is a
+singular name for an array of tables. The plural was kept because it is
+the right name in YAML and the names had to match.</p>
+<h3 class="unnumbered unlisted" id="quoting-and-escaping">Quoting
+and escaping</h3>
+<p>The requirement is &quot;hold commands and patterns without escaping&quot;.</p>
+<p>YAML: none of the six commands and three patterns needed quotes or
+escapes. The Docker command with single quotes and braces and the
+pattern with a backslash are written as they would be typed in a
+terminal (<a href="../../../research/registry-format/yaml/docker.yaml#L23-L24">yaml/docker.yaml:23-24</a>).
+The template with double quotes inside single quotes also parses
+unquoted. This is the best result of either format on these files.</p>
+<p>It holds only while the value does not hit one of YAML&#39;s rules, and
+each of these was tried:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>A value a user could plausibly type</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pattern: [0-9]</code></td>
+<td>no error: the value is a list with one element
+<code>&quot;0-9&quot;</code></td>
+</tr>
+<tr>
+<td><code>pattern: [0-9.]+GB</code></td>
+<td>parse error</td>
+</tr>
+<tr>
+<td><code>format: {{.Size}}</code> (a value starting with a brace)</td>
+<td>parse error</td>
+</tr>
+<tr>
+<td><code>pattern: *.tmp</code></td>
+<td>parse error (&quot;alias&quot;)</td>
+</tr>
+<tr>
+<td><code>command: docker system df --format &#39;{{.Type}}: {{.Size}}&#39;</code>
+(colon and space)</td>
+<td>parse error</td>
+</tr>
+<tr>
+<td><code>pattern: ^Build Cache:</code></td>
+<td>parse error</td>
+</tr>
+<tr>
+<td><code>command: grep -v ^ # comments</code> (space and hash)</td>
+<td>no error: the value is <code>grep -v ^</code></td>
+</tr>
+<tr>
+<td><code>pattern: &quot;^Images (\S+)$&quot;</code> (the user adds double quotes
+to be safe)</td>
+<td>parse error; single quotes are the safe ones</td>
+</tr>
+<tr>
+<td><code>name: no</code>, <code>holds: on</code>,
+<code>version: 1.80</code>, <code>default: ~</code></td>
+<td>no error: <code>false</code>, <code>true</code>, the number
+<code>1.8</code>, null (YAML 1.1 parser)</td>
+</tr>
+</tbody>
+</table>
+<p>This is why the placeholders are <code>&lt;version&gt;</code> and not
+<code>{version}</code>: <code>path: {path}/{version}</code> is a parse
+error in YAML, and braces also collide with Docker&#39;s templates. The
+choice of placeholder was bent by the format.</p>
+<p>TOML: every value is quoted, and there are two kinds of quotes with
+different rules, which the user has to choose between:</p>
+<ul>
+<li><code>&quot;...&quot;</code> for commands, because the Docker command contains
+single quotes (<a href="../../../research/registry-format/toml/docker.toml#L22">toml/docker.toml:22</a>);</li>
+<li><code>&#39;...&#39;</code> for patterns, because a backslash in
+<code>&quot;...&quot;</code> is an escape (<a href="../../../research/registry-format/toml/docker.toml#L23">toml/docker.toml:23</a>).
+<code>pattern = &quot;^Images (\S+)$&quot;</code> is a parse error.</li>
+</ul>
+<p>A string with both a single quote and a backslash fits neither and
+needs <code>&#39;&#39;&#39;...&#39;&#39;&#39;</code>. The template with inner double quotes is
+either <code>&quot;...\&quot;Build Cache\&quot;...&quot;</code>, which is escaping, or a
+<code>&#39;&#39;&#39;</code> string that ends in four quote characters. Neither of
+the three shipped entries needs this, but it is one template away. One
+silent case was found: <code>&quot;\t&quot;</code> inside a <code>&quot;...&quot;</code>
+command becomes a real tab character rather than the two characters
+Docker&#39;s template expects.</p>
+<p>On the requirement taken literally, YAML does better on these six
+files: zero quotes against quotes everywhere and one mandatory choice of
+quote kind.</p>
+<h3 class="unnumbered unlisted" id="what-a-typo-does">What
+a typo does</h3>
+<p>All results from the two parsers named under <a href="#validation">Validation</a>.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Typo</th>
+<th>TOML</th>
+<th>YAML</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>quotes forgotten or unbalanced</td>
+<td>parse error</td>
+<td>not applicable; see the table above</td>
+</tr>
+<tr>
+<td>the same key twice in one place</td>
+<td>parse error</td>
+<td>no error, the last one wins (PyYAML; a Go parser was not
+checked)</td>
+</tr>
+<tr>
+<td>the start of the second place forgotten (<code>[[places]]</code> /
+the <code>- </code>)</td>
+<td>parse error: the keys repeat</td>
+<td>no error: one place, the second overwrites the first, the first
+place is gone</td>
+</tr>
+<tr>
+<td>a line indented one level too deep (<code>clean:</code> under
+<code>measure:</code>)</td>
+<td>not applicable</td>
+<td>no error: <code>clean</code> becomes a field of
+<code>measure</code>, the place has no clean step</td>
+</tr>
+<tr>
+<td>a line indented one level too shallow (<code>env:</code> out of
+<code>path:</code>)</td>
+<td>not applicable</td>
+<td>no error: <code>env</code> becomes a field of the place</td>
+</tr>
+<tr>
+<td>indentation off by one space, a tab</td>
+<td>not applicable</td>
+<td>parse error</td>
+</tr>
+<tr>
+<td>a misspelt key (<code>mesure.path</code>)</td>
+<td>no error: an unknown key</td>
+<td>no error: an unknown key</td>
+</tr>
+<tr>
+<td>a top-level key written after <code>[[places]]</code></td>
+<td>no error: <code>executable</code> becomes a field of the last
+place</td>
+<td>not applicable while indentation is right</td>
+</tr>
+<tr>
+<td><code>[places]</code> instead of <code>[[places]]</code></td>
+<td>no error with one place (a table, not a list); parse error with
+two</td>
+<td>not applicable</td>
+</tr>
+<tr>
+<td>table-header style: a key added at the end of a place</td>
+<td>no error: it lands in the last sub-table (<code>holds</code> inside
+<code>clean</code>)</td>
+<td>not applicable</td>
+</tr>
+<tr>
+<td>table-header style: <code>[clean]</code> instead of
+<code>[places.clean]</code></td>
+<td>no error: a top-level <code>clean</code> table</td>
+<td>not applicable</td>
+</tr>
+</tbody>
+</table>
+<p>Reading of the table: in TOML with dotted keys the remaining silent
+cases all produce a key in the wrong table or a wrong type, which a
+loader that rejects unknown keys and checks types turns into an error.
+In YAML three silent cases produce data that is valid against any
+schema: a truncated command, <code>[0-9]</code> as a list where a string
+was meant (caught by a type check), and above all a lost place, where
+the file loads as a well-formed entry with one place fewer. The last two
+rows are the reason the files do not use table headers.</p>
+<p>Both formats need the loader to reject unknown keys; neither helps
+with a misspelt key by itself.</p>
+<h3 class="unnumbered unlisted" id="a-contributors-one-line-change">A
+contributor&#39;s one-line change</h3>
+<p>Changing the Linux default of the Go build cache:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode diff"><code class="sourceCode diff"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">--- toml/go.toml</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">-path.default.linux = &quot;~/.cache/go-build&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="va">+path.default.linux = &quot;~/.cache/golang-build&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">--- yaml/go.yaml</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="st">-        linux: ~/.cache/go-build</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="va">+        linux: ~/.cache/golang-build</span></span></code></pre></div>
+<p>The TOML line names the field in full; the reviewer still needs the
+hunk context to see which place it is in, since both Go places have this
+key. The YAML line needs the context for both the field and the place:
+<code>linux:</code> under which <code>default:</code> under which
+<code>path:</code>.</p>
+<p>Adding a field to an existing place, for example a step before
+cleaning:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode diff"><code class="sourceCode diff"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">--- toml</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="va">+clean.before = &quot;sccache --stop-server&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">--- yaml</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>     clean:</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="va">+      before: sccache --stop-server</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>       command: ...</span></code></pre></div>
+<p>In TOML the line can go anywhere inside the place and means the same.
+In YAML it must go under the right heading at the right depth, and the
+two wrong depths that are still valid YAML put it somewhere else without
+an error.</p>
+<p>Adding a place: in both formats it is a block copied from another
+place. In YAML forgetting the <code>- </code> loses the previous place
+silently; in TOML forgetting <code>[[places]]</code> is a parse
+error.</p>
+<h3 class="unnumbered unlisted" id="what-turned-out-awkward">What
+turned out awkward</h3>
+<ul>
+<li>TOML table headers per nesting level: verbose and with two silent
+traps. Replaced by dotted keys.</li>
+<li>TOML inline tables for <code>path</code>: must fit on one line.</li>
+<li>Curly-brace placeholders: a parse error in YAML at the start of a
+value, and a collision with Docker templates in both formats. Replaced
+by <code>&lt;version&gt;</code>.</li>
+<li>A <code>: </code> separator in the Docker template
+(<code>&#39;{{.Type}}: {{.Size}}&#39;</code>): the first form written, a parse
+error in YAML unless the whole command is quoted. Replaced by a space,
+which means the YAML file&#39;s lack of quotes is partly the result of
+avoiding what would need them.</li>
+<li>A command as a list of arguments instead of a string: removes the
+question of word splitting, but nobody can paste it into a terminal, and
+in YAML the flow form
+<code>[docker, system, df, --format, {{.Type}} {{.Size}}]</code> is a
+parse error.</li>
+<li>Places as a table keyed by name
+(<code>[places.&quot;build cache&quot;]</code>, <code>places:</code> with
+<code>build cache:</code> below): shorter headers in TOML, but a name
+with a space needs a quoted key, and TOML does not promise the order of
+tables.</li>
+<li>The same field names in both formats: <code>places</code> is natural
+in YAML and unidiomatic as <code>[[places]]</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="recommendation">Recommendation</h2>
+<p>TOML, written with dotted keys under one <code>[[places]]</code>
+header per place, and a loader that rejects unknown keys.</p>
+<p>The reason: the registry is a file of commands and patterns that
+users edit by hand, and on these entries every way found to damage a
+TOML file ends in a parse error or in a key the loader can reject, while
+YAML has ways to damage it that load as a valid entry: a place
+overwritten by the next one, a command cut at <code> #</code>, a clean
+step moved inside <code>measure</code>. For a program whose commands
+delete things, an entry that loads but means something else is the worse
+failure.</p>
+<p>The single strongest argument against it: the requirement says the
+format must hold commands and patterns without escaping, and on these
+six files YAML meets it with no quotes at all, while TOML makes the user
+pick between <code>&quot;...&quot;</code> and <code>&#39;...&#39;</code> on every command
+and pattern, and a pattern typed in the wrong kind does not load. A user
+adding their first entry meets that rule immediately; they may never
+meet any of YAML&#39;s traps.</p>
+<p>Not checked in this spike and relevant to the choice: how the Go
+libraries for each format behave on duplicate keys and unknown keys, and
+whether a file can be rewritten by the command that adds an entry
+without losing its comments.</p>
+</body>
+</html>

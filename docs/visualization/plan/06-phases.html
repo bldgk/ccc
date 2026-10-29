@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ccc — phases</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="ccc--phases">ccc —
+phases</h1>
+<p>The order in which <code>ccc</code> is built. This file holds order,
+dependencies and status only; what is built is decided in the spec, <a href="../spec/INDEX.html">docs/spec/INDEX.md</a>.</p>
+<p>The order runs from the core outwards: the engine that detects,
+measures and cleans comes first, the surfaces that operate it after, the
+breadth of the shipped registry last.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Phase</th>
+<th>What it builds</th>
+<th>Implements</th>
+<th>Depends on</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Core</td>
+<td><code>internal/entry</code>, <code>internal/registry</code>,
+<code>internal/sys</code> with <code>host</code> and <code>fake</code>,
+<code>internal/engine</code>, and their tests</td>
+<td><a href="../spec/05-architecture.html">Architecture</a>: all
+sections</td>
+<td>—</td>
+<td>done</td>
+</tr>
+<tr>
+<td>2. First shipped entries</td>
+<td><code>registry/*.toml</code> for the tools whose detection and space
+check can be confirmed on a macOS machine</td>
+<td><a href="../spec/00-requirements.html">Requirements</a>, &quot;What
+the shipped registry contains&quot;; <a href="../spec/05-architecture.html#the-entry-file">Architecture</a></td>
+<td>the entry schema of phase 1</td>
+<td>done: 11 entries</td>
+</tr>
+<tr>
+<td>3. <code>ccc -c</code></td>
+<td><code>cmd/ccc</code> and the output of cleaning everything</td>
+<td><a href="../spec/04-screens.html">Screens</a></td>
+<td>1, 2</td>
+<td>done; run on test data only, not on the shipped entries</td>
+</tr>
+<tr>
+<td>4. The screen</td>
+<td><code>internal/ui</code>: the <code>ccc check</code> screen,
+confirmation, result</td>
+<td><a href="../spec/04-screens.html">Screens</a></td>
+<td>1, 2</td>
+<td>done; of the shipped entries, only the pip cache was cleaned on a
+real machine</td>
+</tr>
+<tr>
+<td>5. Adding entries</td>
+<td>The command that adds a tool or a folder</td>
+<td><a href="../spec/00-requirements.html">Requirements</a>, &quot;Add
+a tool&quot;, &quot;Add a folder&quot;</td>
+<td>1</td>
+<td>done</td>
+</tr>
+<tr>
+<td>6. Linux and the rest of the catalog</td>
+<td>Confirming entries on Linux, adding entries from the catalog one by
+one as each is confirmed</td>
+<td><a href="../spec/00-requirements.html">Requirements</a>, &quot;What
+the shipped registry contains&quot;</td>
+<td>2</td>
+<td>not started</td>
+</tr>
+<tr>
+<td>7. Release</td>
+<td>Building and publishing the binaries</td>
+<td>—</td>
+<td>3, 4, 5</td>
+<td>not started</td>
+</tr>
+</tbody>
+</table>
+<p>Phases 1 and 2 touch different directories and run at the same
+time.</p>
+</body>
+</html>

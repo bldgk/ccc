@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Existing developer-cache cleaners: prior-art survey for
+`ccc`</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="existing-developer-cache-cleaners-prior-art-survey-for-ccc">Existing
+developer-cache cleaners: prior-art survey for <code>ccc</code></h1>
+<p>Method: GitHub API (stars, <code>pushed_at</code>, latest release),
+project READMEs and source files, and project web pages. Nothing was
+installed or run. &quot;unverified&quot; marks anything not confirmed from a
+primary source.</p>
+<h2 class="unnumbered unlisted" id="summary">Summary</h2>
+<p>Several existing tools overlap with parts of this idea, and one
+overlaps strongly. The relevant tools fall into three groups.</p>
+<ol>
+<li><strong>Data-driven cleaner registries.</strong> BleachBit with its
+CleanerML XML format is the only mature one. It is extensible by users,
+but it targets paths (plus a closed list of coded commands) and mostly
+covers desktop apps, not developer tools.</li>
+<li><strong>Developer-cache cleaners with a hard-coded tool
+list.</strong> These are mac-cleanup-py, Mole, CleanMyMac CLI,
+sasurahime, broom, devclean (ohing504), cacheout and others. They scan,
+show sizes, let the user pick, and often call native commands such as
+<code>npm cache clean</code>, <code>uv cache prune</code> and
+<code>pip cache purge</code>. Some discover paths by asking the tool
+(Mole runs <code>npm config get cache</code> and
+<code>uv cache dir</code>; mac-cleanup-py runs
+<code>brew --cache</code>). In all of them the tool knowledge is code,
+not user-extensible data. The exception is mac-cleanup-py, where users
+can add Python module files.</li>
+<li><strong>Per-project artifact cleaners and size analyzers.</strong>
+kondo, npkill, devclean (HuakunShen), cargo-sweep, cargo-cache, dust,
+gdu and ncdu. These cover
+<code>node_modules</code>/<code>target</code>-style folders or only
+measure.</li>
+</ol>
+<p>One tool, <code>devspace-sweeper</code>, uses YAML rule files, but
+they are glob rules only (no native commands, no path discovery).</p>
+<p>No tool was found that combines user-extensible data entries, path
+discovery by asking the tool, and the tool&#39;s native clean command, run
+on both macOS and Linux. See <code>## Gaps</code>.</p>
+<h2 class="unnumbered unlisted" id="comparison-table">Comparison
+table</h2>
+<p>Legend: Y = confirmed, N = confirmed absent, partial = see note,
+unverified = not confirmed from a primary source. Stars and dates are
+from the GitHub API (<code>pushed</code> = last push to the default
+branch).</p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Platforms</th>
+<th>Tool knowledge</th>
+<th>Native clean cmd or own delete</th>
+<th>Path discovery</th>
+<th>Sizes before clean + user pick</th>
+<th>Per-project folders</th>
+<th>Docker</th>
+<th>Activity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BleachBit</td>
+<td>Windows, Linux (repo description); macOS: cleaners exist
+(<code>os=&quot;macos&quot;</code> in docker.xml) but README does not state
+support, so unverified</td>
+<td>Data: CleanerML XML, user-extensible (user cleaner dirs)</td>
+<td>Mostly own delete/truncate; a closed set of coded commands
+(<code>apt.clean</code>, <code>yum.clean_all</code>,
+<code>dnf.clean_all</code>, <code>pacman.cache</code>,
+<code>snap.disabled</code>, <code>journald.clean</code>); generic
+<code>process</code> action runs an arbitrary command with a
+<code>cmd</code> attribute</td>
+<td>Fixed paths with variables/globs/OS conditions; no &quot;ask the
+tool&quot;</td>
+<td>Y (preview of sizes, per-option checkboxes)</td>
+<td>Partial: <code>walk.*</code> and <code>deep</code> searches can
+match by name/regex, no project-marker logic</td>
+<td>Only Docker Desktop app cache/logs/AI-assistant history
+(docker.xml), no prune</td>
+<td>7,094 stars; push 2026-10-11; v6.0.4 2026-09-08</td>
+</tr>
+<tr>
+<td>kondo</td>
+<td>Win/macOS/Linux (README topics, package managers)</td>
+<td>Hard-coded Rust (<code>ProjectType</code> enum + const dir arrays in
+<code>kondo-lib/src/lib.rs</code>)</td>
+<td>Own delete (&quot;rm -rf with a prompt&quot;)</td>
+<td>Project marker files (e.g. <code>Cargo.toml</code>)</td>
+<td>Y (size shown, prompt)</td>
+<td>Y (core purpose; 23 project types)</td>
+<td>N</td>
+<td>2,448 stars; push 2026-04-24; v0.9 2026-01-23</td>
+</tr>
+<tr>
+<td>npkill</td>
+<td>Platforms not listed in README (Node &gt;= 14); unverified</td>
+<td>Targets configurable by name (<code>-t</code>, profiles,
+<code>.npkillrc</code>)</td>
+<td>Own delete</td>
+<td>Directory-name search</td>
+<td>Y</td>
+<td>Y (<code>node_modules</code> default, other names via targets)</td>
+<td>N</td>
+<td>9,468 stars; push 2026-10-12; v0.12.2 2024-06-08</td>
+</tr>
+<tr>
+<td>cargo-cache</td>
+<td>Linux example in README; OS list unverified</td>
+<td>Hard-coded (cargo home layout)</td>
+<td>Own delete in <code>$CARGO_HOME</code> (README does not mention
+calling external commands)</td>
+<td><code>$CARGO_HOME</code></td>
+<td>Stats shown; selection via flags, not a picker</td>
+<td>N (cargo home only)</td>
+<td>N</td>
+<td>994 stars; push 2023-06-04; no GitHub releases</td>
+</tr>
+<tr>
+<td>cargo-sweep</td>
+<td>Cargo subcommand, OS list unverified</td>
+<td>Hard-coded</td>
+<td>Own delete of old <code>target/</code> artifacts (age, toolchain,
+size limit)</td>
+<td><code>target/</code> dirs</td>
+<td>Dry-run; flags, no picker</td>
+<td>Y (<code>target/</code> of many Rust projects)</td>
+<td>N</td>
+<td>996 stars; push 2026-05-26; v0.8.0 2025-10-11; README says
+unmaintained, points to <code>cargo-clean-all</code></td>
+</tr>
+<tr>
+<td>mac-cleanup-py</td>
+<td>macOS only</td>
+<td>Python module functions; users can load their own module files
+(<code>-p/--custom-path</code>); not declarative data</td>
+<td>Mixed: <code>Command(&quot;npm cache clean --force&quot;)</code> plus
+<code>Path(...)</code> deletes</td>
+<td>Partly: <code>brew --cache</code> is queried; other modules use
+fixed paths</td>
+<td>Y (dry run, <code>-c</code> module config screen)</td>
+<td>N</td>
+<td>Y (dangling images, stopped containers, via docker CLI)</td>
+<td>2,378 stars; push 2026-04-14; v3.3.0 2025-03-19</td>
+</tr>
+<tr>
+<td>mac-cleanup-sh</td>
+<td>macOS</td>
+<td>Shell script, hard-coded</td>
+<td>Mixed (shell)</td>
+<td>Fixed</td>
+<td>partial (unverified)</td>
+<td>N</td>
+<td>unverified</td>
+<td>2,815 stars; push 2023-05-21; v1.1.9 2021-08-17</td>
+</tr>
+<tr>
+<td>Mole (<code>mo</code>)</td>
+<td>macOS (Windows on a separate branch)</td>
+<td>Hard-coded Bash/Go (<code>lib/clean/dev.sh</code>, 5,723 lines)</td>
+<td>Both: native (<code>npm cache clean --force</code>,
+<code>uv cache prune</code>, <code>conda clean</code>,
+<code>corepack cache clean</code>, <code>bun pm cache rm</code>,
+<code>pnpm store prune</code>) plus <code>safe_clean</code> path delete
+for residue</td>
+<td>Y for some: <code>npm config get cache</code>,
+<code>uv cache dir</code>, <code>bun pm cache</code></td>
+<td>Y (<code>--dry-run</code>, whitelist; <code>mo purge</code>
+selection UI with sizes and age)</td>
+<td>Y (<code>mo purge</code>: <code>node_modules</code>,
+<code>target</code>, <code>.build</code>, <code>build</code>,
+<code>dist</code>; scan paths configurable)</td>
+<td>Docker prune: no hit in <code>dev.sh</code> grep (other files
+unchecked), unverified</td>
+<td>70,058 stars; push 2026-10-12; V1.59.1 2026-10-10; GPL-3.0</td>
+</tr>
+<tr>
+<td>CleanMyMac CLI (MacPaw)</td>
+<td>macOS 11+</td>
+<td>Closed source (repo has only README, SECURITY, EULA LICENSE);
+unknown</td>
+<td>Unknown (closed)</td>
+<td>Unknown</td>
+<td>Y (preview, approval, <code>--force</code> to skip)</td>
+<td>Y (<code>purge</code> over <code>~/Projects</code>,
+<code>~/Code</code>, <code>~/dev</code>, ...)</td>
+<td>Y (listed under <code>clean dev</code>)</td>
+<td>1,015 stars; push 2026-08-26; v1.0.0 2026-07-17; proprietary EULA;
+&quot;early developer preview&quot;</td>
+</tr>
+<tr>
+<td>CleanMyMac (GUI)</td>
+<td>macOS only</td>
+<td>Closed</td>
+<td>Closed</td>
+<td>Closed</td>
+<td>Y</td>
+<td>not mentioned on product page</td>
+<td>not mentioned</td>
+<td>Commercial; free trial, &quot;starting at $3.33/month&quot;</td>
+</tr>
+<tr>
+<td>DaisyDisk</td>
+<td>macOS 10.13+</td>
+<td>N/A (analyzer)</td>
+<td>Own delete (permanent)</td>
+<td>N/A</td>
+<td>Y (visual map; user picks)</td>
+<td>N</td>
+<td>N</td>
+<td>Commercial, $9.99 lifetime</td>
+</tr>
+<tr>
+<td>DevCleaner for Xcode (vashpan)</td>
+<td>macOS</td>
+<td>Hard-coded for Xcode</td>
+<td>Own delete (Device Support, Archives, DerivedData, docs cache, old
+logs)</td>
+<td>Fixed Xcode dirs</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>1,616 stars; push 2026-05-18; 2.8.0 2025-11-11; GPL-3.0; Mac App
+Store</td>
+</tr>
+<tr>
+<td>Czkawka / Krokiet</td>
+<td>Linux, Windows, macOS, others</td>
+<td>Hard-coded finders (duplicates, empty files/folders, temporary
+files, similar images...)</td>
+<td>Own delete</td>
+<td>N/A</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>34,211 stars; push 2026-09-16; 12.0.2 2026-09-09</td>
+</tr>
+<tr>
+<td>dust</td>
+<td>Linux, macOS, Windows</td>
+<td>N/A (measure only)</td>
+<td>None</td>
+<td>N/A</td>
+<td>Sizes yes, no deletion</td>
+<td>N/A</td>
+<td>N</td>
+<td>12,494 stars; v1.2.6 2026-09-16</td>
+</tr>
+<tr>
+<td>gdu</td>
+<td>Linux/macOS/Windows (Windows unverified)</td>
+<td>N/A (analyzer; has delete key, <code>--no-delete</code> flag)</td>
+<td>Own delete on request</td>
+<td>N/A</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>6,102 stars; v5.38.0 2026-10-05</td>
+</tr>
+<tr>
+<td>ncdu</td>
+<td>Any POSIX-like, Windows binary</td>
+<td>N/A (analyzer)</td>
+<td>Deletion not confirmed from the project page</td>
+<td>N/A</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>2.9.2 (2025-10-24) stable, 1.22 (2025-03-05) LTS (project page);
+GitHub mirror <code>rofl0r/ncdu</code> is a fork, last push 2020</td>
+</tr>
+<tr>
+<td>pyclean (bittner)</td>
+<td>Cross-platform (per description)</td>
+<td>Hard-coded (Python bytecode only)</td>
+<td>Own delete</td>
+<td>N/A</td>
+<td>unverified</td>
+<td>Y (<code>__pycache__</code>, <code>.pyc</code>)</td>
+<td>N</td>
+<td>92 stars; push 2026-05-23</td>
+</tr>
+<tr>
+<td>sasurahime</td>
+<td>macOS</td>
+<td>Hard-coded Rust (<code>Cleaner</code> trait +
+<code>define_cleaners!</code> macro; HOWTO says adding a target needs 3
+source edits)</td>
+<td>Both (docs: &quot;external CLI command or directory deletion&quot;); Trash by
+default</td>
+<td>Fixed cache dirs (<code>~/.cache</code>,
+<code>~/Library/Caches</code>...)</td>
+<td>Y (<code>scan</code>, interactive menu, <code>--dry-run</code>)</td>
+<td>partial (mise per-project <code>.mise.toml</code> check; no artifact
+scan found)</td>
+<td>Y (listed among 40+ tools)</td>
+<td>5 stars; push 2026-06-23; Apache-2.0</td>
+</tr>
+<tr>
+<td>broom (stefanosbou/broom-cli)</td>
+<td>macOS, Linux, Windows</td>
+<td>Hard-coded Go (<code>Scanner</code> interface,
+<code>register.go</code>); <code>config.toml</code> holds preferences
+only</td>
+<td>Deletion; whether native commands are used is not stated</td>
+<td>Fixed paths; Docker via <code>docker system df</code></td>
+<td>Y (picker, <code>--dry-run</code>)</td>
+<td>partial (project artifacts for some ecosystems; details
+unverified)</td>
+<td>Y (dangling images, build cache)</td>
+<td>0 stars; push 2026-05-14</td>
+</tr>
+<tr>
+<td>devclean (ohing504)</td>
+<td>macOS/Linux, amd64/arm64</td>
+<td>Hard-coded Go ecosystems; config &quot;not yet implemented&quot; (SPEC)</td>
+<td>Both: own delete plus ecosystem-native prune
+(<code>npm cache clean --force</code>, <code>yarn cache clean</code>,
+<code>pnpm store prune</code>, <code>pip cache purge</code>,
+<code>uv cache prune</code>,
+<code>xcrun simctl delete unavailable</code>), skipped when tool not on
+PATH</td>
+<td>Marker files per project; fixed global paths</td>
+<td>Y (scan table, tree selector, <code>--dry-run</code>)</td>
+<td>Y (node, rust, ruby, python, go, flutter, android)</td>
+<td>Scan only; &quot;prune deferred&quot;</td>
+<td>1 star; push 2026-10-02; v0.2.0 2026-10-02</td>
+</tr>
+<tr>
+<td>devclean (HuakunShen)</td>
+<td>GUI + CLI (platforms unverified)</td>
+<td>Hard-coded Rust traits (<code>LanguagePredicate</code>,
+<code>Removable</code>, <code>Stop</code>, <code>Reportable</code>);
+Node and Rust only</td>
+<td>Own delete</td>
+<td>Marker files</td>
+<td>Y</td>
+<td>Y</td>
+<td>N</td>
+<td>107 stars; push 2026-09-25</td>
+</tr>
+<tr>
+<td>devspace-sweeper</td>
+<td>Cross-platform claimed; Windows listed as future</td>
+<td>Data: YAML rule file (<code>recipes/default.yml</code>,
+<code>--recipes</code> for custom)</td>
+<td>Glob-based; README does not say how it cleans</td>
+<td>Globs</td>
+<td>scan/suggest/clean/report; dry-run claimed</td>
+<td>Y (globs like <code>**/node_modules/**</code>,
+<code>**/target/**</code>)</td>
+<td>N</td>
+<td>0 stars; push 2026-01-17; 0.1.5 on crates.io 2026-01-15</td>
+</tr>
+<tr>
+<td>nathankim0/mac-dev-cache-cleaner</td>
+<td>macOS</td>
+<td>README: &quot;no hardcoded project names&quot;; discovery via marker
+files</td>
+<td>Docker via Colima prune (native)</td>
+<td>Marker files</td>
+<td>unverified</td>
+<td>Y</td>
+<td>Y (Colima)</td>
+<td>0 stars; push 2026-08-20</td>
+</tr>
+<tr>
+<td>toufiqism/devclean</td>
+<td>macOS, Linux, Windows</td>
+<td>Hard-coded Python single file</td>
+<td>Own delete</td>
+<td>XDG dirs honored on Linux</td>
+<td>Y (checkbox TUI with SAFE/REVIEW tags)</td>
+<td>NDK pinning check; not a project scanner (unverified)</td>
+<td>N</td>
+<td>5 stars; push 2026-08-23</td>
+</tr>
+<tr>
+<td>cacheout (cacheout-app)</td>
+<td>macOS 14+</td>
+<td>Hard-coded Swift</td>
+<td>Own delete (Trash option); Docker row says to run
+<code>docker system prune -a</code> first</td>
+<td>Fixed + marker files for project artifacts</td>
+<td>Y</td>
+<td>Y (marker-verified <code>target/</code>,
+<code>node_modules/</code>)</td>
+<td>Disk image only; prune is the user&#39;s job</td>
+<td>2 stars; push 2026-09-06</td>
+</tr>
+<tr>
+<td>ylevytskyy/mac-cleaner</td>
+<td>macOS</td>
+<td>Hard-coded shell</td>
+<td>Both (&quot;per-tool prune for Docker / OrbStack / Colima / Lima /
+Podman&quot;, plus fixed dotcache deletes)</td>
+<td>Fixed</td>
+<td>unverified</td>
+<td>N</td>
+<td>Y (volumes only with <code>--include-volumes</code>)</td>
+<td>0 stars; push 2026-09-16</td>
+</tr>
+</tbody>
+</table>
+<p>Other very small repositories found by search (0-5 stars, not
+examined in depth): <code>gzb1128/mac-dev-cleanup</code>,
+<code>malvernbright/syssweep</code>,
+<code>yogaananda6677/ubuntu-system-cleaner</code>,
+<code>jalioba/GoClean</code>, <code>Mahmud0808/DevCleaner</code>,
+<code>NeverMorewd/DevCleaner</code> (Windows), <code>dockerase</code>
+(crate listing only, unverified).</p>
+<h2 class="unnumbered unlisted" id="bleachbit-cleanerml">BleachBit
+CleanerML</h2>
+<p>CleanerML is an XML dialect validated against a schema (the docs say
+XSD; the repository <code>bleachbit/cleanerml</code> carries the
+spec/pending cleaners). Definitions live in <code>cleaners/*.xml</code>
+in the BleachBit repository (about 100 files at the time of survey,
+including <code>docker.xml</code>, <code>python.xml</code>,
+<code>vscode.xml</code>, <code>claude.xml</code>,
+<code>android_studio.xml</code>, <code>apt.xml</code>,
+<code>snap.xml</code>, <code>pacman.xml</code>). Users can drop their
+own files into <code>~/.config/bleachbit/cleaners/</code> (Linux) or
+<code>%APPDATA%\BleachBit\cleaners\</code> (Windows). License:
+GPL-3.0.</p>
+<h3 class="unnumbered unlisted" id="elements-and-attributes">Elements
+and attributes</h3>
+<ul>
+<li><code>&lt;cleaner id=&quot;..&quot; os=&quot;..&quot;&gt;</code>: one tool. Children:
+<code>&lt;label&gt;</code>, <code>&lt;description&gt;</code>,
+<code>&lt;running&gt;</code>, <code>&lt;var&gt;</code>,
+<code>&lt;option&gt;</code>.</li>
+<li><code>&lt;running type=&quot;exe|pathname&quot; os=&quot;..&quot; same_user=&quot;true|false&quot;&gt;name&lt;/running&gt;</code>:
+abort cleaning if the application is running.</li>
+<li><code>&lt;var name=&quot;x&quot;&gt;&lt;value os=&quot;linux|macos|windows&quot;&gt;path&lt;/value&gt;...&lt;/var&gt;</code>:
+per-OS path variable, referenced as <code>$$x$$</code>. Paths expand
+<code>~</code>, environment variables (<code>$HOME</code>,
+<code>$XDG_CACHE_HOME</code>, <code>%AppData%</code>).</li>
+<li><code>&lt;option id=&quot;..&quot;&gt;</code>: one user-selectable checkbox.
+Children: <code>&lt;label&gt;</code>, <code>&lt;description&gt;</code>,
+optional single <code>&lt;warning&gt;</code>, one or more
+<code>&lt;action&gt;</code>.</li>
+<li><code>&lt;action command=&quot;..&quot; search=&quot;..&quot; path=&quot;..&quot; regex=&quot;..&quot; nregex=&quot;..&quot; wholeregex=&quot;..&quot; nwholeregex=&quot;..&quot; type=&quot;f|d&quot; os=&quot;..&quot; name=&quot;..&quot; cmd=&quot;..&quot; wait=&quot;..&quot;&gt;</code>.
+<ul>
+<li><code>search</code> (how files are found): <code>file</code>,
+<code>glob</code>, <code>walk.files</code>, <code>walk.all</code>,
+<code>walk.top</code>, <code>deep</code>, <code>children</code>.</li>
+<li><code>command</code> (what to do): <code>delete</code>,
+<code>truncate</code>, <code>shred</code>, <code>ini</code>,
+<code>json</code>, <code>sqlite.vacuum</code>, <code>winreg</code>,
+<code>process</code>, plus coded commands registered in
+<code>bleachbit/Action.py</code> (<code>apt.clean</code>,
+<code>apt.autoclean</code>, <code>apt.autoremove</code>,
+<code>yum.clean_all</code>, <code>dnf.clean_all</code>,
+<code>dnf.autoremove</code>, <code>pacman.cache</code>,
+<code>snap.disabled</code>, <code>journald.clean</code>,
+<code>chrome.*</code>, <code>mozilla.*</code>, <code>cookie</code>,
+<code>office_registrymodifications</code>,
+<code>win.shell.change.notify</code>,
+<code>macos.orphaned_framework_versions</code>).</li>
+<li><code>process</code> (verified in <code>Action.py</code>): runs
+<code>cmd</code> (env-expanded, shell-split, waits unless
+<code>wait=&quot;false&quot;</code>); the exit code is only logged as a warning
+and the action returns 0.</li>
+</ul></li>
+</ul>
+<h3 class="unnumbered unlisted" id="real-example-from-cleanersdockerxml-abbreviated">Real
+example (from <code>cleaners/docker.xml</code>, abbreviated)</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode xml"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">cleaner</span> <span class="ot">id=</span><span class="st">&quot;docker&quot;</span>&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">label</span>&gt;Docker Desktop&lt;/<span class="kw">label</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">description</span>&gt;Container platform&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">running</span> <span class="ot">type=</span><span class="st">&quot;exe&quot;</span> <span class="ot">os=</span><span class="st">&quot;macos&quot;</span> <span class="ot">same_user=</span><span class="st">&quot;true&quot;</span>&gt;Docker Desktop&lt;/<span class="kw">running</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">var</span> <span class="ot">name=</span><span class="st">&quot;base&quot;</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">value</span> <span class="ot">os=</span><span class="st">&quot;linux&quot;</span>&gt;$XDG_CONFIG_HOME/Docker Desktop&lt;/<span class="kw">value</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">value</span> <span class="ot">os=</span><span class="st">&quot;macos&quot;</span>&gt;~/Library/Application Support/Docker Desktop&lt;/<span class="kw">value</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">value</span> <span class="ot">os=</span><span class="st">&quot;windows&quot;</span>&gt;%AppData%\Docker Desktop&lt;/<span class="kw">value</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">var</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">option</span> <span class="ot">id=</span><span class="st">&quot;cache&quot;</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">label</span>&gt;Cache&lt;/<span class="kw">label</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">description</span>&gt;Delete the cache&lt;/<span class="kw">description</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">action</span> <span class="ot">command=</span><span class="st">&quot;delete&quot;</span> <span class="ot">search=</span><span class="st">&quot;walk.all&quot;</span> <span class="ot">path=</span><span class="st">&quot;$$base$$/Cache/&quot;</span>/&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">action</span> <span class="ot">command=</span><span class="st">&quot;delete&quot;</span> <span class="ot">search=</span><span class="st">&quot;walk.all&quot;</span> <span class="ot">path=</span><span class="st">&quot;$$base$$/GPUCache/&quot;</span>/&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">action</span> <span class="ot">command=</span><span class="st">&quot;delete&quot;</span> <span class="ot">search=</span><span class="st">&quot;file&quot;</span> <span class="ot">path=</span><span class="st">&quot;$$base$$/Network Persistent State&quot;</span> <span class="ot">os=</span><span class="st">&quot;unix&quot;</span>/&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">option</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">cleaner</span>&gt;</span></code></pre></div>
+<p>Native-command example (<code>cleaners/apt.xml</code>):
+<code>&lt;action command=&quot;apt.clean&quot;/&gt;</code>. That works only
+because <code>apt.clean</code> is a Python class in BleachBit&#39;s code,
+not because the XML names a command line.</p>
+<h3 class="unnumbered unlisted" id="what-cleanerml-cannot-express-verified-from-the-docs-the-example-file-and-actionpy">What
+CleanerML cannot express (verified from the docs, the example file and
+<code>Action.py</code>)</h3>
+<ul>
+<li>Running an arbitrary native clean command <em>and</em> reading its
+result: <code>process</code> exists but the exit code is discarded,
+stdout is not captured, and no size is derived from it.</li>
+<li>Discovering a path by asking the tool (for example
+<code>npm config get cache</code>, <code>uv cache dir</code>): path
+values are static strings with variable expansion only.</li>
+<li>Reporting size for a native command: previews come from the
+file-search commands; a <code>process</code> action has no preview
+size.</li>
+<li>Detecting that a tool is installed other than through file existence
+or <code>&lt;running&gt;</code> (a process check, not an installed
+check).</li>
+<li>Project-marker logic (&quot;<code>target/</code> only beside
+<code>Cargo.toml</code>&quot;): <code>walk.*</code> plus
+<code>regex</code>/<code>type</code> filters match by name only, with no
+sibling-file conditions.</li>
+<li>Age, size or recency conditions on what to delete.</li>
+<li>Dependencies between entries, or per-entry parameters set by the
+user.</li>
+<li>Cross-platform command variants for <code>process</code> (the
+<code>os</code> attribute exists on <code>action</code>, but the command
+string is a single literal).</li>
+<li>A new native command without editing Python (the coded command list
+is closed).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="reusable-datasets-and-specifications">Reusable
+datasets and specifications</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Source</th>
+<th>What it actually contains</th>
+<th>Fit for cache locations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BleachBit <code>cleaners/*.xml</code> (GPL-3.0)</td>
+<td>About 100 cleaner definitions with per-OS paths, running-process
+guards, labels and warnings. Mostly desktop apps; developer-relevant:
+docker (Desktop app), python (history only), vscode, android_studio,
+java, apt/dnf/pacman/snap.</td>
+<td>Real per-OS path data in a machine-readable format; thin on
+developer tools; GPL-3.0 licensing.</td>
+</tr>
+<tr>
+<td>kondo <code>kondo-lib/src/lib.rs</code> (MIT)</td>
+<td>Compiled-in table: project type -&gt; marker file(s) -&gt; artifact
+dir names (<code>Cargo</code>: <code>target</code>,
+<code>.xwin-cache</code>; <code>Node</code>: <code>node_modules</code>,
+<code>.angular</code>; Maven/SBT: <code>target</code>; plus 20 more
+types). Not an external data file.</td>
+<td>Good source for project-marker/artifact pairs.</td>
+</tr>
+<tr>
+<td>GitHub <code>gitignore</code> templates (github/gitignore)</td>
+<td>165 top-level templates plus <code>Global/</code> and
+<code>community/</code>; each lists patterns generated by that
+language&#39;s toolchain (Rust.gitignore: <code>target</code>,
+<code>debug</code>, <code>*.rs.bk</code>,
+<code>rustc-ice-*.txt</code>).</td>
+<td>Lists generated or ignorable files, not caches and not
+safe-to-delete guarantees; includes IDE and source-level ignores.</td>
+</tr>
+<tr>
+<td>CACHEDIR.TAG spec (bford.info/cachedir)</td>
+<td>A tag file <code>CACHEDIR.TAG</code> whose first 43 bytes are
+<code>Signature: 8a477f597d28d172789f06886806bc55</code>, placed in the
+top directory of cache data; honored by
+<code>tar --exclude-caches</code> and some applications. The spec says
+tags are hints.</td>
+<td>Lets a scanner recognise cache directories without a registry; cargo
+and some other tools write it (this survey did not check which).</td>
+</tr>
+<tr>
+<td>XDG Base Directory spec</td>
+<td><code>XDG_CACHE_HOME</code> default <code>$HOME/.cache</code>,
+<code>XDG_DATA_HOME</code> <code>$HOME/.local/share</code>,
+<code>XDG_CONFIG_HOME</code> <code>$HOME/.config</code>,
+<code>XDG_STATE_HOME</code> <code>$HOME/.local/state</code>. No cache
+cleanup policy and no per-application layout requirement.</td>
+<td>Gives the base directory on Linux; says nothing about what is inside
+or how to clean it. macOS (<code>~/Library/Caches</code>) is outside the
+spec.</td>
+</tr>
+<tr>
+<td>Mole <code>lib/clean/dev.sh</code> (GPL-3.0)</td>
+<td>A working table-in-code of tool -&gt; detect command -&gt; cache-dir
+query -&gt; native clean command -&gt; residue paths (npm, pnpm, yarn,
+bun, uv, conda, corepack, pip...).</td>
+<td>Readable reference for which native commands and queries exist;
+code, not data.</td>
+</tr>
+<tr>
+<td>devclean (ohing504) <code>docs/SPEC.md</code> (MIT)</td>
+<td>Documented ecosystem list, safety levels (<code>safe</code>,
+<code>protected</code>...), per-artifact categories, and the
+native-prune table above.</td>
+<td>Useful for risk classification.</td>
+</tr>
+<tr>
+<td>mac-cleanup-py <code>default_modules.py</code> (Apache-2.0)</td>
+<td>About 40 Python module functions with exact paths and commands.</td>
+<td>Reference for macOS paths.</td>
+</tr>
+</tbody>
+</table>
+<p>I did not find a standalone, tool-neutral dataset (JSON/TOML/YAML) of
+developer-tool cache locations with native clean commands.</p>
+<h2 class="unnumbered unlisted" id="gaps">Gaps</h2>
+<p>None of the surveyed tools does all of the following. Each item is
+&quot;not found in the surveyed projects&quot;, not a claim about every project on
+GitHub.</p>
+<ol>
+<li><strong>A user-extensible data registry whose entries carry a native
+clean command.</strong> BleachBit&#39;s registry is data but its native
+commands are a closed, coded set and <code>process</code> discards
+output. The tools that do call native commands (Mole, mac-cleanup-py,
+devclean, sasurahime, CleanMyMac CLI) keep that knowledge in code, or in
+a closed binary. mac-cleanup-py&#39;s custom modules are Python code, not
+declarative data.</li>
+<li><strong>Path discovery by asking the tool, expressed as
+data.</strong> Mole and mac-cleanup-py ask the tool
+(<code>npm config get cache</code>, <code>uv cache dir</code>,
+<code>brew --cache</code>) but only inside scripts or code; CleanerML
+has no such construct.</li>
+<li><strong>A size measurement defined per entry as data</strong>
+(measure path vs. ask the tool vs. a tool-specific report such as
+<code>docker system df</code>). Only broom/devclean mention Docker size
+via the Docker CLI, in code.</li>
+<li><strong>A user-defined entry that is a plain folder removed with
+<code>rm -rf</code>, added through a command and a TOML file.</strong>
+BleachBit takes hand-written XML in a config directory; npkill takes
+target names in <code>.npkillrc</code>; devspace-sweeper takes a YAML
+rule file. None of them offers an add-entry command; no TOML-based
+registry was found.</li>
+<li><strong>Linux and macOS together with developer-tool
+coverage.</strong> Mole, mac-cleanup, sasurahime, CleanMyMac CLI,
+cacheout, DevCleaner for Xcode are macOS-only; BleachBit covers Linux
+but has little developer-tool content; broom and devclean (ohing504)
+cover both but are code-defined and have 0-1 stars.</li>
+<li><strong>Docker cleaning through the native command as a selectable
+entry with a measured size.</strong> mac-cleanup-py and
+ylevytskyy/mac-cleaner prune; broom scans via
+<code>docker system df</code>; ohing504 devclean&#39;s Docker prune is
+documented as deferred; BleachBit handles only the Docker Desktop app
+cache.</li>
+<li><strong>A single registry covering both global caches and
+per-project folders.</strong> kondo, npkill, cargo-sweep and devclean
+(HuakunShen) handle per-project folders only; Mole and ohing504 devclean
+combine both but as code.</li>
+<li><strong>An open, extensible definition set where built-ins and user
+entries are the same kind of object.</strong> In BleachBit user cleaners
+share the format with built-ins (the closest match); elsewhere built-ins
+are code and user additions (when possible at all) are a different
+mechanism.</li>
+<li><strong>Community or standard dataset of tool cache
+locations.</strong> None found (see the datasets section).</li>
+</ol>
+<h2 class="unnumbered unlisted" id="sources">Sources</h2>
+<ul>
+<li>https://docs.bleachbit.org/doc/cleanerml.html</li>
+<li>https://github.com/bleachbit/bleachbit (and
+<code>doc/example_cleaner.xml</code>, <code>cleaners/docker.xml</code>,
+<code>cleaners/apt.xml</code>, <code>cleaners/python.xml</code>,
+<code>bleachbit/Action.py</code>)</li>
+<li>https://github.com/bleachbit/cleanerml</li>
+<li>https://github.com/tbillington/kondo</li>
+<li>https://github.com/voidcosmos/npkill</li>
+<li>https://github.com/matthiaskrgr/cargo-cache</li>
+<li>https://github.com/holmgr/cargo-sweep</li>
+<li>https://github.com/dnlmlr/cargo-clean-all</li>
+<li>https://github.com/mac-cleanup/mac-cleanup-py</li>
+<li>https://github.com/mac-cleanup/mac-cleanup-sh</li>
+<li>https://github.com/tw93/Mole</li>
+<li>https://github.com/MacPaw/cleanmymac-cli</li>
+<li>https://macpaw.com/news/cleanmymac-cli</li>
+<li>https://macpaw.com/cleanmymac</li>
+<li>https://daisydiskapp.com/</li>
+<li>https://github.com/vashpan/xcode-dev-cleaner</li>
+<li>https://github.com/qarmin/czkawka</li>
+<li>https://github.com/bootandy/dust</li>
+<li>https://github.com/dundee/gdu</li>
+<li>https://dev.yorhel.nl/ncdu</li>
+<li>https://github.com/bittner/pyclean</li>
+<li>https://github.com/armaniacs/sasurahime</li>
+<li>https://pkg.go.dev/github.com/stefanosbou/broom-cli</li>
+<li>https://github.com/ohing504/devclean</li>
+<li>https://github.com/HuakunShen/devclean</li>
+<li>https://github.com/adwaitdeshpande/devspace-sweeper and
+https://docs.rs/devspace-sweeper</li>
+<li>https://github.com/nathankim0/mac-dev-cache-cleaner</li>
+<li>https://github.com/toufiqism/devclean</li>
+<li>https://github.com/cacheout-app/cacheout</li>
+<li>https://github.com/ylevytskyy/mac-cleaner</li>
+<li>https://github.com/github/gitignore</li>
+<li>https://bford.info/cachedir/</li>
+<li>http://specifications.freedesktop.org/basedir/latest/</li>
+</ul>
+</body>
+</html>

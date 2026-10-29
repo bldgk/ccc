@@ -1,0 +1,13 @@
+kind = "tool"
+name = "pip"
+executable = "pip3"
+
+[[places]]
+name = "cache"
+holds = "cache"
+path.command = "pip3 cache dir"
+path.env = "PIP_CACHE_DIR"
+path.default.macos = "~/Library/Caches/pip"
+path.default.linux = "~/.cache/pip"
+measure.by = "disk-usage"
+clean.command = "pip3 cache purge"

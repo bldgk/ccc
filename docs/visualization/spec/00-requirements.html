@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ccc — requirements</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="ccc--requirements">ccc
+— requirements</h1>
+<p><code>ccc</code> (&quot;cute cache cleaner&quot;) is a command-line program
+that shows how much disk space the caches and the installed toolchain
+versions of developer tools take on a machine, and cleans them. It knows
+each tool through a registry entry that says how to find the tool&#39;s
+places — the directories and other storage where it keeps caches or
+installed versions — how to measure them and how to clean them.</p>
+<h2 class="unnumbered unlisted" id="who-it-is-for-and-why">Who
+it is for and why</h2>
+<p>The user is a developer whose disk fills up with caches of the tools
+they work with. The owner of this project is the first such user.
+<code>ccc</code> is published as a public repository and runs on macOS
+and on Linux. Windows is not supported.</p>
+<p>The problem: on a developer&#39;s machine these caches grow to tens of
+gigabytes, and nothing removes them. Getting the space back is a manual
+pass over the caches of Go, Rust, npm, bun, pip, Puppeteer, Homebrew,
+Docker and the build directories inside projects, and for each one
+somebody has to know three things:</p>
+<ul>
+<li>where the tool keeps its cache on this particular machine — Rust
+alone has four different places (build output, package registry,
+installed toolchains, compiler cache), and its build output moves to a
+shared directory when the user sets <code>build.target-dir</code> in the
+Cargo configuration;</li>
+<li>how big it is;</li>
+<li>how it is removed — the Go module cache consists of read-only files
+and is removed with <code>go clean -modcache</code>, Docker&#39;s build
+cache is not a directory at all and is removed with
+<code>docker builder prune</code>.</li>
+</ul>
+<p><code>ccc</code> holds that knowledge so that the pass becomes one
+command.</p>
+<h2 class="unnumbered unlisted" id="why-existing-tools-are-not-enough">Why
+existing tools are not enough</h2>
+<p>The survey is in <a href="../research/tool-caches/existing-cleaners.html">existing-cleaners.md</a>.
+Its conclusion:</p>
+<ul>
+<li>Mole (<code>mo</code>) calls the tools&#39; own clean commands and, for
+some tools, asks the tool for its cache path. Its list of tools is
+program code, so a user cannot add a tool without changing and
+rebuilding the program. It runs on macOS, with Windows on a separate
+branch, and not on Linux.</li>
+<li>BleachBit keeps its knowledge as data that a user can extend, but an
+entry cannot ask a tool where its cache is and cannot obtain a size from
+a command.</li>
+<li>devclean covers macOS and Linux and shows sizes with selection, but
+its list of tools is program code as well, and user configuration is not
+implemented.</li>
+</ul>
+<p>No surveyed tool describes a developer tool as user-editable data
+that covers finding the cache, measuring it and cleaning it with the
+tool&#39;s own command.</p>
+<h2 class="unnumbered unlisted" id="the-registry">The
+registry</h2>
+<p>Everything <code>ccc</code> knows is in a registry of entries. An
+entry has a kind:</p>
+<ul>
+<li><code>tool</code> — a developer tool such as Docker, Rust or
+pip;</li>
+<li><code>folder</code> — a directory the user points at.</li>
+</ul>
+<p>The entries shipped with <code>ccc</code> are the default contents of
+that registry: a shipped entry and an entry added by the user follow the
+same contract. The user adds an entry with a command, and the registry
+is text the user can also edit by hand: TOML, one file per tool. The
+shipped entries are built into the program and are updated together with
+it. A user file with the same tool name replaces the shipped entry of
+that tool as a whole. The reasons for the format are in <a href="../research/01-discovery.html#the-registry-file-format">01-discovery.md</a>.</p>
+<h3 class="unnumbered unlisted" id="the-contract-of-an-entry">The
+contract of an entry</h3>
+<p>An entry describes three steps. They are also the steps of adding a
+new tool.</p>
+<img role="img" src="data:image/svg+xml;base64,PHN2ZyBpZD0ibXktc3ZnIiB3aWR0aD0iMTAwJSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgY2xhc3M9ImZsb3djaGFydCIgc3R5bGU9Im1heC13aWR0aDogNDkzLjgxMnB4OyBiYWNrZ3JvdW5kLWNvbG9yOiB3aGl0ZTsiIHZpZXdCb3g9IjAgMCA0OTMuODEyNSA3MCIgcm9sZT0iZ3JhcGhpY3MtZG9jdW1lbnQgZG9jdW1lbnQiIGFyaWEtcm9sZWRlc2NyaXB0aW9uPSJmbG93Y2hhcnQtdjIiPjxzdHlsZT4jbXktc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmaWxsOiMzMzM7fUBrZXlmcmFtZXMgZWRnZS1hbmltYXRpb24tZnJhbWV7ZnJvbXtzdHJva2UtZGFzaG9mZnNldDowO319QGtleWZyYW1lcyBkYXNoe3Rve3N0cm9rZS1kYXNob2Zmc2V0OjA7fX0jbXktc3ZnIC5lZGdlLWFuaW1hdGlvbi1zbG93e3N0cm9rZS1kYXNoYXJyYXk6OSw1IWltcG9ydGFudDtzdHJva2UtZGFzaG9mZnNldDo5MDA7YW5pbWF0aW9uOmRhc2ggNTBzIGxpbmVhciBpbmZpbml0ZTtzdHJva2UtbGluZWNhcDpyb3VuZDt9I215LXN2ZyAuZWRnZS1hbmltYXRpb24tZmFzdHtzdHJva2UtZGFzaGFycmF5OjksNSFpbXBvcnRhbnQ7c3Ryb2tlLWRhc2hvZmZzZXQ6OTAwO2FuaW1hdGlvbjpkYXNoIDIwcyBsaW5lYXIgaW5maW5pdGU7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7fSNteS1zdmcgLmVycm9yLWljb257ZmlsbDojNTUyMjIyO30jbXktc3ZnIC5lcnJvci10ZXh0e2ZpbGw6IzU1MjIyMjtzdHJva2U6IzU1MjIyMjt9I215LXN2ZyAuZWRnZS10aGlja25lc3Mtbm9ybWFse3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLmVkZ2UtdGhpY2tuZXNzLXRoaWNre3N0cm9rZS13aWR0aDozLjVweDt9I215LXN2ZyAuZWRnZS1wYXR0ZXJuLXNvbGlke3N0cm9rZS1kYXNoYXJyYXk6MDt9I215LXN2ZyAuZWRnZS10aGlja25lc3MtaW52aXNpYmxle3N0cm9rZS13aWR0aDowO2ZpbGw6bm9uZTt9I215LXN2ZyAuZWRnZS1wYXR0ZXJuLWRhc2hlZHtzdHJva2UtZGFzaGFycmF5OjM7fSNteS1zdmcgLmVkZ2UtcGF0dGVybi1kb3R0ZWR7c3Ryb2tlLWRhc2hhcnJheToyO30jbXktc3ZnIC5tYXJrZXJ7ZmlsbDojMzMzMzMzO3N0cm9rZTojMzMzMzMzO30jbXktc3ZnIC5tYXJrZXIuY3Jvc3N7c3Ryb2tlOiMzMzMzMzM7fSNteS1zdmcgc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDt9I215LXN2ZyBwe21hcmdpbjowO30jbXktc3ZnIC5sYWJlbHtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Y29sb3I6IzMzMzt9I215LXN2ZyAuY2x1c3Rlci1sYWJlbCB0ZXh0e2ZpbGw6IzMzMzt9I215LXN2ZyAuY2x1c3Rlci1sYWJlbCBzcGFue2NvbG9yOiMzMzM7fSNteS1zdmcgLmNsdXN0ZXItbGFiZWwgc3BhbiBwe2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnQ7fSNteS1zdmcgLmxhYmVsIHRleHQsI215LXN2ZyBzcGFue2ZpbGw6IzMzMztjb2xvcjojMzMzO30jbXktc3ZnIC5ub2RlIHJlY3QsI215LXN2ZyAubm9kZSBjaXJjbGUsI215LXN2ZyAubm9kZSBlbGxpcHNlLCNteS1zdmcgLm5vZGUgcG9seWdvbiwjbXktc3ZnIC5ub2RlIHBhdGh7ZmlsbDojRUNFQ0ZGO3N0cm9rZTojOTM3MERCO3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLnJvdWdoLW5vZGUgLmxhYmVsIHRleHQsI215LXN2ZyAubm9kZSAubGFiZWwgdGV4dCwjbXktc3ZnIC5pbWFnZS1zaGFwZSAubGFiZWwsI215LXN2ZyAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbmNob3I6bWlkZGxlO30jbXktc3ZnIC5ub2RlIC5rYXRleCBwYXRoe2ZpbGw6IzAwMDtzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MXB4O30jbXktc3ZnIC5yb3VnaC1ub2RlIC5sYWJlbCwjbXktc3ZnIC5ub2RlIC5sYWJlbCwjbXktc3ZnIC5pbWFnZS1zaGFwZSAubGFiZWwsI215LXN2ZyAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbGlnbjpjZW50ZXI7fSNteS1zdmcgLm5vZGUuY2xpY2thYmxle2N1cnNvcjpwb2ludGVyO30jbXktc3ZnIC5yb290IC5hbmNob3IgcGF0aHtmaWxsOiMzMzMzMzMhaW1wb3J0YW50O3N0cm9rZS13aWR0aDowO3N0cm9rZTojMzMzMzMzO30jbXktc3ZnIC5hcnJvd2hlYWRQYXRoe2ZpbGw6IzMzMzMzMzt9I215LXN2ZyAuZWRnZVBhdGhzIC5wYXRoe3N0cm9rZTojMzMzMzMzO3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLmZsb3djaGFydC1saW5re3N0cm9rZTojMzMzMzMzO2ZpbGw6bm9uZTt9I215LXN2ZyAuZWRnZUxhYmVse2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt0ZXh0LWFsaWduOmNlbnRlcjt9I215LXN2ZyAuZWRnZUxhYmVsIHB7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jbXktc3ZnIC5lZGdlTGFiZWwgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7ZmlsbDpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jbXktc3ZnIC5sYWJlbEJrZ3tiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLCAyMzIsIDIzMiwgMC41KTt9I215LXN2ZyAuY2x1c3RlciByZWN0e2ZpbGw6I2ZmZmZkZTtzdHJva2U6I2FhYWEzMztzdHJva2Utd2lkdGg6MXB4O30jbXktc3ZnIC5jbHVzdGVyIHRleHR7ZmlsbDojMzMzO30jbXktc3ZnIC5jbHVzdGVyIHNwYW57Y29sb3I6IzMzMzt9I215LXN2ZyAubm9kZSAuY29sbGFwc2VkLWluZGljYXRvcntmaWxsOiNhYWFhMzM7c3Ryb2tlOm5vbmU7b3BhY2l0eTowLjY7fSNteS1zdmcgLm5vZGUgLmNvbGxhcHNlZC1zZXBhcmF0b3J7c3Ryb2tlOiNhYWFhMzM7c3Ryb2tlLXdpZHRoOjAuNzVweDt9I215LXN2ZyBkaXYubWVybWFpZFRvb2x0aXB7cG9zaXRpb246YWJzb2x1dGU7dGV4dC1hbGlnbjpjZW50ZXI7bWF4LXdpZHRoOjIwMHB4O3BhZGRpbmc6MnB4O2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtiYWNrZ3JvdW5kOmhzbCg4MCwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpO2JvcmRlcjoxcHggc29saWQgI2FhYWEzMztib3JkZXItcmFkaXVzOjJweDtwb2ludGVyLWV2ZW50czpub25lO3otaW5kZXg6MTAwO30jbXktc3ZnIC5mbG93Y2hhcnRUaXRsZVRleHR7dGV4dC1hbmNob3I6bWlkZGxlO2ZvbnQtc2l6ZToxOHB4O2ZpbGw6IzMzMzt9I215LXN2ZyByZWN0LnRleHR7ZmlsbDpub25lO3N0cm9rZS13aWR0aDowO30jbXktc3ZnIC5pY29uLXNoYXBlLCNteS1zdmcgLmltYWdlLXNoYXBle2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt0ZXh0LWFsaWduOmNlbnRlcjt9I215LXN2ZyAuaWNvbi1zaGFwZSBwLCNteS1zdmcgLmltYWdlLXNoYXBlIHB7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO3BhZGRpbmc6MnB4O30jbXktc3ZnIC5pY29uLXNoYXBlIC5sYWJlbCByZWN0LCNteS1zdmcgLmltYWdlLXNoYXBlIC5sYWJlbCByZWN0e29wYWNpdHk6MC41O2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTtmaWxsOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7fSNteS1zdmcgLmxhYmVsLWljb257ZGlzcGxheTppbmxpbmUtYmxvY2s7aGVpZ2h0OjFlbTtvdmVyZmxvdzp2aXNpYmxlO3ZlcnRpY2FsLWFsaWduOi0wLjEyNWVtO30jbXktc3ZnIC5ub2RlIC5sYWJlbC1pY29uIHBhdGh7ZmlsbDpjdXJyZW50Q29sb3I7c3Ryb2tlOnJldmVydDtzdHJva2Utd2lkdGg6cmV2ZXJ0O30jbXktc3ZnIC5ub2RlIC5uZW8tbm9kZXtzdHJva2U6IzkzNzBEQjt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIHJlY3QsI215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5jbHVzdGVyIHJlY3QsI215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIHBvbHlnb257c3Ryb2tlOiM5MzcwREI7ZmlsdGVyOmRyb3Atc2hhZG93KDFweCAycHggMnB4IHJnYmEoMTg1LCAxODUsIDE4NSwgMSkpO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLnN3aW1sYW5lLmNsdXN0ZXIgcmVjdHtmaWx0ZXI6bm9uZTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIHBhdGh7c3Ryb2tlOiM5MzcwREI7c3Ryb2tlLXdpZHRoOjFweDt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIC5vdXRlci1wYXRoe2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIC5uZW8tbGluZSBwYXRoe3N0cm9rZTojOTM3MERCO2ZpbHRlcjpub25lO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgY2lyY2xle3N0cm9rZTojOTM3MERCO2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIGNpcmNsZSAuc3RhdGUtc3RhcnR7ZmlsbDojMDAwMDAwO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLmljb24tc2hhcGUgLmljb257ZmlsbDojOTM3MERCO2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5pY29uLXNoYXBlIC5pY29uLW5lbyBwYXRoe3N0cm9rZTojOTM3MERCO2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyA6cm9vdHstLW1lcm1haWQtZm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO308L3N0eWxlPjxnPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQiIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjUiIHJlZlk9IjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDAgMCBMIDEwIDUgTCAwIDEwIHoiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludFN0YXJ0IiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI0LjUiIHJlZlk9IjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDAgNSBMIDEwIDEwIEwgMTAgMCB6IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDExLjUgMTQiIHJlZlg9IjExLjUiIHJlZlk9IjciIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjEwLjUiIG1hcmtlckhlaWdodD0iMTQiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAwIDAgTCAxMS41IDcgTCAwIDE0IHoiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDA7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludFN0YXJ0LW1hcmdpbiIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMS41IDE0IiByZWZYPSIxIiByZWZZPSI3IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMS41IiBtYXJrZXJIZWlnaHQ9IjE0IiBvcmllbnQ9ImF1dG8iPjxwb2x5Z29uIHBvaW50cz0iMCw3IDExLjUsMTQgMTEuNSwwIiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAwOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY2lyY2xlRW5kIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSIxMSIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlckhlaWdodD0iMTEiIG9yaWVudD0iYXV0byI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjUiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jaXJjbGVTdGFydCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iLTEiIHJlZlk9IjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjExIiBtYXJrZXJIZWlnaHQ9IjExIiBvcmllbnQ9ImF1dG8iPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSI1IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY2lyY2xlRW5kLW1hcmdpbiIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWT0iNSIgcmVmWD0iMTIuMjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjE0IiBtYXJrZXJIZWlnaHQ9IjE0IiBvcmllbnQ9ImF1dG8iPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSI1IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAwOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY2lyY2xlU3RhcnQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSItMiIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTQiIG1hcmtlckhlaWdodD0iMTQiIG9yaWVudD0iYXV0byI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjUiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDA7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jcm9zc0VuZCIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMSAxMSIgcmVmWD0iMTIiIHJlZlk9IjUuMiIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlckhlaWdodD0iMTEiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOSIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLWNyb3NzU3RhcnQiIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTEgMTEiIHJlZlg9Ii0xIiByZWZZPSI1LjIiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjExIiBtYXJrZXJIZWlnaHQ9IjExIiBvcmllbnQ9ImF1dG8iPjxwYXRoIGQ9Ik0gMSwxIGwgOSw5IE0gMTAsMSBsIC05LDkiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jcm9zc0VuZC1tYXJnaW4iIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTUgMTUiIHJlZlg9IjE3LjciIHJlZlk9IjcuNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTIiIG1hcmtlckhlaWdodD0iMTIiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAxLDEgTCAxNCwxNCBNIDEsMTQgTCAxNCwxIiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyLjU7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jcm9zc1N0YXJ0LW1hcmdpbiIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxNSAxNSIgcmVmWD0iLTMuNSIgcmVmWT0iNy41IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMiIgbWFya2VySGVpZ2h0PSIxMiIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDEsMSBMIDE0LDE0IE0gMSwxNCBMIDE0LDEiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDIuNTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48ZyBjbGFzcz0icm9vdCI+PGcgY2xhc3M9ImNsdXN0ZXJzIi8+PGcgY2xhc3M9ImVkZ2VQYXRocyI+PHBhdGggZD0iTTEzNy43NjYsMzVMMTQxLjkzMiwzNUMxNDYuMDk5LDM1LDE1NC40MzIsMzUsMTYyLjA5OSwzNUMxNjkuNzY2LDM1LDE3Ni43NjYsMzUsMTgwLjI2NiwzNUwxODMuNzY2LDM1IiBpZD0ibXktc3ZnLUxfRF9NXzAiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsiIHN0eWxlPSI7IiBkYXRhLWVkZ2U9InRydWUiIGRhdGEtZXQ9ImVkZ2UiIGRhdGEtaWQ9IkxfRF9NXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk1UTTNMamMyTlRZeU5Td2llU0k2TXpWOUxIc2llQ0k2TVRZeUxqYzJOVFl5TlN3aWVTSTZNelY5TEhzaWVDSTZNVGczTGpjMk5UWXlOU3dpZVNJNk16VjlYUT09IiBkYXRhLWxvb2s9ImNsYXNzaWMiIG1hcmtlci1lbmQ9InVybCgjbXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZCkiLz48cGF0aCBkPSJNMzM1LjY0MSwzNUwzMzkuODA3LDM1QzM0My45NzQsMzUsMzUyLjMwNywzNSwzNTkuOTc0LDM1QzM2Ny42NDEsMzUsMzc0LjY0MSwzNSwzNzguMTQxLDM1TDM4MS42NDEsMzUiIGlkPSJteS1zdmctTF9NX0NfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9IjsiIGRhdGEtZWRnZT0idHJ1ZSIgZGF0YS1ldD0iZWRnZSIgZGF0YS1pZD0iTF9NX0NfMCIgZGF0YS1wb2ludHM9Ilczc2llQ0k2TXpNMUxqWTBNRFl5TlN3aWVTSTZNelY5TEhzaWVDSTZNell3TGpZME1EWXlOU3dpZVNJNk16VjlMSHNpZUNJNk16ZzFMalkwTURZeU5Td2llU0k2TXpWOVhRPT0iIGRhdGEtbG9vaz0iY2xhc3NpYyIgbWFya2VyLWVuZD0idXJsKCNteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKSIvPjwvZz48ZyBjbGFzcz0iZWRnZUxhYmVscyI+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgY2xhc3M9ImxhYmVsIiBkYXRhLWlkPSJMX0RfTV8wIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSI+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjAiIGhlaWdodD0iMCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgY2xhc3M9ImxhYmVsQmtnIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIGNsYXNzPSJsYWJlbCIgZGF0YS1pZD0iTF9NX0NfMCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiPjxmb3JlaWduT2JqZWN0IHdpZHRoPSIwIiBoZWlnaHQ9IjAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJsYWJlbEJrZyIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGVzIj48ZyBjbGFzcz0ibm9kZSBkZWZhdWx0IiBpZD0ibXktc3ZnLWZsb3djaGFydC1ELTAiIGRhdGEtbG9vaz0iY2xhc3NpYyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzIuODgyODEyNSwgMzUpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNjQuODgyODEyNSIgeT0iLTI3IiB3aWR0aD0iMTI5Ljc2NTYyNSIgaGVpZ2h0PSI1NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTM0Ljg4MjgxMjUsIC0xMikiPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCB3aWR0aD0iNjkuNzY1NjI1IiBoZWlnaHQ9IjI0Ij48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+PHA+RGV0ZWN0aW9uPC9wPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0ibm9kZSBkZWZhdWx0IiBpZD0ibXktc3ZnLWZsb3djaGFydC1NLTEiIGRhdGEtbG9vaz0iY2xhc3NpYyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYxLjcwMzEyNSwgMzUpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNzMuOTM3NSIgeT0iLTI3IiB3aWR0aD0iMTQ3Ljg3NSIgaGVpZ2h0PSI1NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQzLjkzNzUsIC0xMikiPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCB3aWR0aD0iODcuODc1IiBoZWlnaHQ9IjI0Ij48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+PHA+U3BhY2UgY2hlY2s8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJub2RlIGRlZmF1bHQiIGlkPSJteS1zdmctZmxvd2NoYXJ0LUMtMiIgZGF0YS1sb29rPSJjbGFzc2ljIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MzUuNzI2NTYyNSwgMzUpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItNTAuMDg1OTM3NSIgeT0iLTI3IiB3aWR0aD0iMTAwLjE3MTg3NSIgaGVpZ2h0PSI1NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIwLjA4NTkzNzUsIC0xMikiPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCB3aWR0aD0iNDAuMTcxODc1IiBoZWlnaHQ9IjI0Ij48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+PHA+Q2xlYW48L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz48L2c+PC9nPjxkZWZzPjxmaWx0ZXIgaWQ9Im15LXN2Zy1kcm9wLXNoYWRvdyIgaGVpZ2h0PSIxMzAlIiB3aWR0aD0iMTMwJSI+PGZlRHJvcFNoYWRvdyBkeD0iNCIgZHk9IjQiIHN0ZERldmlhdGlvbj0iMCIgZmxvb2Qtb3BhY2l0eT0iMC4wNiIgZmxvb2QtY29sb3I9IiMwMDAwMDAiLz48L2ZpbHRlcj48L2RlZnM+PGRlZnM+PGZpbHRlciBpZD0ibXktc3ZnLWRyb3Atc2hhZG93LXNtYWxsIiBoZWlnaHQ9IjE1MCUiIHdpZHRoPSIxNTAlIj48ZmVEcm9wU2hhZG93IGR4PSIyIiBkeT0iMiIgc3RkRGV2aWF0aW9uPSIwIiBmbG9vZC1vcGFjaXR5PSIwLjA2IiBmbG9vZC1jb2xvcj0iIzAwMDAwMCIvPjwvZmlsdGVyPjwvZGVmcz48L3N2Zz4=" />
+<p><strong>Detection — is the tool here, and where are its places on
+this machine.</strong></p>
+<ul>
+<li>A tool counts as present when its executable is on <code>PATH</code>
+or one of its directory places exists on disk. A cache often outlives
+the tool that made it.</li>
+<li>An entry lists places, not one path. A place is either a directory,
+or a part of the tool&#39;s storage that only the tool itself can list and
+that has no directory of its own, such as Docker&#39;s build cache. npm has
+the directories <code>_cacache</code> and <code>_npx</code>.</li>
+<li>Each place is declared either as a cache or as installed versions. A
+cache place yields one row. A place of installed versions yields one row
+per version: the entry says how the versions are listed, and the space
+check and the clean step apply to one version at a time
+(<code>rustup toolchain list</code>,
+<code>rustup toolchain uninstall &lt;name&gt;</code>).</li>
+<li>The path of a directory place is resolved in this order: a command
+of the tool that prints it (<code>go env GOCACHE</code> prints the Go
+build cache), then an environment variable, then a default path given
+per operating system. A default path may refer to an environment
+variable. When a source gives nothing — the tool is not installed, its
+command fails, the variable is not set — the next source is tried. A
+shipped entry never contains a path that is true only for one person&#39;s
+machine.</li>
+<li>A directory place is a specific directory, never the directory above
+it. <code>~/.bun</code> contains the <code>bun</code> executable itself;
+the Cargo home contains <code>credentials.toml</code>.</li>
+<li>Detection of a place ends in one of three results: found; not
+present on this machine; could not be determined. A place that is not
+present is not shown at all. &quot;Could not be determined&quot; is the result
+only when no source of the path worked; it is shown as an error and
+never as a size of zero.</li>
+<li>A command of an entry is run directly, not through a shell. A
+command and a path may contain the placeholders
+<code>&lt;version&gt;</code> and <code>&lt;path&gt;</code>, which stand
+for the name of one installed version and for the resolved path of the
+place.</li>
+</ul>
+<p><strong>Space check — how much each place takes.</strong></p>
+<ul>
+<li>Either the disk usage of the resolved path, counted by allocated
+blocks, or a command of the tool whose output is parsed
+(<code>docker system df</code>, <code>uv cache size</code>).</li>
+<li>When measuring needs something that is absent — a daemon that is not
+running, administrator rights — the place is shown as &quot;not measured&quot;
+with the reason, never as zero. <code>ccc</code> never asks for
+administrator rights itself.</li>
+<li>A Docker row shows what cleaning would free, as Docker reports it,
+not the size of Docker&#39;s disk image file.</li>
+</ul>
+<p><strong>Clean — how each place is cleaned.</strong></p>
+<ul>
+<li>The tool&#39;s own command (<code>go clean -modcache</code>,
+<code>docker builder prune</code>), or removal of the directory when the
+tool has no such command.</li>
+<li>A step that must run before cleaning, such as stopping a server
+(<code>sccache --stop-server</code>), is part of the entry.</li>
+<li>When the tool has been uninstalled and its directory is still there,
+the directory is measured by disk usage and cleaned by removing it.</li>
+<li><code>ccc</code> does not check whether a place is in use by a
+running process.</li>
+</ul>
+<p>An entry of kind <code>folder</code> is the same contract in its
+simplest form: the user gives the path, the size is the disk usage of
+that path, and cleaning removes the directory itself.</p>
+<h3 class="unnumbered unlisted" id="what-the-shipped-registry-contains">What
+the shipped registry contains</h3>
+<ul>
+<li>Caches that a tool keeps in one location for the whole user account
+or the whole machine. Caches that a tool creates inside each project
+directory are not shipped entries; see <a href="#non-goals">Non-goals</a>.
+A shared Rust build directory is not a shipped entry either: it exists
+only where a user configured it, and that user adds it as a
+<code>folder</code>.</li>
+<li>Docker images count as a cache, and cleaning removes only the images
+no container uses (<code>docker image prune -a</code>).</li>
+<li>An entry is shipped only when its detection and its space check were
+confirmed by running them on a machine that has the tool, and its clean
+command comes from the tool&#39;s official documentation. A description with
+unverified fields is not shipped.</li>
+<li>Installed versions of toolchains — Rust toolchains of
+<code>rustup</code>, Node versions of <code>nvm</code>, Python versions
+of <code>pyenv</code>. These are not caches.</li>
+<li>These are user data and are not in the shipped registry, and
+<code>ccc</code> never removes them: Docker volumes, Xcode
+<code>Archives</code>, simulator and emulator devices, virtual
+environments that Poetry keeps inside its cache directory.</li>
+</ul>
+<p>The raw material for the shipped entries is a catalog of 142 tool
+descriptions collected from official documentation, in
+<code>docs/research/tool-caches/</code>: <a href="../research/tool-caches/javascript.html">JavaScript</a>,
+<a href="../research/tool-caches/python-ml.html">Python and
+ML</a>, <a href="../research/tool-caches/compiled-languages.html">compiled
+languages</a>, <a href="../research/tool-caches/jvm-mobile-apple-dotnet.html">JVM,
+mobile, Apple, .NET, Ruby, PHP, editors</a>, <a href="../research/tool-caches/containers-infra-system.html">containers,
+infrastructure, system package managers</a>. A field is marked
+<code>unverified</code> when it could be confirmed neither in the tool&#39;s
+official documentation nor by running a read-only command. 127 of the
+142 descriptions contain at least one such field.</p>
+<h2 class="unnumbered unlisted" id="use-cases">Use
+cases</h2>
+<h3 class="unnumbered unlisted" id="see-what-takes-space">See
+what takes space</h3>
+<p>The user runs <code>ccc check</code>, or <code>ccc</code> without
+arguments. It is an interactive screen. <code>ccc</code> runs detection
+and the space check for every entry of the registry and shows what was
+found and how much each place takes. Nothing is removed until the user
+asks for cleaning on that screen. The screen shows sizes only: not when
+a place was last used, and not whether something is using it.</p>
+<p><code>ccc</code> does not explain what a cache is for, whether it
+will be downloaded again or how long a rebuild will take: the user looks
+at the numbers and decides.</p>
+<h3 class="unnumbered unlisted" id="clean-a-selection">Clean
+a selection</h3>
+<p>On the <code>ccc check</code> screen the user marks rows with the
+space bar and cleans the marked ones. The user can also clean everything
+at once from that screen; &quot;everything&quot; there means the same as in the
+next use case. Before cleaning from the screen, <code>ccc</code> asks
+for one confirmation that lists the rows and their total size.</p>
+<p>After cleaning, <code>ccc</code> shows how much space each row freed
+and the total. A row whose cleaning failed does not stop the others: it
+is marked as failed with the message of the tool, and the failures are
+summed up at the end.</p>
+<h3 class="unnumbered unlisted" id="clean-everything">Clean
+everything</h3>
+<p>The user runs <code>ccc --clean</code> (short form
+<code>ccc -c</code>). <code>ccc</code> cleans every cache place of every
+<code>tool</code> entry and every <code>folder</code> entry, without
+asking for confirmation: the command itself is the request. Rows of
+installed toolchain versions are not touched by &quot;clean everything&quot;,
+neither here nor on the <code>ccc check</code> screen: a version is
+removed only when the user marks its row. Otherwise the command would
+remove the only installed toolchain and nothing would build
+afterwards.</p>
+<img role="img" src="data:image/svg+xml;base64,PHN2ZyBpZD0ibXktc3ZnIiB3aWR0aD0iMTAwJSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgY2xhc3M9ImZsb3djaGFydCIgc3R5bGU9Im1heC13aWR0aDogNTE0LjAwOHB4OyBiYWNrZ3JvdW5kLWNvbG9yOiB3aGl0ZTsiIHZpZXdCb3g9IjAgMCA1MTQuMDA3ODEyNSA2MjQuNSIgcm9sZT0iZ3JhcGhpY3MtZG9jdW1lbnQgZG9jdW1lbnQiIGFyaWEtcm9sZWRlc2NyaXB0aW9uPSJmbG93Y2hhcnQtdjIiPjxzdHlsZT4jbXktc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDtmaWxsOiMzMzM7fUBrZXlmcmFtZXMgZWRnZS1hbmltYXRpb24tZnJhbWV7ZnJvbXtzdHJva2UtZGFzaG9mZnNldDowO319QGtleWZyYW1lcyBkYXNoe3Rve3N0cm9rZS1kYXNob2Zmc2V0OjA7fX0jbXktc3ZnIC5lZGdlLWFuaW1hdGlvbi1zbG93e3N0cm9rZS1kYXNoYXJyYXk6OSw1IWltcG9ydGFudDtzdHJva2UtZGFzaG9mZnNldDo5MDA7YW5pbWF0aW9uOmRhc2ggNTBzIGxpbmVhciBpbmZpbml0ZTtzdHJva2UtbGluZWNhcDpyb3VuZDt9I215LXN2ZyAuZWRnZS1hbmltYXRpb24tZmFzdHtzdHJva2UtZGFzaGFycmF5OjksNSFpbXBvcnRhbnQ7c3Ryb2tlLWRhc2hvZmZzZXQ6OTAwO2FuaW1hdGlvbjpkYXNoIDIwcyBsaW5lYXIgaW5maW5pdGU7c3Ryb2tlLWxpbmVjYXA6cm91bmQ7fSNteS1zdmcgLmVycm9yLWljb257ZmlsbDojNTUyMjIyO30jbXktc3ZnIC5lcnJvci10ZXh0e2ZpbGw6IzU1MjIyMjtzdHJva2U6IzU1MjIyMjt9I215LXN2ZyAuZWRnZS10aGlja25lc3Mtbm9ybWFse3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLmVkZ2UtdGhpY2tuZXNzLXRoaWNre3N0cm9rZS13aWR0aDozLjVweDt9I215LXN2ZyAuZWRnZS1wYXR0ZXJuLXNvbGlke3N0cm9rZS1kYXNoYXJyYXk6MDt9I215LXN2ZyAuZWRnZS10aGlja25lc3MtaW52aXNpYmxle3N0cm9rZS13aWR0aDowO2ZpbGw6bm9uZTt9I215LXN2ZyAuZWRnZS1wYXR0ZXJuLWRhc2hlZHtzdHJva2UtZGFzaGFycmF5OjM7fSNteS1zdmcgLmVkZ2UtcGF0dGVybi1kb3R0ZWR7c3Ryb2tlLWRhc2hhcnJheToyO30jbXktc3ZnIC5tYXJrZXJ7ZmlsbDojMzMzMzMzO3N0cm9rZTojMzMzMzMzO30jbXktc3ZnIC5tYXJrZXIuY3Jvc3N7c3Ryb2tlOiMzMzMzMzM7fSNteS1zdmcgc3Zne2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTZweDt9I215LXN2ZyBwe21hcmdpbjowO30jbXktc3ZnIC5sYWJlbHtmb250LWZhbWlseToidHJlYnVjaGV0IG1zIix2ZXJkYW5hLGFyaWFsLHNhbnMtc2VyaWY7Y29sb3I6IzMzMzt9I215LXN2ZyAuY2x1c3Rlci1sYWJlbCB0ZXh0e2ZpbGw6IzMzMzt9I215LXN2ZyAuY2x1c3Rlci1sYWJlbCBzcGFue2NvbG9yOiMzMzM7fSNteS1zdmcgLmNsdXN0ZXItbGFiZWwgc3BhbiBwe2JhY2tncm91bmQtY29sb3I6dHJhbnNwYXJlbnQ7fSNteS1zdmcgLmxhYmVsIHRleHQsI215LXN2ZyBzcGFue2ZpbGw6IzMzMztjb2xvcjojMzMzO30jbXktc3ZnIC5ub2RlIHJlY3QsI215LXN2ZyAubm9kZSBjaXJjbGUsI215LXN2ZyAubm9kZSBlbGxpcHNlLCNteS1zdmcgLm5vZGUgcG9seWdvbiwjbXktc3ZnIC5ub2RlIHBhdGh7ZmlsbDojRUNFQ0ZGO3N0cm9rZTojOTM3MERCO3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLnJvdWdoLW5vZGUgLmxhYmVsIHRleHQsI215LXN2ZyAubm9kZSAubGFiZWwgdGV4dCwjbXktc3ZnIC5pbWFnZS1zaGFwZSAubGFiZWwsI215LXN2ZyAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbmNob3I6bWlkZGxlO30jbXktc3ZnIC5ub2RlIC5rYXRleCBwYXRoe2ZpbGw6IzAwMDtzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MXB4O30jbXktc3ZnIC5yb3VnaC1ub2RlIC5sYWJlbCwjbXktc3ZnIC5ub2RlIC5sYWJlbCwjbXktc3ZnIC5pbWFnZS1zaGFwZSAubGFiZWwsI215LXN2ZyAuaWNvbi1zaGFwZSAubGFiZWx7dGV4dC1hbGlnbjpjZW50ZXI7fSNteS1zdmcgLm5vZGUuY2xpY2thYmxle2N1cnNvcjpwb2ludGVyO30jbXktc3ZnIC5yb290IC5hbmNob3IgcGF0aHtmaWxsOiMzMzMzMzMhaW1wb3J0YW50O3N0cm9rZS13aWR0aDowO3N0cm9rZTojMzMzMzMzO30jbXktc3ZnIC5hcnJvd2hlYWRQYXRoe2ZpbGw6IzMzMzMzMzt9I215LXN2ZyAuZWRnZVBhdGhzIC5wYXRoe3N0cm9rZTojMzMzMzMzO3N0cm9rZS13aWR0aDoxcHg7fSNteS1zdmcgLmZsb3djaGFydC1saW5re3N0cm9rZTojMzMzMzMzO2ZpbGw6bm9uZTt9I215LXN2ZyAuZWRnZUxhYmVse2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt0ZXh0LWFsaWduOmNlbnRlcjt9I215LXN2ZyAuZWRnZUxhYmVsIHB7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jbXktc3ZnIC5lZGdlTGFiZWwgcmVjdHtvcGFjaXR5OjAuNTtiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7ZmlsbDpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO30jbXktc3ZnIC5sYWJlbEJrZ3tiYWNrZ3JvdW5kLWNvbG9yOnJnYmEoMjMyLCAyMzIsIDIzMiwgMC41KTt9I215LXN2ZyAuY2x1c3RlciByZWN0e2ZpbGw6I2ZmZmZkZTtzdHJva2U6I2FhYWEzMztzdHJva2Utd2lkdGg6MXB4O30jbXktc3ZnIC5jbHVzdGVyIHRleHR7ZmlsbDojMzMzO30jbXktc3ZnIC5jbHVzdGVyIHNwYW57Y29sb3I6IzMzMzt9I215LXN2ZyAubm9kZSAuY29sbGFwc2VkLWluZGljYXRvcntmaWxsOiNhYWFhMzM7c3Ryb2tlOm5vbmU7b3BhY2l0eTowLjY7fSNteS1zdmcgLm5vZGUgLmNvbGxhcHNlZC1zZXBhcmF0b3J7c3Ryb2tlOiNhYWFhMzM7c3Ryb2tlLXdpZHRoOjAuNzVweDt9I215LXN2ZyBkaXYubWVybWFpZFRvb2x0aXB7cG9zaXRpb246YWJzb2x1dGU7dGV4dC1hbGlnbjpjZW50ZXI7bWF4LXdpZHRoOjIwMHB4O3BhZGRpbmc6MnB4O2ZvbnQtZmFtaWx5OiJ0cmVidWNoZXQgbXMiLHZlcmRhbmEsYXJpYWwsc2Fucy1zZXJpZjtmb250LXNpemU6MTJweDtiYWNrZ3JvdW5kOmhzbCg4MCwgMTAwJSwgOTYuMjc0NTA5ODAzOSUpO2JvcmRlcjoxcHggc29saWQgI2FhYWEzMztib3JkZXItcmFkaXVzOjJweDtwb2ludGVyLWV2ZW50czpub25lO3otaW5kZXg6MTAwO30jbXktc3ZnIC5mbG93Y2hhcnRUaXRsZVRleHR7dGV4dC1hbmNob3I6bWlkZGxlO2ZvbnQtc2l6ZToxOHB4O2ZpbGw6IzMzMzt9I215LXN2ZyByZWN0LnRleHR7ZmlsbDpub25lO3N0cm9rZS13aWR0aDowO30jbXktc3ZnIC5pY29uLXNoYXBlLCNteS1zdmcgLmltYWdlLXNoYXBle2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTt0ZXh0LWFsaWduOmNlbnRlcjt9I215LXN2ZyAuaWNvbi1zaGFwZSBwLCNteS1zdmcgLmltYWdlLXNoYXBlIHB7YmFja2dyb3VuZC1jb2xvcjpyZ2JhKDIzMiwyMzIsMjMyLCAwLjgpO3BhZGRpbmc6MnB4O30jbXktc3ZnIC5pY29uLXNoYXBlIC5sYWJlbCByZWN0LCNteS1zdmcgLmltYWdlLXNoYXBlIC5sYWJlbCByZWN0e29wYWNpdHk6MC41O2JhY2tncm91bmQtY29sb3I6cmdiYSgyMzIsMjMyLDIzMiwgMC44KTtmaWxsOnJnYmEoMjMyLDIzMiwyMzIsIDAuOCk7fSNteS1zdmcgLmxhYmVsLWljb257ZGlzcGxheTppbmxpbmUtYmxvY2s7aGVpZ2h0OjFlbTtvdmVyZmxvdzp2aXNpYmxlO3ZlcnRpY2FsLWFsaWduOi0wLjEyNWVtO30jbXktc3ZnIC5ub2RlIC5sYWJlbC1pY29uIHBhdGh7ZmlsbDpjdXJyZW50Q29sb3I7c3Ryb2tlOnJldmVydDtzdHJva2Utd2lkdGg6cmV2ZXJ0O30jbXktc3ZnIC5ub2RlIC5uZW8tbm9kZXtzdHJva2U6IzkzNzBEQjt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIHJlY3QsI215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5jbHVzdGVyIHJlY3QsI215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIHBvbHlnb257c3Ryb2tlOiM5MzcwREI7ZmlsdGVyOmRyb3Atc2hhZG93KDFweCAycHggMnB4IHJnYmEoMTg1LCAxODUsIDE4NSwgMSkpO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLnN3aW1sYW5lLmNsdXN0ZXIgcmVjdHtmaWx0ZXI6bm9uZTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIHBhdGh7c3Ryb2tlOiM5MzcwREI7c3Ryb2tlLXdpZHRoOjFweDt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIC5vdXRlci1wYXRoe2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIC5uZW8tbGluZSBwYXRoe3N0cm9rZTojOTM3MERCO2ZpbHRlcjpub25lO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLm5vZGUgY2lyY2xle3N0cm9rZTojOTM3MERCO2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5ub2RlIGNpcmNsZSAuc3RhdGUtc3RhcnR7ZmlsbDojMDAwMDAwO30jbXktc3ZnIFtkYXRhLWxvb2s9Im5lbyJdLmljb24tc2hhcGUgLmljb257ZmlsbDojOTM3MERCO2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyBbZGF0YS1sb29rPSJuZW8iXS5pY29uLXNoYXBlIC5pY29uLW5lbyBwYXRoe3N0cm9rZTojOTM3MERCO2ZpbHRlcjpkcm9wLXNoYWRvdygxcHggMnB4IDJweCByZ2JhKDE4NSwgMTg1LCAxODUsIDEpKTt9I215LXN2ZyA6cm9vdHstLW1lcm1haWQtZm9udC1mYW1pbHk6InRyZWJ1Y2hldCBtcyIsdmVyZGFuYSxhcmlhbCxzYW5zLXNlcmlmO308L3N0eWxlPjxnPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQiIGNsYXNzPSJtYXJrZXIgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTAgMTAiIHJlZlg9IjUiIHJlZlk9IjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDAgMCBMIDEwIDUgTCAwIDEwIHoiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludFN0YXJ0IiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSI0LjUiIHJlZlk9IjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDAgNSBMIDEwIDEwIEwgMTAgMCB6IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDExLjUgMTQiIHJlZlg9IjExLjUiIHJlZlk9IjciIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjEwLjUiIG1hcmtlckhlaWdodD0iMTQiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAwIDAgTCAxMS41IDcgTCAwIDE0IHoiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDA7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludFN0YXJ0LW1hcmdpbiIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMS41IDE0IiByZWZYPSIxIiByZWZZPSI3IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMS41IiBtYXJrZXJIZWlnaHQ9IjE0IiBvcmllbnQ9ImF1dG8iPjxwb2x5Z29uIHBvaW50cz0iMCw3IDExLjUsMTQgMTEuNSwwIiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAwOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY2lyY2xlRW5kIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSIxMSIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlckhlaWdodD0iMTEiIG9yaWVudD0iYXV0byI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjUiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jaXJjbGVTdGFydCIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWD0iLTEiIHJlZlk9IjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjExIiBtYXJrZXJIZWlnaHQ9IjExIiBvcmllbnQ9ImF1dG8iPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSI1IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAxOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY2lyY2xlRW5kLW1hcmdpbiIgY2xhc3M9Im1hcmtlciBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMCAxMCIgcmVmWT0iNSIgcmVmWD0iMTIuMjUiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjE0IiBtYXJrZXJIZWlnaHQ9IjE0IiBvcmllbnQ9ImF1dG8iPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSI1IiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAwOyBzdHJva2UtZGFzaGFycmF5OiAxLCAwOyIvPjwvbWFya2VyPjxtYXJrZXIgaWQ9Im15LXN2Z19mbG93Y2hhcnQtdjItY2lyY2xlU3RhcnQtbWFyZ2luIiBjbGFzcz0ibWFya2VyIGZsb3djaGFydC12MiIgdmlld0JveD0iMCAwIDEwIDEwIiByZWZYPSItMiIgcmVmWT0iNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTQiIG1hcmtlckhlaWdodD0iMTQiIG9yaWVudD0iYXV0byI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjUiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDA7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jcm9zc0VuZCIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxMSAxMSIgcmVmWD0iMTIiIHJlZlk9IjUuMiIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTEiIG1hcmtlckhlaWdodD0iMTEiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAxLDEgbCA5LDkgTSAxMCwxIGwgLTksOSIgY2xhc3M9ImFycm93TWFya2VyUGF0aCIgc3R5bGU9InN0cm9rZS13aWR0aDogMjsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48bWFya2VyIGlkPSJteS1zdmdfZmxvd2NoYXJ0LXYyLWNyb3NzU3RhcnQiIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTEgMTEiIHJlZlg9Ii0xIiByZWZZPSI1LjIiIG1hcmtlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgbWFya2VyV2lkdGg9IjExIiBtYXJrZXJIZWlnaHQ9IjExIiBvcmllbnQ9ImF1dG8iPjxwYXRoIGQ9Ik0gMSwxIGwgOSw5IE0gMTAsMSBsIC05LDkiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDI7IHN0cm9rZS1kYXNoYXJyYXk6IDEsIDA7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jcm9zc0VuZC1tYXJnaW4iIGNsYXNzPSJtYXJrZXIgY3Jvc3MgZmxvd2NoYXJ0LXYyIiB2aWV3Qm94PSIwIDAgMTUgMTUiIHJlZlg9IjE3LjciIHJlZlk9IjcuNSIgbWFya2VyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBtYXJrZXJXaWR0aD0iMTIiIG1hcmtlckhlaWdodD0iMTIiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAxLDEgTCAxNCwxNCBNIDEsMTQgTCAxNCwxIiBjbGFzcz0iYXJyb3dNYXJrZXJQYXRoIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiAyLjU7Ii8+PC9tYXJrZXI+PG1hcmtlciBpZD0ibXktc3ZnX2Zsb3djaGFydC12Mi1jcm9zc1N0YXJ0LW1hcmdpbiIgY2xhc3M9Im1hcmtlciBjcm9zcyBmbG93Y2hhcnQtdjIiIHZpZXdCb3g9IjAgMCAxNSAxNSIgcmVmWD0iLTMuNSIgcmVmWT0iNy41IiBtYXJrZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIG1hcmtlcldpZHRoPSIxMiIgbWFya2VySGVpZ2h0PSIxMiIgb3JpZW50PSJhdXRvIj48cGF0aCBkPSJNIDEsMSBMIDE0LDE0IE0gMSwxNCBMIDE0LDEiIGNsYXNzPSJhcnJvd01hcmtlclBhdGgiIHN0eWxlPSJzdHJva2Utd2lkdGg6IDIuNTsgc3Ryb2tlLWRhc2hhcnJheTogMSwgMDsiLz48L21hcmtlcj48ZyBjbGFzcz0icm9vdCI+PGcgY2xhc3M9ImNsdXN0ZXJzIi8+PGcgY2xhc3M9ImVkZ2VQYXRocyI+PHBhdGggZD0iTTE1Ny4zNDgsNjJMMTU3LjM0OCw2Ni4xNjdDMTU3LjM0OCw3MC4zMzMsMTU3LjM0OCw3OC42NjcsMTU3LjM0OCw4Ni4zMzNDMTU3LjM0OCw5NCwxNTcuMzQ4LDEwMSwxNTcuMzQ4LDEwNC41TDE1Ny4zNDgsMTA4IiBpZD0ibXktc3ZnLUxfQV9CXzAiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsiIHN0eWxlPSI7IiBkYXRhLWVkZ2U9InRydWUiIGRhdGEtZXQ9ImVkZ2UiIGRhdGEtaWQ9IkxfQV9CXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk1UVTNMak0wTnpZMU5qSTFMQ0o1SWpvMk1uMHNleUo0SWpveE5UY3VNelEzTmpVMk1qVXNJbmtpT2pnM2ZTeDdJbmdpT2pFMU55NHpORGMyTlRZeU5Td2llU0k2TVRFeWZWMD0iIGRhdGEtbG9vaz0iY2xhc3NpYyIgbWFya2VyLWVuZD0idXJsKCNteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKSIvPjxwYXRoIGQ9Ik0xNTcuMzQ4LDE2NkwxNTcuMzQ4LDE3MC4xNjdDMTU3LjM0OCwxNzQuMzMzLDE1Ny4zNDgsMTgyLjY2NywxNTcuMzQ4LDE5MC4zMzNDMTU3LjM0OCwxOTgsMTU3LjM0OCwyMDUsMTU3LjM0OCwyMDguNUwxNTcuMzQ4LDIxMiIgaWQ9Im15LXN2Zy1MX0JfQ18wIiBjbGFzcz0iZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGZsb3djaGFydC1saW5rIiBzdHlsZT0iOyIgZGF0YS1lZGdlPSJ0cnVlIiBkYXRhLWV0PSJlZGdlIiBkYXRhLWlkPSJMX0JfQ18wIiBkYXRhLXBvaW50cz0iVzNzaWVDSTZNVFUzTGpNME56WTFOakkxTENKNUlqb3hOalo5TEhzaWVDSTZNVFUzTGpNME56WTFOakkxTENKNUlqb3hPVEY5TEhzaWVDSTZNVFUzTGpNME56WTFOakkxTENKNUlqb3lNVFo5WFE9PSIgZGF0YS1sb29rPSJjbGFzc2ljIiBtYXJrZXItZW5kPSJ1cmwoI215LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQpIi8+PHBhdGggZD0iTTEzNC4wOSwzMzcuMjQyTDEyOS4zMjIsMzQ3LjI4NUMxMjQuNTU1LDM1Ny4zMjgsMTE1LjAyLDM3Ny40MTQsMTEwLjI1MiwzOTIuOTU3QzEwNS40ODQsNDA4LjUsMTA1LjQ4NCw0MTkuNSwxMDUuNDg0LDQyNUwxMDUuNDg0LDQzMC41IiBpZD0ibXktc3ZnLUxfQ19EXzAiIGNsYXNzPSJlZGdlLXRoaWNrbmVzcy1ub3JtYWwgZWRnZS1wYXR0ZXJuLXNvbGlkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsiIHN0eWxlPSI7IiBkYXRhLWVkZ2U9InRydWUiIGRhdGEtZXQ9ImVkZ2UiIGRhdGEtaWQ9IkxfQ19EXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk1UTTBMakE0T1RrM01EUTJPVGt3TlRRMExDSjVJam96TXpjdU1qUXlNekUwTWpFNU9UQTFORFI5TEhzaWVDSTZNVEExTGpRNE5ETTNOU3dpZVNJNk16azNMalY5TEhzaWVDSTZNVEExTGpRNE5ETTNOU3dpZVNJNk5ETTBMalY5WFE9PSIgZGF0YS1sb29rPSJjbGFzc2ljIiBtYXJrZXItZW5kPSJ1cmwoI215LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQpIi8+PHBhdGggZD0iTTE5Ni44NzEsMzIwLjk3N0wyMTIuMjczLDMzMy43MzFDMjI3LjY3NiwzNDYuNDg1LDI1OC40OCwzNzEuOTkyLDI4MS43MDIsMzkwLjUxN0MzMDQuOTI1LDQwOS4wNDIsMzIwLjU2NCw0MjAuNTgzLDMyOC4zODQsNDI2LjM1NEwzMzYuMjAzLDQzMi4xMjUiIGlkPSJteS1zdmctTF9DX0dfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9IjsiIGRhdGEtZWRnZT0idHJ1ZSIgZGF0YS1ldD0iZWRnZSIgZGF0YS1pZD0iTF9DX0dfMCIgZGF0YS1wb2ludHM9Ilczc2llQ0k2TVRrMkxqZzNNRGM0TkRBd016TXdNemsxTENKNUlqb3pNakF1T1RjMk9EY3lNalEyTmprMmZTeDdJbmdpT2pJNE9TNHlPRFV4TlRZeU5Td2llU0k2TXprM0xqVjlMSHNpZUNJNk16TTVMalF5TVRZNU1UZzVORFV6TVRJMUxDSjVJam8wTXpRdU5YMWQiIGRhdGEtbG9vaz0iY2xhc3NpYyIgbWFya2VyLWVuZD0idXJsKCNteS1zdmdfZmxvd2NoYXJ0LXYyLXBvaW50RW5kKSIvPjxwYXRoIGQ9Ik00MDQuOTY1LDMxNS4yNUw0MDQuOTY1LDMyOC45NThDNDA0Ljk2NSwzNDIuNjY3LDQwNC45NjUsMzcwLjA4Myw0MDIuNDUsMzg5LjM1MUMzOTkuOTM0LDQwOC42MTksMzk0LjkwNCw0MTkuNzM3LDM5Mi4zODgsNDI1LjI5NkwzODkuODczLDQzMC44NTYiIGlkPSJteS1zdmctTF9GX0dfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZWRnZS10aGlja25lc3Mtbm9ybWFsIGVkZ2UtcGF0dGVybi1zb2xpZCBmbG93Y2hhcnQtbGluayIgc3R5bGU9IjsiIGRhdGEtZWRnZT0idHJ1ZSIgZGF0YS1ldD0iZWRnZSIgZGF0YS1pZD0iTF9GX0dfMCIgZGF0YS1wb2ludHM9Ilczc2llQ0k2TkRBMExqazJORGcwTXpjMUxDSjVJam96TVRVdU1qVjlMSHNpZUNJNk5EQTBMamsyTkRnME16YzFMQ0o1SWpvek9UY3VOWDBzZXlKNElqb3pPRGd1TWpJME1EWXdNRFU0TlRrek56VXNJbmtpT2pRek5DNDFmVjA9IiBkYXRhLWxvb2s9ImNsYXNzaWMiIG1hcmtlci1lbmQ9InVybCgjbXktc3ZnX2Zsb3djaGFydC12Mi1wb2ludEVuZCkiLz48cGF0aCBkPSJNMzc2LjAwOCw0ODguNUwzNzYuMDA4LDQ5Mi42NjdDMzc2LjAwOCw0OTYuODMzLDM3Ni4wMDgsNTA1LjE2NywzNzYuMDA4LDUxMi44MzNDMzc2LjAwOCw1MjAuNSwzNzYuMDA4LDUyNy41LDM3Ni4wMDgsNTMxTDM3Ni4wMDgsNTM0LjUiIGlkPSJteS1zdmctTF9HX0hfMCIgY2xhc3M9ImVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tZG90dGVkIGVkZ2UtdGhpY2tuZXNzLW5vcm1hbCBlZGdlLXBhdHRlcm4tc29saWQgZmxvd2NoYXJ0LWxpbmsiIHN0eWxlPSI7IiBkYXRhLWVkZ2U9InRydWUiIGRhdGEtZXQ9ImVkZ2UiIGRhdGEtaWQ9IkxfR19IXzAiIGRhdGEtcG9pbnRzPSJXM3NpZUNJNk16YzJMakF3TnpneE1qVXNJbmtpT2pRNE9DNDFmU3g3SW5naU9qTTNOaTR3TURjNE1USTFMQ0o1SWpvMU1UTXVOWDBzZXlKNElqb3pOell1TURBM09ERXlOU3dpZVNJNk5UTTRMalY5WFE9PSIgZGF0YS1sb29rPSJjbGFzc2ljIiBtYXJrZXItZW5kPSJ1cmwoI215LXN2Z19mbG93Y2hhcnQtdjItcG9pbnRFbmQpIi8+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWxzIj48ZyBjbGFzcz0iZWRnZUxhYmVsIj48ZyBjbGFzcz0ibGFiZWwiIGRhdGEtaWQ9IkxfQV9CXzAiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsIDApIj48Zm9yZWlnbk9iamVjdCB3aWR0aD0iMCIgaGVpZ2h0PSIwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBjbGFzcz0ibGFiZWxCa2ciIHN0eWxlPSJkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7Ij48c3BhbiBjbGFzcz0iZWRnZUxhYmVsIj48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgY2xhc3M9ImxhYmVsIiBkYXRhLWlkPSJMX0JfQ18wIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSI+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjAiIGhlaWdodD0iMCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgY2xhc3M9ImxhYmVsQmtnIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwNS40ODQzNzUsIDM5Ny41KSI+PGcgY2xhc3M9ImxhYmVsIiBkYXRhLWlkPSJMX0NfRF8wIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDUuODEyNSwgLTEyKSI+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjkxLjYyNSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgY2xhc3M9ImxhYmVsQmtnIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PHA+bWFya2VkIHJvd3M8L3A+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2Ny4wNzQ2MywgMzc5LjEwODcyKSI+PGcgY2xhc3M9ImxhYmVsIiBkYXRhLWlkPSJMX0NfR18wIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMzcuOTE0MDYyNSwgLTEyKSI+PGZvcmVpZ25PYmplY3Qgd2lkdGg9Ijc1LjgyODEyNSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgY2xhc3M9ImxhYmVsQmtnIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PHA+ZXZlcnl0aGluZzwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9ImVkZ2VMYWJlbCI+PGcgY2xhc3M9ImxhYmVsIiBkYXRhLWlkPSJMX0ZfR18wIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLCAwKSI+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjAiIGhlaWdodD0iMCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgY2xhc3M9ImxhYmVsQmtnIiBzdHlsZT0iZGlzcGxheTogdGFibGUtY2VsbDsgd2hpdGUtc3BhY2U6IG5vd3JhcDsgbGluZS1oZWlnaHQ6IDEuNTsgbWF4LXdpZHRoOiAyMDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyI+PHNwYW4gY2xhc3M9ImVkZ2VMYWJlbCI+PC9zcGFuPjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjxnIGNsYXNzPSJlZGdlTGFiZWwiPjxnIGNsYXNzPSJsYWJlbCIgZGF0YS1pZD0iTF9HX0hfMCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwgMCkiPjxmb3JlaWduT2JqZWN0IHdpZHRoPSIwIiBoZWlnaHQ9IjAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJsYWJlbEJrZyIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJlZGdlTGFiZWwiPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48L2c+PGcgY2xhc3M9Im5vZGVzIj48ZyBjbGFzcz0ibm9kZSBkZWZhdWx0IiBpZD0ibXktc3ZnLWZsb3djaGFydC1BLTAiIGRhdGEtbG9vaz0iY2xhc3NpYyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTU3LjM0NzY1NjI1LCAzNSkiPjxyZWN0IGNsYXNzPSJiYXNpYyBsYWJlbC1jb250YWluZXIiIHN0eWxlPSIiIHg9Ii02NC45ODQzNzUiIHk9Ii0yNyIgd2lkdGg9IjEyOS45Njg3NSIgaGVpZ2h0PSI1NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTM0Ljk4NDM3NSwgLTEyKSI+PHJlY3QvPjxmb3JlaWduT2JqZWN0IHdpZHRoPSI2OS45Njg3NSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPjxwPmNjYyBjaGVjazwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtQi0xIiBkYXRhLWxvb2s9ImNsYXNzaWMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE1Ny4zNDc2NTYyNSwgMTM5KSI+PHJlY3QgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciIgc3R5bGU9IiIgeD0iLTg0LjEwOTM3NSIgeT0iLTI3IiB3aWR0aD0iMTY4LjIxODc1IiBoZWlnaHQ9IjU0Ii8+PGcgY2xhc3M9ImxhYmVsIiBzdHlsZT0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTQuMTA5Mzc1LCAtMTIpIj48cmVjdC8+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjEwOC4yMTg3NSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPjxwPnJvd3Mgd2l0aCBzaXplczwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtQy0zIiBkYXRhLWxvb2s9ImNsYXNzaWMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE1Ny4zNDc2NTYyNSwgMjg4LjI1KSI+PHBvbHlnb24gcG9pbnRzPSI3Mi4yNSwwIDE0NC41LC03Mi4yNSA3Mi4yNSwtMTQ0LjUgMCwtNzIuMjUiIGNsYXNzPSJsYWJlbC1jb250YWluZXIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC03MS43NSwgNzIuMjUpIi8+PGcgY2xhc3M9ImxhYmVsIiBzdHlsZT0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDUuMjUsIC0xMikiPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCB3aWR0aD0iOTAuNSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPjxwPnVzZXIgY2hvb3NlczwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtRC01IiBkYXRhLWxvb2s9ImNsYXNzaWMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwNS40ODQzNzUsIDQ2MS41KSI+PHJlY3QgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciIgc3R5bGU9IiIgeD0iLTk3LjQ4NDM3NSIgeT0iLTI3IiB3aWR0aD0iMTk0Ljk2ODc1IiBoZWlnaHQ9IjU0Ii8+PGcgY2xhc3M9ImxhYmVsIiBzdHlsZT0iIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNjcuNDg0Mzc1LCAtMTIpIj48cmVjdC8+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjEzNC45Njg3NSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPjxwPmNsZWFuIG1hcmtlZCByb3dzPC9wPjwvc3Bhbj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz48ZyBjbGFzcz0ibm9kZSBkZWZhdWx0IiBpZD0ibXktc3ZnLWZsb3djaGFydC1HLTciIGRhdGEtbG9vaz0iY2xhc3NpYyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzc2LjAwNzgxMjUsIDQ2MS41KSI+PHJlY3QgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciIgc3R5bGU9IiIgeD0iLTExNi4zOTA2MjUiIHk9Ii0yNyIgd2lkdGg9IjIzMi43ODEyNSIgaGVpZ2h0PSI1NCIvPjxnIGNsYXNzPSJsYWJlbCIgc3R5bGU9IiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTg2LjM5MDYyNSwgLTEyKSI+PHJlY3QvPjxmb3JlaWduT2JqZWN0IHdpZHRoPSIxNzIuNzgxMjUiIGhlaWdodD0iMjQiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIHN0eWxlPSJkaXNwbGF5OiB0YWJsZS1jZWxsOyB3aGl0ZS1zcGFjZTogbm93cmFwOyBsaW5lLWhlaWdodDogMS41OyBtYXgtd2lkdGg6IDIwMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7Ij48c3BhbiBjbGFzcz0ibm9kZUxhYmVsIj48cD5jbGVhbiBldmVyeSBjYWNoZSBwbGFjZTwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtRi04IiBkYXRhLWxvb2s9ImNsYXNzaWMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQwNC45NjQ4NDM3NSwgMjg4LjI1KSI+PHJlY3QgY2xhc3M9ImJhc2ljIGxhYmVsLWNvbnRhaW5lciIgc3R5bGU9IiIgeD0iLTUxLjE5NTMxMjUiIHk9Ii0yNyIgd2lkdGg9IjEwMi4zOTA2MjUiIGhlaWdodD0iNTQiLz48ZyBjbGFzcz0ibGFiZWwiIHN0eWxlPSIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMS4xOTUzMTI1LCAtMTIpIj48cmVjdC8+PGZvcmVpZ25PYmplY3Qgd2lkdGg9IjQyLjM5MDYyNSIgaGVpZ2h0PSIyNCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgc3R5bGU9ImRpc3BsYXk6IHRhYmxlLWNlbGw7IHdoaXRlLXNwYWNlOiBub3dyYXA7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsiPjxzcGFuIGNsYXNzPSJub2RlTGFiZWwiPjxwPmNjYyAtYzwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PGcgY2xhc3M9Im5vZGUgZGVmYXVsdCIgaWQ9Im15LXN2Zy1mbG93Y2hhcnQtSC0xMSIgZGF0YS1sb29rPSJjbGFzc2ljIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNzYuMDA3ODEyNSwgNTc3LjUpIj48cmVjdCBjbGFzcz0iYmFzaWMgbGFiZWwtY29udGFpbmVyIiBzdHlsZT0iIiB4PSItMTMwIiB5PSItMzkiIHdpZHRoPSIyNjAiIGhlaWdodD0iNzgiLz48ZyBjbGFzcz0ibGFiZWwiIHN0eWxlPSIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMDAsIC0yNCkiPjxyZWN0Lz48Zm9yZWlnbk9iamVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjQ4Ij48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBzdHlsZT0iZGlzcGxheTogdGFibGU7IHdoaXRlLXNwYWNlOiBicmVhay1zcGFjZXM7IGxpbmUtaGVpZ2h0OiAxLjU7IG1heC13aWR0aDogMjAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgd2lkdGg6IDIwMHB4OyI+PHNwYW4gY2xhc3M9Im5vZGVMYWJlbCI+PHA+dW5tYXJrZWQgdG9vbGNoYWluIHZlcnNpb25zIHVudG91Y2hlZDwvcD48L3NwYW4+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+PC9nPjwvZz48L2c+PGRlZnM+PGZpbHRlciBpZD0ibXktc3ZnLWRyb3Atc2hhZG93IiBoZWlnaHQ9IjEzMCUiIHdpZHRoPSIxMzAlIj48ZmVEcm9wU2hhZG93IGR4PSI0IiBkeT0iNCIgc3RkRGV2aWF0aW9uPSIwIiBmbG9vZC1vcGFjaXR5PSIwLjA2IiBmbG9vZC1jb2xvcj0iIzAwMDAwMCIvPjwvZmlsdGVyPjwvZGVmcz48ZGVmcz48ZmlsdGVyIGlkPSJteS1zdmctZHJvcC1zaGFkb3ctc21hbGwiIGhlaWdodD0iMTUwJSIgd2lkdGg9IjE1MCUiPjxmZURyb3BTaGFkb3cgZHg9IjIiIGR5PSIyIiBzdGREZXZpYXRpb249IjAiIGZsb29kLW9wYWNpdHk9IjAuMDYiIGZsb29kLWNvbG9yPSIjMDAwMDAwIi8+PC9maWx0ZXI+PC9kZWZzPjwvc3ZnPg==" />
+<h3 class="unnumbered unlisted" id="add-a-tool">Add a
+tool</h3>
+<p>The user runs <code>ccc add</code> and goes through the three steps
+of the contract in a form: how the tool is detected and where its places
+are, how its space is checked, how it is cleaned. After the first two
+steps <code>ccc</code> runs what was entered and shows the result — the
+path found, the size measured — so a mistake is seen before the entry is
+saved. The clean step is never run by the form. The new entry lands in
+the registry and appears in <code>ccc check</code> from then on. The
+owner&#39;s example: a user who wants one of Docker&#39;s <code>prune</code>
+commands, whichever they choose, as an entry of its own adds it this
+way.</p>
+<h3 class="unnumbered unlisted" id="add-a-folder">Add a
+folder</h3>
+<p>The user runs <code>ccc add &lt;path&gt;</code>, which adds the path
+as an entry of kind <code>folder</code>. Its size is shown in
+<code>ccc check</code> next to the tools, and cleaning removes it. The
+entry stays in the registry after that, and its row comes back when the
+directory exists again. This is how a directory inside a project — a
+<code>.next</code>, a <code>node_modules</code>, a
+<code>.terraform/providers</code> — gets into <code>ccc</code>.</p>
+<h2 class="unnumbered unlisted" id="the-terminal">The
+terminal</h2>
+<p>The owner&#39;s requirement: the terminal interface of <code>ccc</code>
+has to be fun to look at and use, and it is built on a library for
+terminal interfaces.</p>
+<p><code>ccc</code> is written in Go. The reasons are in <a href="../research/01-discovery.html#stack-decision">01-discovery.md</a>.</p>
+<h2 class="unnumbered unlisted" id="non-goals">Non-goals</h2>
+<ul>
+<li><code>ccc</code> does not walk project directories looking for build
+output. A directory inside a project is in <code>ccc</code> only when
+the user added it as a <code>folder</code> entry.</li>
+<li><code>ccc</code> does not explain consequences of cleaning.</li>
+<li>Caches of desktop applications that are not developer tools — a
+music player, a messenger, an application&#39;s updater — are not shipped
+entries: <code>ccc</code> is a tool for developers.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="what-done-looks-like">What
+&quot;done&quot; looks like</h2>
+<p>On a macOS machine and on a Linux machine with developer tools
+installed:</p>
+<ul>
+<li>for every registry entry whose tool is present,
+<code>ccc check</code> lists the entry&#39;s places with their sizes, and a
+place that could not be determined or could not be measured says so
+instead of showing zero;</li>
+<li>after the user marks rows and cleans them, the system reports more
+free disk space, and a repeated <code>ccc check</code> shows a smaller
+size for those rows or no longer shows them;</li>
+<li>after <code>ccc -c</code>, a repeated <code>ccc check</code> shows
+the same for every cache place, and every installed toolchain version is
+still there;</li>
+<li>a tool that <code>ccc</code> did not know is added through the three
+steps and then shows up in <code>ccc check</code> and is cleaned like a
+shipped one;</li>
+<li>a folder added by path shows up with its size and is removed by
+cleaning.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="open">Open</h2>
+<ul>
+<li>Open: what &quot;fun&quot; means for the terminal concretely — colour,
+animation, layout, wording — and what <code>ccc</code> prints when its
+output is not a terminal. The prototype described in <a href="../research/01-discovery.html#spikes">01-discovery.md</a>
+is the material for this decision.</li>
+<li>Open: the rule that tells user data from a cache for a tool that is
+not among the examples under &quot;What the shipped registry contains&quot;.</li>
+<li>Open: a path that lies inside what the tool prints
+(<code>rustup show home</code> prints the directory above the
+toolchains).</li>
+<li>Open: the detection results of a place that is not a directory.</li>
+<li>Open: a precondition for cleaning, not only for measuring (a Docker
+prune needs the daemon).</li>
+</ul>
+</body>
+</html>

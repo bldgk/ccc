@@ -1,0 +1,23 @@
+kind = "tool"
+name = "go"
+executable = "go"
+
+[[places]]
+name = "build cache"
+holds = "cache"
+path.command = "go env GOCACHE"
+path.env = "GOCACHE"
+path.default.macos = "~/Library/Caches/go-build"
+measure.by = "disk-usage"
+clean.command = "go clean -cache"
+
+[[places]]
+name = "module cache"
+holds = "cache"
+path.command = "go env GOMODCACHE"
+path.env = "GOMODCACHE"
+path.default.macos = "~/go/pkg/mod"
+path.default.linux = "~/go/pkg/mod"
+measure.by = "disk-usage"
+# The module cache is read-only, so only the tool's own command can remove it.
+clean.command = "go clean -modcache"

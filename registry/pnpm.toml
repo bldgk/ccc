@@ -1,0 +1,10 @@
+kind = "tool"
+name = "pnpm"
+executable = "pnpm"
+
+[[places]]
+name = "store"
+holds = "cache"
+path.command = "pnpm store path"
+measure.by = "disk-usage"
+clean.command = "pnpm store prune"

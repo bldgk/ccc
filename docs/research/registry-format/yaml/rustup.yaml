@@ -1,0 +1,31 @@
+# rustup: installed Rust toolchains. One row per toolchain.
+# Sources: https://rust-lang.github.io/rustup/concepts/toolchains.html
+#          https://rust-lang.github.io/rustup/environment-variables.html
+
+kind: tool
+name: rustup
+executable: rustup
+
+places:
+  - name: toolchains
+    holds: versions
+    # The command and the variable give the rustup home; the place is the
+    # directory `toolchains` inside it. `subdir` is appended to both. It is
+    # not in the contract: see README, "Missing from the contract".
+    path:
+      command: rustup show home
+      env: RUSTUP_HOME
+      subdir: toolchains
+      default:
+        macos: ~/.rustup/toolchains
+        linux: ~/.rustup/toolchains
+    # --quiet prints one toolchain name per line, without "(active, default)".
+    # Not confirmed: what the command prints when no toolchain is installed.
+    list:
+      command: rustup toolchain list --quiet
+      pattern: ^(\S+)$
+    measure:
+      by: disk-usage
+      path: <path>/<version>
+    clean:
+      command: rustup toolchain uninstall <version>

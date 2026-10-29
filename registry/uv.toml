@@ -1,0 +1,13 @@
+kind = "tool"
+name = "uv"
+executable = "uv"
+
+[[places]]
+name = "cache"
+holds = "cache"
+path.command = "uv cache dir"
+path.env = "UV_CACHE_DIR"
+path.default.macos = "~/.cache/uv"
+path.default.linux = "~/.cache/uv"
+measure.by = "disk-usage"
+clean.command = "uv cache clean"

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ccc — discovery</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="ccc--discovery">ccc
+— discovery</h1>
+<p>What had to be settled before <code>ccc</code> is designed: what
+existing tools do, which language it is written in, and which questions
+only running code can answer. The requirements are in <a href="../spec/00-requirements.html">00-requirements.md</a>.</p>
+<h2 class="unnumbered unlisted" id="existing-solutions">Existing
+solutions</h2>
+<p>The survey is <a href="tool-caches/existing-cleaners.html">existing-cleaners.md</a>.
+Its result is written into the requirements, section &quot;Why existing tools
+are not enough&quot;: no surveyed tool describes a developer tool as
+user-editable data covering detection, space check and clean with the
+tool&#39;s own command.</p>
+<p>The catalog of 142 tool descriptions the shipped registry is built
+from is in <a href="tool-caches/javascript.html">tool-caches/</a>:
+JavaScript, Python and ML, compiled languages, JVM and mobile and Apple,
+containers and infrastructure. 127 of them contain at least one field
+marked <code>unverified</code>.</p>
+<h2 class="unnumbered unlisted" id="stack-decision">Stack
+decision</h2>
+<p><strong><code>ccc</code> is written in Go.</strong></p>
+<p>The decision was made on what the program itself does, compared
+against Rust:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>What </th>
+<th><code>ccc</code></th>
+<th> needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A terminal that is fun to look at and use</td>
+<td>The Charm libraries are one family in one style: Bubble Tea
+(screen), Lip Gloss (styling), Bubbles (list, spinner, progress
+components), Huh (forms)</td>
+<td><code>ratatui</code> draws anything, but a selectable list, progress
+and forms in one style are assembled by hand</td>
+</tr>
+<tr>
+<td>The three-step flow of adding a tool</td>
+<td>A wizard form, which is what Huh is for</td>
+<td>A separate prompt library with a different look from the main
+screen</td>
+</tr>
+<tr>
+<td><code>ccc check</code>: dozens of tool commands run in parallel, the
+screen updates as answers arrive, a hung command is cut off by a
+timeout</td>
+<td>Goroutines and Bubble Tea&#39;s command model</td>
+<td>Threads or async plus channels into the draw loop; possible, more
+code</td>
+</tr>
+<tr>
+<td>One binary for macOS and for Linux</td>
+<td>Cross-compilation by environment variable, static binary by default,
+GoReleaser for releases and packages</td>
+<td>Building for Linux on macOS needs a separate linker, a static binary
+needs a separate target</td>
+</tr>
+<tr>
+<td>Measuring large directories</td>
+<td>Fast enough: <code>gdu</code> is written in Go</td>
+<td>Somewhat faster on a parallel walk; not the bottleneck</td>
+</tr>
+<tr>
+<td>Parsing registry entries</td>
+<td>Variants of an entry are validated by hand-written code</td>
+<td>Enumerations validated while parsing; the one place Rust is more
+convenient</td>
+</tr>
+<tr>
+<td>Running commands, parsing output, removing directories</td>
+<td>Same</td>
+<td>Same</td>
+</tr>
+</tbody>
+</table>
+<p>C was not considered further: parsing the registry, running commands
+and the terminal interface would all be written by hand with nothing
+gained.</p>
+<p><strong>The registry is written in TOML</strong>, one file per tool,
+each place under its own <code>[[places]]</code> header with dotted
+keys. The reasons are under <a href="#the-registry-file-format">The
+registry file format</a>.</p>
+<h2 class="unnumbered unlisted" id="spikes">Spikes</h2>
+<p>Two questions could not be settled on paper. Both spikes are
+done.</p>
+<h3 class="unnumbered unlisted" id="the-ccc-check-screen">The
+<code>ccc check</code> screen</h3>
+<p>The prototype is in <code>spikes/checkscreen/</code>, a
+self-contained Go module; its <a href="../spikes/checkscreen/README.html">README</a> holds the
+findings in full. It detects and measures and contains no code that
+removes anything.</p>
+<p>Result: the Charm libraries do what the comparison table above
+assumes.</p>
+<ul>
+<li>Versions used: Bubble Tea v2.1.0, Lip Gloss v2.0.6, Bubbles v2.2.1.
+The v2 modules are published under <code>charm.land</code>.</li>
+<li>Out of the box: rows updating live while measurements run in
+parallel (goroutines write results into a channel that the screen
+reads), the spinner, gradients, borders, <code>NO_COLOR</code>.</li>
+<li>Written by hand: the timeout that cuts off a hung command, and the
+list itself. Rows have five states, group headers and size bars, which
+the ready-made list component does not cover.</li>
+<li>Limits: the palette is tuned for dark backgrounds; the Linux default
+paths are coded and were not run; nobody has looked at the screen in a
+real interactive terminal yet.</li>
+</ul>
+<p>A detection command can change the system: <code>bun pm cache</code>,
+run outside a project, fails and creates an empty cache directory. A
+command used for detection in a shipped entry has to be checked for side
+effects.</p>
+<p>Still open after this spike: what &quot;fun&quot; means for the terminal. The
+prototype&#39;s look is material for the owner&#39;s reaction, not a
+decision.</p>
+<h3 class="unnumbered unlisted" id="the-registry-file-format">The
+registry file format</h3>
+<p>The same three entries — Go, Docker, rustup — are written in TOML and
+in YAML in <a href="registry-format/README.html">registry-format/</a>,
+with the comparison. Both sets parse and are equal as data.</p>
+<p>Result: TOML. Every way found to damage a TOML entry ends in a parse
+error or in an unknown key the loader can reject. YAML has damage that
+loads as a valid entry: a forgotten <code>- </code> overwrites the
+previous place, <code> #</code> inside a command cuts it off as a
+comment, a mis-indented <code>clean:</code> lands inside
+<code>measure</code>. For a program that removes files according to
+these entries, a damaged entry that loads silently is the worst outcome.
+The loader rejects unknown keys.</p>
+<p>The cost: every command and pattern in TOML needs a choice between
+<code>&quot;...&quot;</code> and <code>&#39;...&#39;</code>, and a regular expression
+typed in <code>&quot;...&quot;</code> does not load. That is a parse error, not
+silent damage. The typo cases were run through Python parsers; no Go
+parser was run.</p>
+<p>Writing the three entries showed six things the contract of an entry
+did not say. Three are decided in the requirements since: a default path
+may refer to an environment variable (<code>XDG_CACHE_HOME</code>,
+<code>GOPATH</code>), the name of one installed version gets into a
+command or a path through a placeholder, and a command of an entry does
+not run through a shell. Three are still open points there:</p>
+<ul>
+<li>a path that lies inside what the tool prints
+(<code>rustup show home</code> prints the parent of the toolchains
+directory);</li>
+<li>the detection results of a place that is not a directory;</li>
+<li>a precondition for cleaning, not only for measuring (a Docker prune
+needs the daemon).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="not-checked-here">Not
+checked here</h2>
+<p>The descriptions of Linux system package managers (apt, dnf, pacman,
+snap, flatpak) are <code>unverified</code> in full, and for many other
+tools the Linux path is the unverified field: the research ran on a
+macOS machine. Detection and the space check of a Linux entry can be
+checked only on a Linux machine.</p>
+</body>
+</html>

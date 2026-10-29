@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Python, data science and ML tool caches (plus R and
+Julia)</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="python-data-science-and-ml-tool-caches-plus-r-and-julia">Python,
+data science and ML tool caches (plus R and Julia)</h1>
+<p>This file records raw, source-checked facts about where 29
+Python/ML/R/Julia tools keep caches and other storage, how to discover
+those paths, measure them, and clean them with each tool&#39;s own command.
+&quot;ran-command&quot; means the fact was confirmed by running a read-only
+command; tools that could not be run are <code>official-docs</code> or
+<code>unverified</code>. Several official doc URLs (pipx, virtualenv,
+tox, Jupyter paths) returned 404 during fetching; those fields are
+marked <code>unverified</code> rather than filled from memory. Key
+facts: some tools put user-built environments next to caches (Poetry,
+PDM, Hatch, conda, pipx, pyenv, uv tools/pythons), some have paths only
+the tool can print, and several tools use a different default path on
+macOS than on Linux (pip, Poetry, Hatch, Jupyter, renv, matplotlib)
+while uv uses <code>~/.cache/uv</code> on both.</p>
+<p>Verification vocabulary: <code>official-docs</code>,
+<code>ran-command</code>, <code>unverified</code>.</p>
+<hr />
+<h2 class="unnumbered unlisted" id="pip">pip</h2>
+<ul>
+<li>name: pip; ecosystem: Python</li>
+<li>detect: <code>pip</code> / <code>pip3</code> /
+<code>python -m pip</code> on PATH.</li>
+<li>locations:
+<ul>
+<li>HTTP response cache + locally built wheels (one cache root; subdirs
+<code>http-v2</code> (pip &gt;= 23.3), <code>http</code> (older),
+<code>wheels</code>)
+<ul>
+<li>discover: <code>pip cache dir</code> (prints e.g.
+<code>~/Library/Caches/pip</code> on macOS); <code>pip cache info</code>
+prints per-subdir paths and sizes</li>
+<li>override: env <code>PIP_CACHE_DIR</code>, CLI
+<code>--cache-dir &lt;dir&gt;</code>; <code>--no-cache-dir</code> /
+<code>PIP_NO_CACHE_DIR</code> disables. Pip config file key
+<code>cache-dir</code> under <code>[global]</code> follows the generic
+option mapping (unverified for config-file form).</li>
+<li>macOS default: <code>~/Library/Caches/pip</code> (docs say pip 26.2
+will also respect <code>XDG_CACHE_HOME</code> on macOS)</li>
+<li>Linux default: <code>~/.cache/pip</code> (respects
+<code>XDG_CACHE_HOME</code>)</li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>pip cache info</code> (reports http and wheels size
+separately) or <code>du -sk &quot;$(pip cache dir)&quot;</code></li>
+<li>clean:
+<ul>
+<li>full wipe: <code>pip cache purge</code> (clears both HTTP and wheel
+caches)</li>
+<li>prune variant: <code>pip cache remove &lt;pattern&gt;</code> removes
+matching wheels only (glob or package name); it does NOT delete HTTP
+cache files. No &quot;unused only&quot; prune exists.</li>
+<li>notes: internal layout is explicitly &quot;an implementation detail&quot; that
+may change between versions, so prefer the command over
+<code>rm -rf</code>. Different pip installs (different Pythons) can
+resolve to the same dir.</li>
+</ul></li>
+<li>regenerable: yes (re-downloaded; locally built wheels get rebuilt,
+which can be slow for C extensions)</li>
+<li>in_use_hazard: low; a concurrent <code>pip install</code> may hit a
+missing cache entry and re-fetch. No daemon.</li>
+<li>sources: https://pip.pypa.io/en/stable/topics/caching/ ;
+https://pip.pypa.io/en/stable/cli/pip_cache/ ;
+https://pip.pypa.io/en/stable/cli/pip/</li>
+<li>verification: discover = ran-command; default paths = official-docs
+(macOS path also ran-command); clean = official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="uv">uv</h2>
+<ul>
+<li>name: uv; ecosystem: Python (Astral)</li>
+<li>detect: <code>uv</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>Cache (wheels, sdists, git checkouts, HTTP cache, built wheels,
+archive store; also centralized project environments that
+<code>prune</code> removes)
+<ul>
+<li>discover: <code>uv cache dir</code> (prints e.g.
+<code>~/.cache/uv</code>)</li>
+<li>override: env <code>UV_CACHE_DIR</code>, CLI
+<code>--cache-dir</code>, config <code>tool.uv.cache-dir</code>;
+<code>XDG_CACHE_HOME</code> moves the default; <code>--no-cache</code>
+uses a temp dir</li>
+<li>macOS default: <code>~/.cache/uv</code> (NOT
+<code>~/Library/Caches</code>; confirmed by
+<code>uv cache dir</code>)</li>
+<li>Linux default: <code>$XDG_CACHE_HOME/uv</code> or
+<code>~/.cache/uv</code></li>
+</ul></li>
+<li>Managed Python installs (interpreters downloaded by uv)
+<ul>
+<li>discover: <code>uv python dir</code> (prints e.g.
+<code>~/.local/share/uv/python</code>; the directory may not exist until
+a Python is installed)</li>
+<li>override: env <code>UV_PYTHON_INSTALL_DIR</code></li>
+<li>macOS/Linux default: <code>$XDG_DATA_HOME/uv/python</code> or
+<code>~/.local/share/uv/python</code></li>
+<li>shims/executables: <code>uv python dir --bin</code> (prints e.g.
+<code>~/.local/bin</code>; override <code>UV_PYTHON_BIN_DIR</code>)</li>
+</ul></li>
+<li>Tool installs (isolated venvs created by
+<code>uv tool install</code>)
+<ul>
+<li>discover: <code>uv tool dir</code> (prints e.g.
+<code>~/.local/share/uv/tools</code>); executables:
+<code>uv tool dir --bin</code> (override
+<code>UV_TOOL_BIN_DIR</code>)</li>
+<li>override: env <code>UV_TOOL_DIR</code></li>
+<li>macOS/Linux default: <code>$XDG_DATA_HOME/uv/tools</code> or
+<code>~/.local/share/uv/tools</code></li>
+</ul></li>
+</ol></li>
+<li>scope: global (all three). Per-project <code>.venv</code> created by
+uv: see &quot;project venv / .venv&quot;.</li>
+<li>measure: cache: <code>uv cache size</code> (prints bytes;
+experimental, emits a warning) or <code>du -sk &quot;$(uv cache dir)&quot;</code>.
+Pythons/tools: <code>du</code> of discovered dir.</li>
+<li>clean:
+<ul>
+<li>cache full wipe: <code>uv cache clean</code>; one package:
+<code>uv cache clean &lt;package&gt;</code></li>
+<li>cache prune: <code>uv cache prune</code> (unused entries and
+centralized project envs); <code>uv cache prune --ci</code> (drops
+pre-built wheels and unzipped sdists, keeps wheels built from
+source)</li>
+<li>managed pythons: <code>uv python uninstall &lt;version&gt;</code>
+(not in fetched docs; unverified); tools:
+<code>uv tool uninstall &lt;name&gt;</code> (unverified)</li>
+<li>notes: docs say it is &quot;never safe to modify the cache directly&quot; (do
+not rm it by hand). Cache-modifying commands take a lock and wait up to
+5 min (<code>UV_LOCK_TIMEOUT</code>); <code>--force</code> ignores the
+lock (only when no uv process is running).
+<code>--preview-features cache-physical-space</code> gives a more
+accurate reclaimed-space estimate (macOS/Linux).</li>
+</ul></li>
+<li>regenerable: cache = yes; managed Pythons = yes-but-large-download
+(re-download of interpreters, and venvs that point to them break until
+recreated); tool installs = no for the installed set (user chose tools;
+reinstall needed)</li>
+<li>in_use_hazard: cache: locking makes concurrent clean block, not
+corrupt. Removing a managed Python breaks every venv whose
+<code>pyvenv.cfg</code> <code>home</code> points at it. Removing tools
+removes installed CLIs from <code>~/.local/bin</code>.</li>
+<li>sources: https://docs.astral.sh/uv/concepts/cache/ ;
+https://docs.astral.sh/uv/reference/storage/</li>
+<li>verification: discover = ran-command; default paths = official-docs
++ ran-command; clean
+(<code>cache clean</code>/<code>prune</code>/<code>--ci</code>) =
+official-docs; <code>python uninstall</code>,
+<code>tool uninstall</code> = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="poetry">Poetry</h2>
+<ul>
+<li>name: Poetry; ecosystem: Python</li>
+<li>detect: <code>poetry</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>Cache dir (downloaded artifacts, repository metadata)
+<ul>
+<li>discover: <code>poetry config cache-dir</code></li>
+<li>override: env <code>POETRY_CACHE_DIR</code>; config key
+<code>cache-dir</code></li>
+<li>macOS default: <code>~/Library/Caches/pypoetry</code></li>
+<li>Linux default: <code>$XDG_CACHE_HOME/pypoetry</code> or
+<code>~/.cache/pypoetry</code></li>
+</ul></li>
+<li>Virtualenvs (built environments, one per project+python)
+<ul>
+<li>discover: <code>poetry config virtualenvs.path</code>; for the
+current project <code>poetry env info --path</code>; all of a project&#39;s
+envs <code>poetry env list --full-path</code></li>
+<li>override: env <code>POETRY_VIRTUALENVS_PATH</code>, config
+<code>virtualenvs.path</code>; <code>virtualenvs.in-project=true</code>
+/ <code>POETRY_VIRTUALENVS_IN_PROJECT</code> puts them in
+<code>&lt;project&gt;/.venv</code> instead</li>
+<li>default (both OSes): <code>{cache-dir}/virtualenvs</code>, i.e.
+inside the cache dir</li>
+</ul></li>
+</ol></li>
+<li>scope: cache global; virtualenvs global (default) or per-project
+(<code>.venv</code> when in-project)</li>
+<li>measure: <code>du</code> of <code>poetry config cache-dir</code>
+(the virtualenvs live INSIDE it, so du mixes cache and envs; size cache
+subdirs separately, excluding <code>virtualenvs</code>).
+<code>poetry cache list</code> lists repository caches by name
+only.</li>
+<li>clean:
+<ul>
+<li>cache: <code>poetry cache clear --all</code> is documented as
+<code>poetry cache clear --all</code> (all repos) or
+<code>poetry cache clear &lt;repo&gt; --all</code>; single entry
+<code>poetry cache clear PyPI:requests:2.24.0</code></li>
+<li>virtualenvs: <code>poetry env remove --all</code> (removes all
+managed venvs of the CURRENT project only);
+<code>poetry env remove &lt;python&gt;</code></li>
+<li>notes: no global &quot;remove every project&#39;s venvs&quot; command; deleting
+<code>{cache-dir}</code> wholesale also deletes all virtualenvs.</li>
+</ul></li>
+<li>regenerable: cache = yes; virtualenvs = no — they are built
+environments someone installed (though recreatable via
+<code>poetry install</code> if the lock file exists and network is
+available)</li>
+<li>in_use_hazard: deleting a venv in use by an IDE/running process
+breaks it; Poetry projects whose venv dir vanishes are silently
+re-created on next <code>poetry install</code> (slow).</li>
+<li>sources: https://python-poetry.org/docs/configuration/ ;
+https://python-poetry.org/docs/cli/</li>
+<li>verification: discover = official-docs
+(<code>poetry config &lt;key&gt;</code> documented; not run); default
+paths = official-docs; clean = official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pipenv">Pipenv</h2>
+<ul>
+<li>name: Pipenv; ecosystem: Python</li>
+<li>detect: <code>pipenv</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>Pipenv cache (pip + resolver caches)
+<ul>
+<li>discover: <code>pipenv --support</code> shows env vars; no dedicated
+cache-dir command found (unverified)</li>
+<li>override: env <code>PIPENV_CACHE_DIR</code></li>
+<li>macOS/Linux default: <code>~/.cache/pipenv</code> (docs:
+Unix/Linux/macOS)</li>
+</ul></li>
+<li>Virtualenvs
+<ul>
+<li>discover: <code>pipenv --venv</code> (per project; unverified, not
+in fetched page)</li>
+<li>override: <code>WORKON_HOME</code>;
+<code>PIPENV_VENV_IN_PROJECT=1</code> creates <code>.venv</code> in the
+project (default 0)</li>
+<li>default: <code>~/.local/share/virtualenvs</code> (unverified)</li>
+</ul></li>
+</ol></li>
+<li>scope: cache global; venvs global or per-project
+(<code>.venv</code>)</li>
+<li>measure: <code>du</code> of the paths</li>
+<li>clean: cache: <code>pipenv --clear</code> (clears caches;
+unverified, docs fetched only mention env var
+<code>PIPENV_CLEAR</code>); venv: <code>pipenv --rm</code> (removes the
+project&#39;s venv; unverified)</li>
+<li>regenerable: cache = yes; venv = no (built environment), recreatable
+from Pipfile.lock</li>
+<li>in_use_hazard: removing a venv breaks running processes/IDE
+interpreter settings</li>
+<li>sources: https://pipenv.pypa.io/en/latest/configuration.html</li>
+<li>verification: discover = unverified; default paths = official-docs
+(cache) / unverified (venvs); clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pdm">PDM</h2>
+<ul>
+<li>name: PDM; ecosystem: Python</li>
+<li>detect: <code>pdm</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>Cache (wheels, http, hashes, metadata, packages)
+<ul>
+<li>discover: <code>pdm config cache_dir</code> (unverified syntax) /
+<code>pdm cache info</code> (shows location and size)</li>
+<li>override: env <code>PDM_CACHE_DIR</code>; config
+<code>cache_dir</code></li>
+<li>default per docs: <code>~/.cache/pdm</code> (page does not state
+macOS vs Linux; PDM uses platformdirs so macOS is likely
+<code>~/Library/Caches/pdm</code> — unverified)</li>
+</ul></li>
+<li>Virtualenvs
+<ul>
+<li>discover: <code>pdm venv list</code></li>
+<li>override: config <code>venv.location</code>; per-project
+<code>.venv</code> when <code>venv.in_project</code> is on</li>
+<li>default: <code>~/.local/share/pdm/venvs</code> (per docs; platform
+variation unverified)</li>
+</ul></li>
+</ol></li>
+<li>scope: cache global; venvs global or per-project</li>
+<li>measure: <code>pdm cache info</code> (reports size)</li>
+<li>clean: <code>pdm cache clear &lt;type&gt;</code> (type positional;
+accepted values not confirmed);
+<code>pdm cache remove &lt;pattern&gt;</code>; venvs:
+<code>pdm venv remove &lt;env&gt; [-y]</code>,
+<code>pdm venv purge [-f] [-i]</code> (purge selected or all venvs)</li>
+<li>regenerable: cache = yes; venvs = no (built envs; recreatable from
+pdm.lock)</li>
+<li>in_use_hazard: as for other venv managers;
+<code>pdm venv purge</code> can remove all envs</li>
+<li>sources: https://pdm-project.org/latest/reference/configuration/ ;
+https://pdm-project.org/latest/reference/cli/</li>
+<li>verification: discover = official-docs
+(<code>pdm cache info</code>), <code>pdm config</code> form unverified;
+default paths = official-docs (macOS unverified); clean =
+official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="hatch">Hatch</h2>
+<ul>
+<li>name: Hatch; ecosystem: Python</li>
+<li>detect: <code>hatch</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>Cache dir <code>dirs.cache</code>
+<ul>
+<li>override: env <code>HATCH_CACHE_DIR</code>, CLI
+<code>--cache-dir</code></li>
+<li>macOS: <code>~/Library/Caches/hatch</code>; Linux:
+<code>$XDG_CACHE_HOME/hatch</code> or <code>~/.cache/hatch</code></li>
+</ul></li>
+<li>Data dir <code>dirs.data</code> (holds envs and managed Pythons)
+<ul>
+<li>override: env <code>HATCH_DATA_DIR</code>, CLI
+<code>--data-dir</code></li>
+<li>macOS: <code>~/Library/Application Support/hatch</code>; Linux:
+<code>$XDG_DATA_HOME/hatch</code> or
+<code>~/.local/share/hatch</code></li>
+</ul></li>
+<li>Environments <code>dirs.env</code> (default
+<code>&lt;DATA_DIR&gt;/env/&lt;ENV_TYPE&gt;</code>; config-file-only
+override)
+<ul>
+<li>discover: <code>hatch env find [ENV_NAME]</code></li>
+</ul></li>
+<li>Managed Pythons <code>dirs.python</code> (<code>isolated</code> =
+<code>&lt;DATA_DIR&gt;/pythons</code>; config-file-only override)
+<ul>
+<li>discover: <code>hatch python show [--dir/-d &lt;dir&gt;]</code>
+lists distributions</li>
+</ul></li>
+</ol></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of the paths;
+<code>hatch config show</code> can print dirs (unverified)</li>
+<li>clean: envs: <code>hatch env prune</code> (removes ALL environments
+of the current project, per docs &quot;Removes all environments&quot;),
+<code>hatch env remove [ENV_NAME]</code>; pythons:
+<code>hatch python remove NAMES...</code> (<code>all</code> removes
+every distribution). Cache: delete directory.</li>
+<li>regenerable: cache = yes; envs = no (built; recreated on next
+<code>hatch run</code>); pythons = yes-but-large-download</li>
+<li>in_use_hazard: removing pythons breaks envs that link to them</li>
+<li>sources: https://hatch.pypa.io/latest/config/hatch/ ;
+https://hatch.pypa.io/latest/cli/reference/</li>
+<li>verification: discover = official-docs; default paths =
+official-docs; clean = official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pipx">pipx</h2>
+<ul>
+<li>name: pipx; ecosystem: Python</li>
+<li>detect: <code>pipx</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>PIPX_HOME: installed app venvs (<code>venvs/</code>), shared libs
+(<code>shared/</code>), plus a cache for <code>pipx run</code> temporary
+venvs and logs
+<ul>
+<li>discover: <code>pipx environment</code> (prints resolved PIPX_HOME,
+PIPX_BIN_DIR, PIPX_SHARED_LIBS, etc.; per search result of official
+reference; not run)</li>
+<li>override: env <code>PIPX_HOME</code>, <code>PIPX_SHARED_LIBS</code>
+(default <code>$PIPX_HOME/shared</code>), <code>PIPX_BIN_DIR</code>,
+<code>PIPX_VENV_CACHEDIR</code> (cache of <code>pipx run</code> envs;
+documented only in a man page, default unverified)</li>
+<li>macOS default: <code>~/Library/Application Support/pipx</code> on
+newer pipx; legacy <code>~/.local/pipx</code> is used if it already
+exists (per search summary of the official reference)</li>
+<li>Linux default: <code>~/.local/share/pipx</code> on newer pipx;
+legacy <code>~/.local/pipx</code> if it exists (unverified for exact
+value)</li>
+</ul></li>
+</ol></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of <code>PIPX_HOME</code> (value from
+<code>pipx environment --value PIPX_HOME</code>)</li>
+<li>clean: <code>pipx uninstall &lt;package&gt;</code>,
+<code>pipx uninstall-all</code> (names from memory of pipx CLI;
+unverified); temp-venv cache: delete directory</li>
+<li>regenerable: installed apps = no (user-installed tools,
+reinstallable); <code>pipx run</code> cache and shared libs = yes</li>
+<li>in_use_hazard: uninstalling removes CLI symlinks in
+<code>PIPX_BIN_DIR</code></li>
+<li>sources:
+https://pipx.pypa.io/latest/reference/environment-variables/ (was 404
+when fetched directly; content seen only through search summary)</li>
+<li>verification: discover = unverified (<code>pipx environment</code>
+is cited by official docs but not run); default paths = unverified
+(search summary only); clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="conda-anaconda--miniconda--miniforge">conda
+(Anaconda / Miniconda / Miniforge)</h2>
+<ul>
+<li>name: conda; ecosystem: Python/multi-language</li>
+<li>detect: <code>conda</code> on PATH, or install dir
+(<code>~/miniconda3</code>, <code>~/anaconda3</code>,
+<code>~/miniforge3</code>,
+<code>/opt/homebrew/Caskroom/miniconda</code>; unverified).</li>
+<li>locations:
+<ol>
+<li>Package cache <code>pkgs_dirs</code> (extracted packages + tarballs;
+envs hard-link/symlink to it)
+<ul>
+<li>discover: <code>conda config --show pkgs_dirs</code> (unverified) or
+<code>conda info</code> (&quot;package cache&quot; field)</li>
+<li>override: env <code>CONDA_PKGS_DIRS</code>; config key
+<code>pkgs_dirs</code></li>
+<li>default: <code>&lt;conda root&gt;/pkgs</code> and
+<code>~/.conda/pkgs</code> (unverified; docs page fetched did not state
+it)</li>
+</ul></li>
+<li>Environments <code>envs_dirs</code>
+<ul>
+<li>discover: <code>conda env list</code> /
+<code>conda info --envs</code></li>
+<li>override: env <code>CONDA_ENVS_PATH</code>; config
+<code>envs_dirs</code></li>
+<li>default: <code>&lt;conda root&gt;/envs</code> and
+<code>~/.conda/envs</code> (unverified)</li>
+</ul></li>
+<li>Index cache (repodata) inside pkgs dir (<code>cache/</code>), logs,
+tempfiles</li>
+</ol></li>
+<li>scope: global</li>
+<li>measure: <code>conda clean --all --dry-run</code> (shows what would
+be removed, with sizes); <code>du</code> of pkgs dir</li>
+<li>clean: <code>conda clean --all</code> (index cache, unused packages,
+tarballs, temp files, logs; does not include <code>-f</code>); granular
+flags <code>--index-cache</code>, <code>--packages</code> (unused only),
+<code>--tarballs</code>, <code>--tempfiles</code>,
+<code>--logfiles</code>; <code>--force-pkgs-dirs</code> removes ALL
+writable package caches and &quot;will break environments with packages
+installed using symlinks back to the package cache&quot;;
+<code>--dry-run</code>/<code>-d</code>,
+<code>--yes</code>/<code>-y</code>. Environments:
+<code>conda env remove -n &lt;name&gt;</code> (unverified). Prompts
+unless <code>-y</code>.</li>
+<li>regenerable: pkgs cache = yes-but-large-download; envs = no —
+user-built environments (data: installed packages/versions chosen by
+user, possibly packages from private channels)</li>
+<li>in_use_hazard: <code>--force-pkgs-dirs</code> and
+<code>--packages</code> break envs not listed in
+<code>conda info --envs</code> (docs warning: unlisted envs are not
+checked for links back to the cache). Packages are hard-linked, so
+removing cache of a package used by a running env is generally safe, but
+symlink/copy modes break.</li>
+<li>sources:
+https://docs.conda.io/projects/conda/en/stable/commands/clean.html ;
+https://docs.conda.io/projects/conda/en/stable/user-guide/configuration/use-condarc.html</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="mamba--micromamba">mamba
+/ micromamba</h2>
+<ul>
+<li>name: mamba / micromamba; ecosystem: Python/multi-language</li>
+<li>detect: <code>micromamba</code> or <code>mamba</code> on PATH; env
+<code>MAMBA_ROOT_PREFIX</code>.</li>
+<li>locations:
+<ul>
+<li>Root prefix: holds <code>pkgs/</code> (package cache) and
+<code>envs/</code>
+<ul>
+<li>discover: <code>micromamba info</code> (shows &quot;root prefix&quot; and
+&quot;package cache&quot;) — unverified, docs page fetched had no detail</li>
+<li>override: env <code>MAMBA_ROOT_PREFIX</code>;
+<code>pkgs_dirs</code>, <code>envs_dirs</code> in
+<code>.mambarc</code>/<code>.condarc</code></li>
+<li>default: <code>~/micromamba</code> on both OS (unverified)</li>
+</ul></li>
+<li>Classic <code>mamba</code> (conda-based) uses conda&#39;s locations (see
+conda).</li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of <code>&lt;root&gt;/pkgs</code></li>
+<li>clean: <code>micromamba clean --all</code> (flags
+<code>--index-cache</code>, <code>--packages</code>,
+<code>--tarballs</code>, <code>--lock</code>, <code>--trash</code>,
+<code>--yes</code>; all unverified); envs:
+<code>micromamba env remove -n &lt;name&gt;</code> (unverified)</li>
+<li>regenerable: pkgs = yes-but-large-download; envs = no —
+user-built</li>
+<li>in_use_hazard: as for conda</li>
+<li>sources:
+https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html
+(fetched page lacked the needed detail)</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pyenv">pyenv</h2>
+<ul>
+<li>name: pyenv; ecosystem: Python</li>
+<li>detect: <code>pyenv</code> on PATH or dir <code>~/.pyenv</code> /
+<code>$PYENV_ROOT</code>.</li>
+<li>locations:
+<ol>
+<li>Installed Python versions:
+<code>$(pyenv root)/versions/&lt;version&gt;</code>
+<ul>
+<li>discover: <code>pyenv root</code> (documented as a command; not
+run), <code>pyenv prefix &lt;version&gt;</code> gives one version
+dir</li>
+<li>override: env <code>PYENV_ROOT</code></li>
+<li>default (both OS): <code>~/.pyenv</code></li>
+</ul></li>
+<li>Download cache for python-build: <code>~/.pyenv/cache</code>
+(caching is enabled only if this dir exists)
+<ul>
+<li>override: env <code>PYTHON_BUILD_CACHE_PATH</code></li>
+</ul></li>
+<li>Kept sources: <code>~/.pyenv/sources</code> (only when
+<code>pyenv install -k/--keep</code> was used)</li>
+<li>Build dir: subdirectory of <code>TMPDIR</code> by default
+(<code>PYTHON_BUILD_BUILD_PATH</code>)</li>
+</ol></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of <code>versions/</code>,
+<code>cache/</code>, <code>sources/</code></li>
+<li>clean: versions: <code>pyenv uninstall &lt;version&gt;</code> (docs
+show no <code>-f</code> flag; <code>-f</code> skips the prompt per pyenv
+help, unverified); cache/sources: delete directory</li>
+<li>regenerable: versions = yes-but-large-download plus compile time
+(building from source takes minutes and needs build deps; virtualenvs
+that point to a removed version break); cache = yes</li>
+<li>in_use_hazard: uninstalling a version used by pyenv-virtualenv envs
+or <code>.python-version</code> files breaks them (plugins such as
+pyenv-virtualenv may run extra cleanup)</li>
+<li>sources: https://github.com/pyenv/pyenv/blob/master/README.md ;
+https://raw.githubusercontent.com/pyenv/pyenv/master/plugins/python-build/README.md</li>
+<li>verification: discover = official-docs (not run); default paths =
+official-docs; clean = official-docs (<code>uninstall</code> usage);
+<code>-f</code> unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="virtualenv-app-data">virtualenv
+(app-data)</h2>
+<ul>
+<li>name: virtualenv app-data; ecosystem: Python</li>
+<li>detect: <code>virtualenv</code> on PATH or importable; dir
+exists.</li>
+<li>locations:
+<ul>
+<li>App data: embedded seed wheels (pip/setuptools/wheel),
+interpreter-discovery cache, periodic-update data
+<ul>
+<li>discover: <code>virtualenv --help</code> shows the
+<code>--app-data</code> default for the installed version (unverified);
+search results suggest a platform-specific user-data folder via
+platformdirs</li>
+<li>override: option <code>--app-data</code>; env
+<code>VIRTUALENV_APP_DATA</code> pattern (unverified);
+<code>--reset-app-data</code> (older docs) /
+<code>--clear-app-data</code> (some versions) start from empty</li>
+<li>macOS default: <code>~/Library/Application Support/virtualenv</code>
+(unverified, platformdirs convention)</li>
+<li>Linux default: <code>~/.local/share/virtualenv</code>
+(unverified)</li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code></li>
+<li>clean: <code>virtualenv --reset-app-data</code> or
+<code>--clear-app-data</code> flag names differ by version (unverified);
+otherwise delete directory</li>
+<li>regenerable: yes (small)</li>
+<li>in_use_hazard: low; seeding venvs offline fails until refilled</li>
+<li>sources: search results only (virtualenv.pypa.io CLI doc pages for
+20.2.2/20.3.0 listed <code>--reset-app-data</code>); direct fetch of
+current docs returned 404</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = unverified. Candidate to drop or fold into &quot;delete directory&quot; if
+not verifiable.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="tox">tox</h2>
+<ul>
+<li>name: tox; ecosystem: Python</li>
+<li>detect: <code>tox</code> on PATH or <code>tox.ini</code> /
+<code>tox.toml</code> / <code>[tool.tox]</code> in project.</li>
+<li>locations:
+<ul>
+<li><code>.tox/</code> per project (venvs per env, packaging env)
+<ul>
+<li>override: <code>work_dir</code> setting / <code>--workdir</code>;
+legacy <code>toxworkdir</code> (unverified)</li>
+<li>default: <code>&lt;project&gt;/.tox</code></li>
+</ul></li>
+</ul></li>
+<li>scope: per-project; marker: <code>.tox/</code> containing env dirs,
+each with <code>pyvenv.cfg</code>; project has tox config (tox.ini
+etc.)</li>
+<li>measure: <code>du</code> of each <code>.tox</code></li>
+<li>clean: no native clean command found;
+<code>tox -r</code>/<code>--recreate</code> recreates envs on next run
+(unverified). Delete directory.</li>
+<li>regenerable: yes (recreated from config, needs network)</li>
+<li>in_use_hazard: running tox session uses it</li>
+<li>sources: https://tox.wiki/en/latest/config.html (fetched empty)</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nox">nox</h2>
+<ul>
+<li>name: nox; ecosystem: Python</li>
+<li>detect: <code>nox</code> on PATH or <code>noxfile.py</code> in
+project.</li>
+<li>locations:
+<ul>
+<li><code>.nox/</code> per project (session virtualenvs)
+<ul>
+<li>override: CLI <code>--envdir &lt;dir&gt;</code></li>
+<li>default: <code>./.nox</code></li>
+</ul></li>
+</ul></li>
+<li>scope: per-project; marker: <code>noxfile.py</code> next to
+<code>.nox/</code>; each env has <code>pyvenv.cfg</code></li>
+<li>measure: <code>du</code></li>
+<li>clean: none documented (page states no clean command). Delete
+directory. <code>-r/--reuse-existing-virtualenvs</code> reuses envs (not
+a cleaner).</li>
+<li>regenerable: yes</li>
+<li>in_use_hazard: running session</li>
+<li>sources: https://nox.thea.codes/en/stable/usage.html</li>
+<li>verification: discover = official-docs; default paths =
+official-docs; clean = official-docs (&quot;delete directory&quot;)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pre-commit">pre-commit</h2>
+<ul>
+<li>name: pre-commit; ecosystem: Python (language-agnostic hooks)</li>
+<li>detect: <code>pre-commit</code> on PATH;
+<code>.pre-commit-config.yaml</code> in repos.</li>
+<li>locations:
+<ul>
+<li>Hook repo store (clones + per-hook envs for python/node/ruby/etc.)
+<ul>
+<li>discover: none as command; resolve from env
+(<code>PRE_COMMIT_HOME</code>, then <code>XDG_CACHE_HOME</code>, then
+home default)</li>
+<li>override: env <code>PRE_COMMIT_HOME</code>; else
+<code>$XDG_CACHE_HOME/pre-commit</code></li>
+<li>macOS/Linux default: <code>~/.cache/pre-commit</code></li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code></li>
+<li>clean: full: <code>pre-commit clean</code> (removes cached files;
+exact contents unspecified in docs); prune-unused:
+<code>pre-commit gc</code> (removes unused cached repos).
+<code>pre-commit uninstall</code> only removes git hooks, does not touch
+cache.</li>
+<li>regenerable: yes (re-cloned and rebuilt on next run; needs network,
+can be slow)</li>
+<li>in_use_hazard: running hooks; removed envs rebuild on next commit,
+delaying commits and failing offline</li>
+<li>sources: https://pre-commit.com/</li>
+<li>verification: discover = unverified (no discover command exists;
+derived from docs); default paths = official-docs; clean =
+official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="mypy-cache">mypy
+cache</h2>
+<ul>
+<li>name: mypy cache; ecosystem: Python</li>
+<li>detect: <code>mypy</code> on PATH or <code>.mypy_cache/</code> in
+project.</li>
+<li>locations:
+<ul>
+<li><code>.mypy_cache/</code> per project (SQLite by default,
+<code>sqlite_cache = True</code>)
+<ul>
+<li>override: config <code>cache_dir</code>; env
+<code>MYPY_CACHE_DIR</code> takes precedence</li>
+<li>default: <code>.mypy_cache</code> relative to cwd/config</li>
+</ul></li>
+</ul></li>
+<li>scope: per-project; marker: <code>.mypy_cache/</code> (contains
+<code>CACHEDIR.TAG</code> and <code>.gitignore</code> in practice; docs
+fetched do not mention this — unverified)</li>
+<li>measure: <code>du</code></li>
+<li>clean: none; delete directory</li>
+<li>regenerable: yes (slow first full re-check)</li>
+<li>in_use_hazard: concurrent mypy run/dmypy daemon may error or
+recreate; stop <code>dmypy</code> first (unverified)</li>
+<li>sources: https://mypy.readthedocs.io/en/stable/config_file.html</li>
+<li>verification: discover = official-docs; default paths =
+official-docs; clean = official-docs (none documented)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ruff-cache">ruff
+cache</h2>
+<ul>
+<li>name: ruff cache; ecosystem: Python</li>
+<li>detect: <code>ruff</code> on PATH or <code>.ruff_cache/</code> in
+project.</li>
+<li>locations:
+<ul>
+<li><code>.ruff_cache/</code> in the project root
+<ul>
+<li>override: setting <code>cache-dir</code> (overrides even env); env
+<code>RUFF_CACHE_DIR</code></li>
+<li>default: <code>.ruff_cache</code></li>
+</ul></li>
+</ul></li>
+<li>scope: per-project; marker: <code>.ruff_cache/</code> (with
+<code>CACHEDIR.TAG</code>, unverified)</li>
+<li>measure: <code>du</code></li>
+<li>clean: <code>ruff clean</code> (removes all cache directories found
+under the current dir; exact behavior is from memory — unverified,
+fetched docs page did not cover it); else delete directory</li>
+<li>regenerable: yes</li>
+<li>in_use_hazard: none significant</li>
+<li>sources: https://docs.astral.sh/ruff/settings/#cache-dir</li>
+<li>verification: discover = official-docs; default paths =
+official-docs; clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pytest-cache">pytest
+cache</h2>
+<ul>
+<li>name: pytest cache; ecosystem: Python</li>
+<li>detect: <code>pytest</code> / <code>.pytest_cache/</code> in
+project.</li>
+<li>locations:
+<ul>
+<li><code>.pytest_cache/</code> (lastfailed, nodeids, plugin values)
+<ul>
+<li>override: ini option <code>cache_dir</code> (unverified)</li>
+<li>default: <code>.pytest_cache</code> in rootdir (inferred from docs
+example output <code>cachedir: .../.pytest_cache</code>)</li>
+</ul></li>
+</ul></li>
+<li>scope: per-project; marker: <code>.pytest_cache/</code></li>
+<li>measure: <code>du</code> (typically tiny);
+<code>pytest --cache-show</code> lists contents</li>
+<li>clean: <code>pytest --cache-clear</code> clears cache contents
+before a run (it also runs the tests); otherwise delete directory</li>
+<li>regenerable: yes (loses <code>--lf</code>/<code>--ff</code>
+history)</li>
+<li>in_use_hazard: none</li>
+<li>sources: https://docs.pytest.org/en/stable/how-to/cache.html</li>
+<li>verification: discover = official-docs; default paths =
+official-docs (inferred); clean = official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pycache"><strong>pycache</strong></h2>
+<ul>
+<li>name: <code>__pycache__</code> / <code>.pyc</code> bytecode;
+ecosystem: Python</li>
+<li>detect: directories named <code>__pycache__</code> under
+project/site-packages.</li>
+<li>locations:
+<ul>
+<li><code>__pycache__/</code> next to each source dir; override: env
+<code>PYTHONPYCACHEPREFIX</code> / <code>sys.pycache_prefix</code>
+redirects all bytecode into one tree (unverified, from CPython docs
+memory)</li>
+</ul></li>
+<li>scope: per-project (also inside every venv and system
+site-packages); marker: dir named <code>__pycache__</code> containing
+<code>*.pyc</code></li>
+<li>measure: <code>du</code> of each</li>
+<li>clean: delete directory (or <code>python -m pyclbr</code>-style
+tools do not apply); <code>find . -name __pycache__</code> walk. No
+native command.</li>
+<li>regenerable: yes (automatic on next import)</li>
+<li>in_use_hazard: none for running processes; do not delete inside a
+venv you do not intend to slow down; must not match user data dirs that
+happen to be named <code>__pycache__</code></li>
+<li>sources: none fetched</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="project-venv--venv">project
+venv / .venv</h2>
+<ul>
+<li>name: project virtual environments (<code>venv</code>,
+<code>.venv</code>, <code>env</code>, any dir with
+<code>pyvenv.cfg</code>); ecosystem: Python</li>
+<li>detect: directory containing <code>pyvenv.cfg</code> (marker). Name
+is not reliable.</li>
+<li>locations: wherever the project made it; created by
+<code>python -m venv</code>, <code>virtualenv</code>,
+<code>uv venv</code>/<code>uv sync</code> (<code>.venv</code> default),
+Poetry/PDM/Pipenv in-project mode.</li>
+<li>scope: per-project; marker: <code>pyvenv.cfg</code> file in the venv
+root (also <code>bin/python</code> on Unix)</li>
+<li>measure: <code>du</code> of the venv dir</li>
+<li>clean: delete directory. uv-managed: <code>uv cache prune</code>
+handles only centralized envs, not project <code>.venv</code>.</li>
+<li>regenerable: no — user-built environment (installed packages and
+versions), though recreatable from a lock/requirements file if one
+exists and network is available. A venv with packages installed from
+local paths or no lock file may not be reproducible.</li>
+<li>in_use_hazard: an activated shell, running server, or IDE
+interpreter setting points at it; deleting breaks them immediately.
+<code>pyvenv.cfg</code> <code>home</code> may reference a
+uv/pyenv-managed Python.</li>
+<li>sources: none fetched (marker is the standard
+<code>pyvenv.cfg</code> from the venv module; unverified in this
+research)</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="jupyter">Jupyter</h2>
+<ul>
+<li>name: Jupyter (jupyter_core paths); ecosystem: Python</li>
+<li>detect: <code>jupyter</code> on PATH.</li>
+<li>locations:
+<ol>
+<li>Config: <code>~/.jupyter</code> (override
+<code>JUPYTER_CONFIG_DIR</code>)</li>
+<li>Data (kernelspecs under <code>kernels/</code>, extensions,
+nbextensions, templates)
+<ul>
+<li>Linux: <code>~/.local/share/jupyter</code> (or
+<code>$XDG_DATA_HOME</code>); macOS:
+<code>~/Library/Application Support/Jupyter</code>; override
+<code>JUPYTER_DATA_DIR</code>; extra search dirs
+<code>JUPYTER_PATH</code></li>
+</ul></li>
+<li>Runtime (connection files, PID files, logs): <code>runtime/</code>
+under data dir (macOS docs say <code>~/Library/Jupyter/runtime</code>
+historically — unverified); override
+<code>JUPYTER_RUNTIME_DIR</code></li>
+</ol>
+<ul>
+<li>discover: <code>jupyter --paths</code>,
+<code>jupyter --config-dir</code>, <code>jupyter --data-dir</code>,
+<code>jupyter --runtime-dir</code></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of data/runtime dirs</li>
+<li>clean: kernels: <code>jupyter kernelspec list</code> then
+<code>jupyter kernelspec remove &lt;name&gt;</code> (remove not in
+fetched docs; unverified); runtime files: delete stale files in
+<code>runtime/</code> (connection files of dead kernels)</li>
+<li>regenerable: runtime = yes; kernelspecs = no (registered by
+user/installers; re-registerable); config = no — contains user
+settings</li>
+<li>in_use_hazard: deleting runtime files of live kernels disconnects
+running notebooks</li>
+<li>sources:
+https://docs.jupyter.org/en/latest/use/jupyter-directories.html</li>
+<li>verification: discover = official-docs; default paths =
+official-docs; clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="hugging-face-hub-cache">Hugging
+Face Hub cache</h2>
+<ul>
+<li>name: Hugging Face Hub cache; ecosystem: ML</li>
+<li>detect: <code>hf</code> (or legacy <code>huggingface-cli</code>) on
+PATH; dir exists.</li>
+<li>locations:
+<ol>
+<li>Hub file cache (<code>models--*</code>, <code>datasets--*</code>,
+<code>spaces--*</code>; each has <code>blobs/</code>,
+<code>refs/</code>, <code>snapshots/</code> (symlinks to blobs),
+<code>trees/</code>, <code>.no_exist/</code>; <code>CACHEDIR.TAG</code>
+auto-created)
+<ul>
+<li>discover: no CLI prints it directly; resolve
+<code>HF_HUB_CACHE</code>, else <code>$HF_HOME/hub</code>, else default
+(docs list <code>HF_HOME</code> and <code>HF_HUB_CACHE</code>; legacy
+<code>HUGGINGFACE_HUB_CACHE</code>; <code>XDG_CACHE_HOME</code> also
+moves the default)</li>
+<li>macOS/Linux default: <code>~/.cache/huggingface/hub</code></li>
+</ul></li>
+<li>Xet cache (upload shard cache + staging):
+<code>~/.cache/huggingface/xet</code>, override
+<code>HF_XET_CACHE</code>; soft limit 16 GB for shard-cache</li>
+<li>Assets (downstream libs, e.g. <code>datasets</code>):
+<code>&lt;HF_HOME&gt;/assets</code></li>
+<li>Shared xet blobs:
+<code>&lt;CACHE_DIR&gt;/blobs/&lt;prefix&gt;/&lt;xet_hash&gt;</code>
+with <code>.refs</code> manifests</li>
+</ol></li>
+<li>scope: global</li>
+<li>measure: <code>hf cache ls</code> (per-repo sizes, filters like
+<code>size&gt;1GB</code>, <code>accessed&gt;30d</code>,
+<code>--format json</code>); <code>du</code> of dir</li>
+<li>clean: delete specific:
+<code>hf cache rm &lt;repo-or-revision&gt;</code> (e.g.
+<code>model/bert-base-cased</code>; flags <code>--dry-run</code>,
+<code>--yes</code>, <code>--cache-dir PATH</code>; also
+<code>hf://</code> file URIs); prune-unused: <code>hf cache prune</code>
+(unreferenced revisions, <code>.incomplete</code> files, orphaned shared
+blobs; same flags); xet: docs say
+<code>rm -rf ~/.cache/huggingface/xet</code> is the way to reclaim it.
+No single &quot;wipe all&quot; command; wipe by
+<code>hf cache rm $(hf cache ls -q) -y</code>. Do NOT hand-delete files
+in <code>blobs/</code> or <code>snapshots/</code> (symlink structure;
+shared xet blobs; older clients&#39; deleters may remove shared files still
+used by other repos).</li>
+<li>regenerable: yes-but-large-download (models can be tens of GB;
+gated/private models need auth tokens to re-download; models deleted
+from the Hub cannot be re-downloaded)</li>
+<li>in_use_hazard: a process loading a model has files open/symlinked;
+deleting mid-run breaks loading; interrupted downloads leave
+<code>.incomplete</code></li>
+<li>sources:
+https://huggingface.co/docs/huggingface_hub/guides/manage-cache</li>
+<li>verification: discover = official-docs (no discover command);
+default paths = official-docs; clean = official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pytorch-hub--torchvision-weights">PyTorch
+hub / torchvision weights</h2>
+<ul>
+<li>name: PyTorch hub cache; ecosystem: ML</li>
+<li>detect: <code>torch</code> importable; dir exists.</li>
+<li>locations:
+<ul>
+<li>Hub dir (hub repos + <code>checkpoints/</code> for
+<code>load_state_dict_from_url</code> weights, including torchvision
+pretrained weights)
+<ul>
+<li>discover:
+<code>python -c &quot;import torch; print(torch.hub.get_dir())&quot;</code> (API
+documented; not run)</li>
+<li>override: <code>torch.hub.set_dir()</code>, env
+<code>TORCH_HOME</code> (uses <code>$TORCH_HOME/hub</code>),
+<code>XDG_CACHE_HOME</code>
+(<code>$XDG_CACHE_HOME/torch/hub</code>)</li>
+<li>default (both OS): <code>~/.cache/torch/hub</code></li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code></li>
+<li>clean: delete directory (no native command)</li>
+<li>regenerable: yes-but-large-download</li>
+<li>in_use_hazard: running process loading weights</li>
+<li>sources: https://docs.pytorch.org/docs/2.14/hub.html</li>
+<li>verification: discover = official-docs; default paths =
+official-docs; clean = official-docs (none)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ollama">Ollama</h2>
+<ul>
+<li>name: Ollama; ecosystem: ML (local LLM runtime)</li>
+<li>detect: <code>ollama</code> on PATH; macOS app; Linux systemd
+service.</li>
+<li>locations:
+<ul>
+<li>Models (blobs + manifests)
+<ul>
+<li>discover: no command prints the dir; <code>ollama ls</code> lists
+models</li>
+<li>override: env <code>OLLAMA_MODELS</code> (Linux installer: the
+<code>ollama</code> user needs read/write)</li>
+<li>macOS default: <code>~/.ollama/models</code></li>
+<li>Linux default (standard installer/service):
+<code>/usr/share/ollama/.ollama/models</code>; a per-user run may use
+<code>~/.ollama/models</code> (unverified)</li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of models dir; <code>ollama ls</code> shows
+per-model size</li>
+<li>clean: <code>ollama rm &lt;model&gt;</code> (per model);
+<code>ollama stop &lt;model&gt;</code> unloads. No wipe-all; remove each
+model. Linux system path may need sudo to read/delete.</li>
+<li>regenerable: yes-but-large-download (models are multi-GB; custom
+models built with a Modelfile (<code>ollama create</code>) exist only
+locally and are NOT re-downloadable)</li>
+<li>in_use_hazard: daemon holds loaded models; <code>ollama rm</code> is
+the safe route while the server runs; removing files by hand under a
+running server corrupts its view</li>
+<li>sources: https://docs.ollama.com/faq ;
+https://docs.ollama.com/cli</li>
+<li>verification: discover = official-docs (no discover command);
+default paths = official-docs; clean = official-docs
+(<code>ollama rm</code>, <code>ollama ls</code>; docs say
+<code>ls</code>, not <code>list</code>)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="keras--tensorflow-datasets">Keras
+/ TensorFlow datasets</h2>
+<ul>
+<li>name: Keras datasets + TFDS; ecosystem: ML</li>
+<li>detect: dirs exist;
+<code>tensorflow</code>/<code>keras</code>/<code>tensorflow_datasets</code>
+importable.</li>
+<li>locations:
+<ol>
+<li>Keras <code>get_file</code> cache (datasets, pretrained weights):
+<code>~/.keras/datasets</code>, <code>~/.keras/models</code>; override
+env <code>KERAS_HOME</code> (default <code>~/.keras</code>) — from
+general knowledge, the fetched page was truncated (unverified)</li>
+<li>TensorFlow Datasets: <code>~/tensorflow_datasets/</code> (docs:
+<code>data_dir</code> defaults to <code>~/tensorflow_datasets/</code>;
+downloads in <code>~/tensorflow_datasets/downloads/</code>); override
+<code>data_dir=</code> argument or env <code>TFDS_DATA_DIR</code> (env
+not in docs fetched — unverified)</li>
+</ol></li>
+<li>scope: global</li>
+<li>measure: <code>du</code></li>
+<li>clean: delete directory (no native clean documented)</li>
+<li>regenerable: yes-but-large-download (dataset downloads can be many
+GB; some sources need manual download into <code>manual_dir</code> and
+are not re-fetchable automatically)</li>
+<li>in_use_hazard: running training reading dataset</li>
+<li>sources: https://www.tensorflow.org/datasets/overview ;
+https://www.tensorflow.org/api_docs/python/tf/keras/utils/get_file</li>
+<li>verification: discover = unverified; default paths = official-docs
+(TFDS) / unverified (Keras); clean = official-docs (none)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nltk-data">NLTK
+data</h2>
+<ul>
+<li>name: NLTK data; ecosystem: Python NLP</li>
+<li>detect: <code>nltk_data</code> directory; <code>nltk</code>
+importable.</li>
+<li>locations:
+<ul>
+<li><code>nltk_data</code> (corpora, tokenizers, models). Downloader
+searches for an existing <code>nltk_data</code> dir; central:
+<code>/usr/share/nltk_data</code> (Unix),
+<code>/usr/local/share/nltk_data</code> (Mac); user dir otherwise
+(commonly <code>~/nltk_data</code> — docs fetched do not name it;
+unverified)
+<ul>
+<li>override: env <code>NLTK_DATA</code>; downloader
+<code>-d &lt;dir&gt;</code></li>
+<li>discover:
+<code>python -c &quot;import nltk; print(nltk.data.path)&quot;</code> (from
+memory; unverified)</li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code></li>
+<li>clean: delete directory (or specific corpus subdir)</li>
+<li>regenerable: yes-but-large-download (some corpora large; downloaded
+corpora are regenerable via <code>nltk.download</code>)</li>
+<li>in_use_hazard: low</li>
+<li>sources: https://www.nltk.org/data.html</li>
+<li>verification: discover = unverified; default paths = official-docs
+(central) / unverified (<code>~/nltk_data</code>); clean =
+unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="matplotlib">matplotlib</h2>
+<ul>
+<li>name: matplotlib config/cache; ecosystem: Python</li>
+<li>detect: <code>matplotlib</code> importable;
+<code>~/.matplotlib</code> or <code>~/.cache/matplotlib</code>
+exists.</li>
+<li>locations:
+<ul>
+<li>Config + cache dir (font list JSON <code>fontlist-v*.json</code>,
+tex cache)
+<ul>
+<li>discover:
+<code>python -c &quot;import matplotlib; print(matplotlib.get_cachedir())&quot;</code>
+(from memory; unverified) and
+<code>matplotlib.get_configdir()</code></li>
+<li>override: env <code>MPLCONFIGDIR</code>; fallback to
+<code>tempfile.gettempdir()/matplotlib</code> if home not writable</li>
+<li>Linux default: <code>~/.config/matplotlib</code> (config) and
+<code>~/.cache/matplotlib</code> (cache)</li>
+<li>macOS (&quot;other platforms&quot;) default: <code>~/.matplotlib</code> (e.g.
+<code>~/.matplotlib/fontlist-v390.json</code>)</li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> (tiny)</li>
+<li>clean: delete cache files (<code>fontlist-*.json</code>,
+<code>tex.cache</code>); no native command. Config
+(<code>matplotlibrc</code>) lives in the same dir on macOS: do not
+delete the whole dir.</li>
+<li>regenerable: yes for cache files; matplotlibrc = no (user
+config)</li>
+<li>in_use_hazard: none; first import rebuilds font cache (seconds)</li>
+<li>sources:
+https://matplotlib.org/stable/install/environment_variables_faq.html</li>
+<li>verification: discover = unverified; default paths = official-docs +
+ran-command (macOS); clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="r-renv">R:
+renv</h2>
+<ul>
+<li>name: renv; ecosystem: R</li>
+<li>detect: <code>R</code>/<code>Rscript</code> on PATH; project has
+<code>renv.lock</code> / <code>renv/</code> dir.</li>
+<li>locations:
+<ol>
+<li>Global package cache (projects link into it)
+<ul>
+<li>discover: R call <code>renv::paths$cache()</code> (documented)</li>
+<li>override: env <code>RENV_PATHS_CACHE</code> (may list several,
+<code>:</code>-separated on Unix); <code>RENV_PATHS_ROOT</code> sets the
+root (unverified)</li>
+<li>macOS: <code>~/Library/Caches/org.R-project.R/R/renv/cache</code>;
+Linux: <code>~/.cache/R/renv/cache</code></li>
+</ul></li>
+<li>Per-project library <code>renv/library</code> (links to cache) with
+lockfile <code>renv.lock</code></li>
+</ol></li>
+<li>scope: cache global; library per-project (marker:
+<code>renv.lock</code> plus <code>renv/</code> dir)</li>
+<li>measure: <code>du</code> of cache dir (shared cache and
+hard/symlinked libraries: size of <code>renv/library</code> mostly
+links)</li>
+<li>clean: <code>renv::purge(&quot;&lt;pkg&gt;&quot;)</code> removes a package
+from the cache (docs tell users to read <code>?purge</code> for
+caveats); wipe: delete cache dir; <code>renv::paths$root()</code> +
+<code>unlink(root, recursive=TRUE)</code> is the documented way to
+remove all global renv infrastructure. <code>renv::clean()</code> is not
+confirmed (unverified).</li>
+<li>regenerable: cache = yes (re-downloaded/compiled from CRAN;
+compiling can be slow); project library = yes if <code>renv.lock</code>
+exists</li>
+<li>in_use_hazard: project libraries are symlinks into the cache —
+deleting a cached package leaves dangling links and breaks every project
+using it until <code>renv::restore()</code></li>
+<li>sources:
+https://rstudio.github.io/renv/articles/package-install.html ;
+https://rstudio.github.io/renv/articles/renv.html</li>
+<li>verification: discover = official-docs (R call, not run); default
+paths = official-docs; clean = official-docs (<code>purge</code>)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="r-package-library">R:
+package library</h2>
+<ul>
+<li>name: R user library; ecosystem: R</li>
+<li>detect: <code>R</code> on PATH.</li>
+<li>locations: user library from <code>.libPaths()</code> (R call;
+unverified), typically
+<code>~/Library/R/&lt;arch&gt;/&lt;ver&gt;/library</code> on macOS and
+<code>~/R/&lt;arch&gt;-library/&lt;ver&gt;</code> on Linux (both
+unverified); override <code>R_LIBS_USER</code>.</li>
+<li>scope: global</li>
+<li>measure: <code>du</code></li>
+<li>clean: <code>remove.packages(&quot;&lt;pkg&gt;&quot;)</code> per package; no
+cache concept</li>
+<li>regenerable: no — installed set chosen by user (reinstallable by
+name, but versions/sources may not be)</li>
+<li>in_use_hazard: running R sessions</li>
+<li>sources: renv doc mentions
+<code>utils::remove.packages(&quot;renv&quot;)</code> only; no direct source</li>
+<li>verification: discover = unverified; default paths = unverified;
+clean = unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="julia-depots">Julia
+depots</h2>
+<ul>
+<li>name: Julia depot (<code>~/.julia</code>); ecosystem: Julia</li>
+<li>detect: <code>julia</code> on PATH; <code>~/.julia</code>
+exists.</li>
+<li>locations:
+<ul>
+<li>User depot (first entry of <code>DEPOT_PATH</code>):
+<code>packages/</code>, <code>artifacts/</code>, <code>compiled/</code>,
+<code>registries/</code>, <code>scratchspaces/</code>,
+<code>logs/</code>, <code>environments/</code> (subdir names from
+memory; docs fetched only confirm <code>logs/repl_history.jl</code>)
+<ul>
+<li>discover: <code>julia -e &#39;println(DEPOT_PATH)&#39;</code> (variable
+documented; not run)</li>
+<li>override: env <code>JULIA_DEPOT_PATH</code> (must be set before
+start; leading empty entry expands to default depot)</li>
+<li>macOS/Linux default: <code>~/.julia</code>; also read-only system
+depots <code>/usr/local/share/julia</code>,
+<code>/usr/share/julia</code></li>
+</ul></li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of each subdir (<code>packages</code>,
+<code>artifacts</code>, <code>compiled</code> are the large ones)</li>
+<li>clean: <code>julia -e &#39;using Pkg; Pkg.gc()&#39;</code>: removes orphaned
+packages/artifacts unused for at least <code>collect_delay</code>
+(default <code>Day(7)</code>);
+<code>Pkg.gc(; collect_delay=Day(0))</code> removes immediately — exact
+call form from docs signature
+<code>Pkg.gc(; collect_delay::Period=Day(7), io::IO=stderr)</code>
+(needs <code>using Dates</code> for <code>Day</code>). Auto-GC can be
+disabled via <code>JULIA_PKG_GC_AUTO=false</code>. Compiled cache
+(<code>compiled/</code>) and registries: delete directory.</li>
+<li>regenerable: packages/artifacts = yes-but-large-download (artifacts
+can be GBs); <code>environments/</code> (global named envs like
+<code>v1.10</code>) = no — contains the user&#39;s global
+Project.toml/Manifest.toml; <code>registries</code> = yes;
+<code>scratchspaces</code> = may hold package-owned state
+(unverified)</li>
+<li>in_use_hazard: <code>Pkg.gc</code> decides &quot;orphaned&quot; from usage
+logs of known Manifest.toml files; projects whose Manifest was moved/not
+logged may lose packages (they will be re-downloaded on
+<code>instantiate</code>)</li>
+<li>sources: https://pkgdocs.julialang.org/v1/api/ ;
+https://docs.julialang.org/en/v1/manual/environment-variables/ ;
+https://docs.julialang.org/en/v1/base/constants/</li>
+<li>verification: discover = official-docs (not run); default paths =
+official-docs (<code>~/.julia</code>); clean = official-docs
+(<code>Pkg.gc</code>)</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="contract-observations">Contract
+observations</h2>
+<p>Patterns the registry contract must express that a naive &quot;path + rm
+-rf&quot; entry cannot:</p>
+<ol>
+<li>Path discoverable only by running the tool, with a per-OS default as
+a fallback only. <code>pip cache dir</code>, <code>uv cache dir</code>,
+<code>uv python dir</code>, <code>uv tool dir</code>,
+<code>poetry config cache-dir</code>, <code>jupyter --paths</code>,
+<code>pyenv root</code>, <code>hatch env find</code>,
+<code>pipx environment</code>, R <code>renv::paths$cache()</code>, Julia
+<code>DEPOT_PATH</code>, <code>torch.hub.get_dir()</code>. Needs fields:
+<code>discover</code> command, parse mode (single line / key: value /
+JSON), and a separate <code>default_paths</code> per OS used when the
+tool is absent. Defaults are not uniform: uv uses
+<code>~/.cache/uv</code> on macOS while pip/Poetry/Hatch/renv use
+<code>~/Library/Caches/...</code>; matplotlib on macOS is
+<code>~/.matplotlib</code>.</li>
+<li>Override chain with precedence. Env var, CLI flag, config key,
+<code>XDG_*</code> variables, and shell-level files all move the same
+location (pip <code>PIP_CACHE_DIR</code>; Ruff <code>cache-dir</code>
+beats <code>RUFF_CACHE_DIR</code>; HF <code>HF_HUB_CACHE</code> &gt;
+<code>HF_HOME/hub</code>; Torch <code>TORCH_HOME</code> &gt;
+<code>XDG_CACHE_HOME</code>; renv path lists separated by
+<code>:</code>). The contract needs an ordered resolution list, and a
+multi-path value type.</li>
+<li>More than one location per tool, each with its own scope,
+regenerability and clean action: uv (cache vs Pythons vs tools), Poetry
+(cache vs virtualenvs), Hatch (cache, data, envs, pythons), pyenv
+(versions vs cache vs sources), HF (hub vs xet vs assets), Julia
+(packages, artifacts, environments, compiled), Jupyter (config vs data
+vs runtime). A tool entry must be a list of locations, each carrying its
+own <code>regenerable</code> and <code>clean</code>.</li>
+<li>Locations that mix cache with user-built or user-authored state, so
+the whole directory must never be a single delete target: Poetry
+virtualenvs live INSIDE the cache dir
+(<code>{cache-dir}/virtualenvs</code>); matplotlib config and cache
+share <code>~/.matplotlib</code> on macOS; Jupyter data holds
+kernelspecs; Julia <code>environments/</code>; Ollama custom models
+created with <code>ollama create</code>; conda <code>envs</code>. Needs
+<code>regenerable: no</code> per location with a data description,
+sub-path exclusions (&quot;size/clean everything except
+<code>virtualenvs</code>&quot;), and a refusal to run a whole-dir
+delete.</li>
+<li>Per-project instances found by walking project trees, with a marker,
+and in several cases the marker is a file inside, not the dir name:
+<code>pyvenv.cfg</code> (any venv name), <code>.mypy_cache</code>,
+<code>.ruff_cache</code>, <code>.pytest_cache</code>, <code>.tox</code>,
+<code>.nox</code> (tied to
+<code>tox.ini</code>/<code>noxfile.py</code>), <code>__pycache__</code>,
+<code>renv.lock</code> + <code>renv/</code>. The walk must prune descent
+into venvs and <code>node_modules</code>, and handle huge counts of
+<code>__pycache__</code> dirs; <code>__pycache__</code> also lives
+inside every venv.</li>
+<li>Size reported by the tool, not <code>du</code>:
+<code>pip cache info</code>, <code>uv cache size</code> (experimental;
+uv also has a more accurate physical-space preview feature),
+<code>pdm cache info</code>, <code>hf cache ls</code> (logical per-repo
+sizes, while on-disk is physical because blobs are shared via symlinks
+and xet shared blobs), <code>conda clean --all --dry-run</code>.
+<code>du</code> over symlink-heavy stores double-counts or misses;
+contract needs a <code>measure</code> kind (<code>du</code> |
+<code>command</code> with parse rule) and a dry-run variant of
+clean.</li>
+<li>Clean has multiple variants with different safety levels: full wipe
+(<code>pip cache purge</code>, <code>uv cache clean</code>,
+<code>conda clean --all</code>) vs prune-unused
+(<code>uv cache prune</code>, <code>uv cache prune --ci</code>,
+<code>pre-commit gc</code>, <code>hf cache prune</code>,
+<code>Pkg.gc</code> with a time threshold,
+<code>conda clean --packages</code>) vs targeted removal needing an
+argument (<code>ollama rm &lt;model&gt;</code>,
+<code>hf cache rm &lt;id&gt;</code>,
+<code>pip cache remove &lt;pattern&gt;</code>,
+<code>poetry cache clear &lt;repo&gt;:&lt;pkg&gt;:&lt;ver&gt;</code>) vs
+destructive-flag variants (<code>conda clean --force-pkgs-dirs</code>,
+<code>hatch env prune</code>, <code>pdm venv purge</code>,
+<code>hatch python remove all</code>). Contract needs
+<code>clean.full</code>, <code>clean.prune</code>,
+<code>clean.targeted(args)</code>, a <code>danger</code> level, and a
+<code>dry_run</code> flag.</li>
+<li>Native-only deletion: docs say never to modify the uv cache by hand;
+HF cache uses symlink/blob sharing so hand-deleting <code>blobs/</code>
+or <code>snapshots/</code> corrupts it; pip&#39;s layout &quot;may change between
+any two versions&quot;; renv cache is symlinked from project libraries
+(dangling links). An entry needs
+<code>native_clean_required: true</code> (fallback
+<code>delete directory</code> only when the tool is absent) and a note
+that fallback is unsafe.</li>
+<li>Cross-location dependencies: removing a managed Python (uv, pyenv,
+hatch) breaks venvs whose <code>pyvenv.cfg</code> <code>home</code>
+points at it; deleting the renv cache breaks project libraries; conda
+pkgs removal affects envs. The contract needs a <code>dependents</code>
+relation (or at least an <code>in_use_hazard</code> that is
+machine-readable) and an ordering rule when cleaning several
+locations.</li>
+<li>Locks, daemons and privileges: uv blocks up to 5 min on a lock
+(<code>UV_LOCK_TIMEOUT</code>, <code>--force</code>); Ollama is a daemon
+whose models dir on Linux is
+<code>/usr/share/ollama/.ollama/models</code> and needs sudo;
+<code>dmypy</code> daemon; Jupyter live kernels own runtime files. Need
+<code>requires_stopped: &lt;process/daemon&gt;</code> and
+<code>needs_sudo</code> flags.</li>
+<li>Regenerability classes beyond yes/no:
+<code>yes-but-large-download</code> (HF, torch, TFDS, Ollama, conda
+pkgs, Julia artifacts, managed Pythons) with a bandwidth/size warning,
+plus &quot;not re-downloadable&quot; cases (Ollama custom models, HF models
+removed or gated, TFDS manual-download datasets). Needs a per-location
+<code>regenerable</code> enum and a free-text
+<code>loss_if_deleted</code>.</li>
+<li>Environment-vs-binary detection: a tool&#39;s caches may exist although
+its binary is not installed (pre-commit, HF, matplotlib).
+<code>detect</code> needs &quot;binary on PATH OR directory exists&quot;, and the
+discover command can only run if the binary exists; otherwise use the OS
+default list.</li>
+<li>Same location shared by several tools: the HF cache is used by
+<code>transformers</code>, <code>datasets</code>, <code>diffusers</code>
+and others; <code>~/.local/bin</code> receives shims from uv, pipx and
+pyenv; pip cache dir is per user, not per Python. Registry entries
+should be keyed by location owner, with deduplication so the same dir is
+not measured twice in total reclaimable space.</li>
+<li>Verification status is part of the data: several fields in this file
+are <code>unverified</code> (pipx, virtualenv, tox, conda/mamba
+defaults, Pipenv venvs, R library, <code>__pycache__</code>, project
+venv). The contract should carry a per-field <code>verified</code> tag
+and refuse to ship a clean command with <code>unverified</code> status
+without review.</li>
+</ol>
+</body>
+</html>

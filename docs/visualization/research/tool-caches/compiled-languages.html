@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Compiled-language toolchains and compiler caches: verified
+facts for the `ccc` registry</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="compiled-language-toolchains-and-compiler-caches-verified-facts-for-the-ccc-registry">Compiled-language
+toolchains and compiler caches: verified facts for the <code>ccc</code>
+registry</h1>
+<p>Summary. This file records, for 27 tool entries (Rust, Go, C/C++
+build systems and caches, Zig, Nim, Haskell, OCaml, Elixir/Erlang,
+Crystal, D), how to detect each tool, where its caches live, how to
+discover that path, how to measure and clean it with the tool&#39;s own
+command, whether it is regenerable, and what breaks if it is cleaned
+while in use. Every field carries a verification tag:
+<code>official-docs</code> (read in the official documentation during
+this research), <code>ran-command</code> (confirmed by running a
+read-only command), or <code>unverified</code> (from memory or inferred;
+do not ship without checking). Several documentation pages were
+truncated or lacked detail, so many Conan, vcpkg, Zig, Haskell, Elixir
+and D facts are <code>unverified</code>. The critical non-default case
+is Cargo&#39;s <code>build.target-dir</code> (settable in
+<code>~/.cargo/config.toml</code>, which makes all projects share one
+directory); section &quot;cargo (build output / target)&quot; documents how to
+discover it.</p>
+<p>Verification legend per entry:
+<code>V(discover / default-paths / clean)</code>.</p>
+<hr />
+<h2 class="unnumbered unlisted" id="cargo-cargo_home-registry-git-checkouts">cargo
+(CARGO_HOME: registry, git checkouts)</h2>
+<ul>
+<li><code>name</code>: Cargo home cache; <code>ecosystem</code>:
+Rust</li>
+<li><code>detect</code>: <code>cargo</code> on PATH, or directory
+<code>$CARGO_HOME</code> (default <code>~/.cargo</code>) exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>registry/index</code> (bare git repo of registry metadata),
+<code>registry/cache</code> (downloaded <code>.crate</code> archives),
+<code>registry/src</code> (unpacked sources rustc reads).
+<ul>
+<li><code>discover</code>: no command; compute
+<code>${CARGO_HOME:-$HOME/.cargo}</code>. Env override:
+<code>CARGO_HOME</code>. Default macOS: <code>~/.cargo</code>; Linux:
+<code>~/.cargo</code>.</li>
+</ul></li>
+<li><code>git/db</code> (bare clones of git dependencies),
+<code>git/checkouts</code> (working checkouts of commits from
+<code>git/db</code>). Same root, same override.</li>
+</ol>
+<ul>
+<li>NOT cache, same root: <code>bin/</code> (installed executables incl.
+rustup proxies), <code>config.toml</code>,
+<code>credentials.toml</code>, <code>.crates.toml</code>,
+<code>.crates2.json</code>. A cleaner must target only
+<code>registry/</code> and <code>git/</code>, never the root. Non-Cargo
+content may also sit in the root, e.g. <code>advisory-db/</code>
+(cargo-audit), <code>env</code>.</li>
+</ul></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>:
+<code>du -sk &lt;CARGO_HOME&gt;/registry &lt;CARGO_HOME&gt;/git</code></li>
+<li><code>clean</code>: delete directory (the subdirectories
+<code>registry/cache</code>, <code>registry/src</code>,
+<code>registry/index</code>, <code>git/checkouts</code>,
+<code>git/db</code>). Docs: &quot;In theory, you can remove any part of the
+cache. Cargo will try to restore what a crate needs.&quot;
+<code>cargo clean</code> does NOT touch it (&quot;Once a crate is cached it
+is not removed by the clean command&quot;). No native full-wipe command.
+Prune-unused: Cargo does automatic GC: network-downloaded files unused
+for 3 months and regenerable-offline files unused for 1 month are
+deleted, checked at most once per
+<code>cache.auto-clean-frequency</code> (default <code>&quot;1 day&quot;</code>,
+env <code>CARGO_CACHE_AUTO_CLEAN_FREQUENCY</code>; values
+<code>never</code>, <code>always</code>,
+<code>N seconds|minutes|hours|days|weeks|months</code>); disabled with
+<code>--offline</code>/<code>--frozen</code>. A manual GC subcommand
+(<code>cargo clean gc</code>, behind <code>-Z gc</code>) is
+<code>unverified</code>; local <code>cargo --list</code> shows only
+plain <code>clean</code>. Third-party <code>cargo-cache</code> crate
+exists (docs mention it); its flags are <code>unverified</code>.
+<ul>
+<li>Notes: no read-only file problem known (unverified); deleting
+<code>registry/index</code> forces a full index re-fetch.</li>
+</ul></li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>
+(index, crates, git repos re-fetched; git dependencies pinned to a rev
+that was force-pushed away or a deleted repo or yanked crates can become
+unrecoverable offline; offline use breaks).</li>
+<li><code>in_use_hazard</code>: a running <code>cargo build</code>
+reading <code>registry/src</code> or <code>git/checkouts</code> can fail
+with missing-file errors; cargo re-extracts on the next run. Cargo uses
+a package-cache lock (unverified).</li>
+<li><code>sources</code>:
+https://doc.rust-lang.org/cargo/guide/cargo-home.html ;
+https://doc.rust-lang.org/cargo/reference/environment-variables.html ;
+https://doc.rust-lang.org/cargo/reference/config.html (section
+<code>cache.auto-clean-frequency</code>)</li>
+<li><code>verification</code>: V(discover: official-docs (env/default
+rule) / default-paths: official-docs; ran-command for
+<code>~/.cargo</code> existing / clean: official-docs for &quot;can be
+removed&quot;, <code>unverified</code> for <code>cargo clean gc</code> and
+cargo-cache flags)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="cargo-build-output--target">cargo
+(build output / target)</h2>
+<ul>
+<li><code>name</code>: Cargo build output; <code>ecosystem</code>:
+Rust</li>
+<li><code>detect</code>: <code>cargo</code> on PATH; per project a
+<code>Cargo.toml</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li>The target directory (final artifacts: <code>debug/</code>,
+<code>release/</code>, <code>&lt;profile&gt;/</code>,
+<code>&lt;triple&gt;/debug|release</code>, <code>doc/</code>,
+<code>package/</code>).</li>
+<li>The build directory (intermediate:
+<code>&lt;build-dir&gt;/debug/deps</code>, <code>incremental</code>,
+<code>build</code>). Config key <code>build.build-dir</code>, env
+<code>CARGO_BUILD_BUILD_DIR</code>, defaults to the value of
+<code>build.target-dir</code>; supports templates
+<code>{workspace-root}</code>, <code>{cargo-cache-home}</code>,
+<code>{workspace-path-hash}</code>. (Newer Cargo; Cargo 1.93 emits a
+<code>build_directory</code> field in metadata; behaviour on older Cargo
+<code>unverified</code>.)</li>
+</ol>
+<ul>
+<li><code>discover</code> (the exact effective path, in precedence
+order, all <code>official-docs</code> unless noted):
+<ol>
+<li>CLI <code>--target-dir &lt;DIR&gt;</code> (only when ccc itself
+invokes cargo).</li>
+<li>Env <code>CARGO_TARGET_DIR</code>, or
+<code>CARGO_BUILD_TARGET_DIR</code> (both documented; precedence between
+the two <code>unverified</code>). Relative values resolve against the
+current working directory.</li>
+<li>Config key <code>build.target-dir</code>, merged from files probed
+starting at the cwd and walking each parent directory:
+<code>&lt;dir&gt;/.cargo/config.toml</code> (also extensionless
+<code>.cargo/config</code>; if both exist the extensionless file is
+used), ending with <code>$CARGO_HOME/config.toml</code> (default
+<code>~/.cargo/config.toml</code>). Deeper directories win; the
+Cargo-home file is lowest priority. <code>--config KEY=VALUE</code>
+beats env beats files. A relative path in a config file resolves against
+the PARENT of the <code>.cargo</code> directory that defines it (so
+<code>target-dir = &quot;build&quot;</code> in <code>/p/.cargo/config.toml</code>
+means <code>/p/build</code>). When run from a workspace root Cargo does
+not read member-crate configs. Importantly, the search starts from the
+cwd of the cargo invocation, not from the manifest&#39;s directory.</li>
+<li>Default: directory <code>target</code> at the workspace root (the
+directory of the workspace-root <code>Cargo.toml</code>, not necessarily
+the member crate).</li>
+</ol></li>
+<li>Single authoritative command (preferred over reimplementing 1-4):
+from the project directory run
+<code>cargo metadata --format-version 1 --no-deps</code> and read JSON
+field <code>target_directory</code> (and <code>build_directory</code>).
+When a shared target directory is configured, both fields point at it
+instead of <code>&lt;project&gt;/target</code>. Running it in a
+directory without a manifest fails (observed: empty output, parse
+error), so it needs a project path. A project-less tool (a user-level
+scan) can instead parse <code>$CARGO_HOME/config.toml</code> and env
+itself. <code>cargo config get build.target-dir</code> exists only
+behind <code>-Z unstable-options</code> (<code>unverified</code>).</li>
+<li>Defaults: macOS and Linux both
+<code>&lt;workspace-root&gt;/target</code>.</li>
+</ul></li>
+<li><code>scope</code>: decided at runtime per project, not per tool. If
+the effective target dir is <code>&lt;workspace-root&gt;/target</code>
+it is <code>per-project</code> (marker: sibling <code>Cargo.toml</code>
+in the parent, and a <code>CACHEDIR.TAG</code> file inside the target
+dir, which Cargo writes - the <code>CACHEDIR.TAG</code> claim is
+<code>unverified</code>). If <code>build.target-dir</code> /
+<code>CARGO_TARGET_DIR</code> points elsewhere (for example set in the
+user-level config) it is one <code>global</code> directory shared by
+many projects: it has no sibling <code>Cargo.toml</code>, so walking
+projects will never find it; it must be found via
+config/env/<code>cargo metadata</code> and deduplicated across projects.
+A project-level <code>.cargo/config.toml</code> can also point several
+projects at one directory or give each a custom relative path.
+Shared-dir marker candidates: <code>CACHEDIR.TAG</code>,
+<code>.rustc_info.json</code> (<code>unverified</code>).</li>
+<li><code>measure</code>: <code>du -sk &lt;target_directory&gt;</code>.
+Per-profile: <code>du</code> of <code>&lt;dir&gt;/debug</code>,
+<code>&lt;dir&gt;/release</code>.</li>
+<li><code>clean</code>: full wipe: <code>cargo clean</code> (official:
+&quot;With no options, it deletes the entire target directory&quot;) or
+<code>cargo clean --target-dir &lt;DIR&gt;</code> /
+<code>cargo clean --manifest-path &lt;Cargo.toml&gt;</code>. Partial
+variants (all official): <code>-p &lt;spec&gt;</code>,
+<code>--workspace</code>, <code>--release</code>,
+<code>--profile &lt;name&gt;</code>, <code>--doc</code>,
+<code>--target &lt;triple&gt;</code>, <code>--dry-run</code> (list what
+would be deleted; combine with <code>-v</code> to list files; flag also
+confirmed by <code>cargo clean --help</code>). No prune-unused command
+in Cargo itself; third-party <code>cargo-sweep</code> (installed to
+<code>~/.cargo/bin/cargo-sweep</code>) exists, its flags are
+<code>unverified</code>.
+<ul>
+<li>Notes: with a shared target dir, one <code>cargo clean</code> from
+ANY project wipes the artifacts of ALL projects using it (the docs do
+not discuss shared dirs; the whole-directory behaviour follows from
+&quot;deletes the entire target directory&quot;). If ccc cleans by
+<code>du</code>-and-delete of the discovered path, delete it once, not
+once per project. <code>cargo clean -p</code> in a shared dir only
+removes that package&#39;s artifacts across all profiles.</li>
+</ul></li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (can be
+tens of GiB, especially in a shared dir).</li>
+<li><code>in_use_hazard</code>: a running
+<code>cargo build</code>/<code>cargo test</code>/<code>cargo watch</code>/rust-analyzer
+check writes here; deleting mid-build fails the build; Cargo takes a
+lock on the build directory so <code>cargo clean</code> can block
+waiting (<code>unverified</code>). Shared dir raises the chance that
+some other project is mid-build.</li>
+<li><code>sources</code>:
+https://doc.rust-lang.org/cargo/reference/config.html ;
+https://doc.rust-lang.org/cargo/reference/environment-variables.html ;
+https://doc.rust-lang.org/cargo/commands/cargo-clean.html ;
+https://doc.rust-lang.org/cargo/reference/build-cache.html</li>
+<li><code>verification</code>: V(discover: official-docs + ran-command
+(<code>cargo metadata</code>) / default-paths: official-docs / clean:
+official-docs (<code>cargo clean</code>, flags), ran-command
+(<code>--dry-run</code> flag listed in <code>cargo clean --help</code>);
+<code>CACHEDIR.TAG</code> marker: unverified)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="rustup-toolchains-and-downloads">rustup
+(toolchains and downloads)</h2>
+<ul>
+<li><code>name</code>: rustup; <code>ecosystem</code>: Rust</li>
+<li><code>detect</code>: <code>rustup</code> on PATH
+(<code>~/.cargo/bin/rustup</code>); directory <code>$RUSTUP_HOME</code>
+exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>$RUSTUP_HOME/toolchains/&lt;name&gt;</code> installed
+toolchains. <code>discover</code>: <code>rustup show home</code> (prints
+e.g. <code>~/.rustup</code>); <code>rustup toolchain list -v</code>
+prints each toolchain with its path (e.g.
+<code>stable-aarch64-apple-darwin (active, default) ~/.rustup/toolchains/stable-aarch64-apple-darwin</code>).
+Override env <code>RUSTUP_HOME</code>. Default macOS and Linux:
+<code>~/.rustup</code>.</li>
+<li><code>$RUSTUP_HOME/downloads</code>, <code>$RUSTUP_HOME/tmp</code>,
+<code>$RUSTUP_HOME/update-hashes</code> (their purpose being disposable
+download staging and hash records is <code>unverified</code>).
+<code>settings.toml</code> (default toolchain, directory overrides)
+lives in the same root and is configuration, not cache.</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>du -sk</code> of each toolchain
+directory; <code>du</code> of <code>downloads</code> and
+<code>tmp</code>.</li>
+<li><code>clean</code>: per-toolchain:
+<code>rustup toolchain uninstall &lt;toolchain&gt;</code> (subcommand
+<code>uninstall</code> under <code>toolchain</code> confirmed by
+<code>rustup --help</code>: &quot;toolchain  Install, uninstall, or list
+toolchains&quot;; exact argument form <code>unverified</code>). Full wipe of
+everything: <code>rustup self uninstall</code> (destroys rustup and all
+toolchains; NOT recommended for a cache cleaner). <code>downloads</code>
+and <code>tmp</code>: delete directory (<code>unverified</code>). No
+prune-unused command in rustup.
+<ul>
+<li>Notes: removing the default toolchain breaks the
+<code>cargo</code>/<code>rustc</code> proxies until another is set
+(<code>rustup default</code>); removing a toolchain referenced by a
+<code>rust-toolchain.toml</code> makes the next cargo call in that
+project re-download it.</li>
+</ul></li>
+<li><code>regenerable</code>: <code>no</code> for the set of toolchains
+as a user choice (which channels, targets, components, pinned dates are
+decisions someone made); technically
+<code>yes-but-large-download</code>.
+<code>downloads</code>/<code>tmp</code>: <code>yes</code>.</li>
+<li><code>in_use_hazard</code>: uninstalling a toolchain used by a
+running build or by rust-analyzer breaks it immediately (the compiler
+binary vanishes).</li>
+<li><code>sources</code>:
+https://rust-lang.github.io/rustup/environment-variables.html ;
+https://rust-lang.github.io/rustup/concepts/toolchains.html ;
+<code>rustup --help</code></li>
+<li><code>verification</code>: V(discover: ran-command / default-paths:
+official-docs (<code>~/.rustup</code>) / clean: <code>unverified</code>
+for exact <code>uninstall</code> argument syntax, ran-command for
+subcommand existence)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="sccache">sccache</h2>
+<ul>
+<li><code>name</code>: sccache; <code>ecosystem</code>: Rust/C/C++
+(compiler cache)</li>
+<li><code>detect</code>: <code>sccache</code> on PATH ; directory
+exists.</li>
+<li><code>locations</code>:
+<ol>
+<li>Local disk cache. <code>discover</code>:
+<code>sccache --show-stats</code> prints a line
+<code>Cache location  Local disk: &quot;&lt;path&gt;&quot;</code> (e.g.
+<code>~/Library/Caches/Mozilla.sccache</code> on macOS) and
+<code>Max cache size  10 GiB</code>. Override env
+<code>SCCACHE_DIR</code>; size limit <code>SCCACHE_CACHE_SIZE</code>
+(default 10G). Default macOS
+<code>~/Library/Caches/Mozilla.sccache</code>; Linux
+<code>~/.cache/sccache</code>. If a remote backend (S3, GCS, Redis, ...)
+is configured, &quot;Cache location&quot; shows that instead and there is nothing
+local to measure or delete.</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>du -sk &lt;path&gt;</code>.
+<code>sccache --show-stats</code> prints hit/miss counters; in the
+observed 0.14.0 output with zero compilations there was NO current-size
+line (only &quot;Max cache size&quot;), so use <code>du</code>.
+<code>sccache --show-adv-stats</code> also exists (exit 0).</li>
+<li><code>clean</code>: no native clear-cache command (the README
+documents <code>--show-stats</code>, <code>--stop-server</code>;
+<code>--zero-stats</code> is in <code>sccache --help</code>, which
+resets counters only). Procedure: <code>sccache --stop-server</code>,
+then delete directory. Prune-unused: sccache self-evicts to
+<code>SCCACHE_CACHE_SIZE</code> (LRU behaviour <code>unverified</code>).
+<ul>
+<li>Notes: stop-server shuts the daemon (listens on 127.0.0.1:4226 by
+default, <code>SCCACHE_SERVER_PORT</code>; exits after 10 minutes idle
+by default).</li>
+</ul></li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (it is a
+compile cache).</li>
+<li><code>in_use_hazard</code>: while <code>RUSTC_WRAPPER=sccache</code>
+builds run, the server owns the directory; deleting under it causes
+cache write errors or compile failures (exact failure mode
+<code>unverified</code>); stop the server first.</li>
+<li><code>sources</code>:
+https://github.com/mozilla/sccache/blob/main/README.md ;
+https://github.com/mozilla/sccache/blob/main/docs/Local.md</li>
+<li><code>verification</code>: V(discover: ran-command / default-paths:
+official-docs + ran-command (macOS) / clean: official-docs for
+<code>--stop-server</code>; delete-directory is the only option)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="cargo-install-binaries--cargo-binstall">cargo
+install binaries / cargo-binstall</h2>
+<ul>
+<li><code>name</code>: cargo-installed binaries; <code>ecosystem</code>:
+Rust</li>
+<li><code>detect</code>: <code>$CARGO_HOME/bin</code> exists;
+<code>cargo-binstall</code> on PATH for binstall.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>$CARGO_HOME/bin</code> executables from
+<code>cargo install</code> AND rustup proxies (<code>cargo</code>,
+<code>rustc</code>, <code>rustup</code>, <code>rust-analyzer</code>, ...
+are symlinks to <code>rustup</code>). <code>discover</code>:
+<code>${CARGO_HOME:-$HOME/.cargo}/bin</code>. Metadata:
+<code>.crates.toml</code>, <code>.crates2.json</code> in the same
+root.</li>
+<li>cargo-binstall&#39;s own download/cache directory: location and clean
+command <code>unverified</code> (not researched).</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>du -sk</code> of <code>bin/</code>.</li>
+<li><code>clean</code>: per binary
+<code>cargo uninstall &lt;crate&gt;</code> (<code>unverified</code>; not
+in fetched docs); list with <code>cargo install --list</code>
+(<code>unverified</code>). Not a cache: do not wipe
+<code>bin/</code>.</li>
+<li><code>regenerable</code>: <code>no — user-installed tools</code>
+(the set of tools someone chose; re-install needs compile or download).
+Removing rustup proxies breaks the toolchain.</li>
+<li><code>in_use_hazard</code>: removing a binary that is running is
+allowed on Unix but breaks next invocation.</li>
+<li><code>sources</code>:
+https://doc.rust-lang.org/cargo/guide/cargo-home.html</li>
+<li><code>verification</code>: V(discover: official-docs /
+default-paths: official-docs / clean: unverified)</li>
+<li>Recommendation: classify as
+<code>report-only / never auto-clean</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="rust-analyzer">rust-analyzer</h2>
+<ul>
+<li><code>name</code>: rust-analyzer; <code>ecosystem</code>: Rust
+(language server)</li>
+<li><code>detect</code>: <code>rust-analyzer</code> on PATH (rustup
+proxy at <code>~/.cargo/bin/rust-analyzer</code>).</li>
+<li><code>locations</code>: no persistent cache of its own was found in
+the researched material. It runs <code>cargo check</code>/build scripts
+into a Cargo target dir (by default the project&#39;s target dir; a separate
+<code>rust-analyzer.cargo.targetDir</code> setting exists -
+<code>unverified</code>), so its disk usage is part of the Cargo target
+entry above. Editor-side caches (VS Code workspace storage) are out of
+scope.</li>
+<li><code>scope</code>: n/a (covered by cargo target)</li>
+<li><code>measure</code>/<code>clean</code>: see cargo target.
+<code>regenerable</code>: <code>yes-but-slow-rebuild</code>.
+<code>in_use_hazard</code>: wiping target while the server runs forces a
+full re-check and can show transient errors.</li>
+<li><code>sources</code>: none fetched. <code>verification</code>: all
+<code>unverified</code>.</li>
+<li>Recommendation: do not create a separate registry entry unless an
+own-cache is confirmed.</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="go-build-cache-test-cache-fuzz-cache">go
+(build cache, test cache, fuzz cache)</h2>
+<ul>
+<li><code>name</code>: go build cache; <code>ecosystem</code>: Go</li>
+<li><code>detect</code>: <code>go</code> on PATH.</li>
+<li><code>locations</code>:
+<ol>
+<li>Build cache (<code>GOCACHE</code>): compiled packages and cached
+test results. <code>discover</code>: <code>go env GOCACHE</code> (prints
+e.g. <code>~/Library/Caches/go-build</code> on macOS). Must be an
+absolute path. Override: env <code>GOCACHE</code> (or
+<code>go env -w GOCACHE=...</code>, written to the Go env file).
+Default: &quot;a subdirectory named go-build in the standard user cache
+directory for the current operating system&quot;: macOS
+<code>~/Library/Caches/go-build</code>, Linux
+<code>$XDG_CACHE_HOME/go-build</code> else
+<code>~/.cache/go-build</code> (derived from the documented rule; the
+literal Linux path is <code>unverified</code>). <code>GOCACHEPROG</code>
+can redirect caching to an external program, in which case the directory
+may be unused.</li>
+<li>Test cache: stored inside the build cache (not a separate
+directory). Cleaned by <code>go clean -testcache</code>.</li>
+<li>Fuzz cache: <code>go clean -fuzzcache</code> removes &quot;fuzzing data
+from the build cache&quot;; physical location <code>$GOCACHE/fuzz</code> is
+<code>unverified</code>. Project <code>testdata/fuzz</code> seeds are
+NOT affected (official).</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>du -sk &quot;$(go env GOCACHE)&quot;</code>.</li>
+<li><code>clean</code>: full wipe <code>go clean -cache</code>; tests
+only <code>go clean -testcache</code> (expires results, keeps rest);
+fuzz only <code>go clean -fuzzcache</code>. The <code>go clean</code>
+usage line
+(<code>go clean [-i] [-r] [-cache] [-testcache] [-modcache] [-fuzzcache]</code>)
+confirmed by <code>go help clean</code>. Prune-unused: the go command
+itself &quot;periodically deletes cached data that hasn&#39;t been used
+recently&quot;; a specific retention period (commonly cited as 5 days) is
+<code>unverified</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code>. Fuzz
+cache: <code>yes</code> but &quot;may make fuzzing less effective until new
+inputs are found&quot; (official) - corpus found by long fuzz runs is
+lost.</li>
+<li><code>in_use_hazard</code>:
+<code>go build</code>/<code>go test</code>/gopls running during
+<code>go clean -cache</code> can see cache misses or transient errors;
+generally recoverable (<code>unverified</code>).</li>
+<li><code>sources</code>: https://pkg.go.dev/cmd/go (sections
+<code>go clean</code>, &quot;Build and test caching&quot;, environment
+variables)</li>
+<li><code>verification</code>: V(discover: ran-command / default-paths:
+ran-command (macOS), official-docs (rule), unverified (literal Linux) /
+clean: official-docs + ran-command (<code>go help clean</code>
+usage))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="go-module-cache">go
+(module cache)</h2>
+<ul>
+<li><code>name</code>: go module cache; <code>ecosystem</code>: Go</li>
+<li><code>detect</code>: <code>go</code> on PATH.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>GOMODCACHE</code>: downloaded module sources
+(<code>&lt;modcache&gt;/&lt;module&gt;@&lt;version&gt;</code>) and,
+under <code>cache/download</code>, the module proxy download cache (the
+<code>cache/download</code> subpath is <code>unverified</code>).
+<code>discover</code>: <code>go env GOMODCACHE</code> (prints e.g.
+<code>~/go/pkg/mod</code>). Override: env <code>GOMODCACHE</code>.
+Default: <code>$GOPATH/pkg/mod</code> (official); <code>GOPATH</code>
+default <code>$HOME/go</code> (official, implied via GOBIN default).
+macOS and Linux both <code>~/go/pkg/mod</code>. <code>GOPATH</code> can
+be a list; the module cache uses its first element
+(<code>unverified</code>). <code>$GOPATH/bin</code> (installed commands)
+is NOT cache and sits next to it.</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>:
+<code>du -sk &quot;$(go env GOMODCACHE)&quot;</code>.</li>
+<li><code>clean</code>: <code>go clean -modcache</code> (&quot;removes the
+entire module download cache, including unpacked source code of
+versioned dependencies&quot;). Note (official): by default the module cache
+is created read-only (directories lack write permission); plain
+<code>rm -r</code> fails without <code>chmod -R u+w</code> first.
+Setting <code>GOFLAGS=-modcacherw</code> (e.g.
+<code>go env -w GOFLAGS=-modcacherw</code>) makes new entries writable.
+<code>go clean -modcache</code> &quot;may be used to delete the module cache,
+whether or not -modcacherw was used&quot;, so ccc must prefer the native
+command, or chmod before deleting. No prune-unused command.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code> (needs
+network/proxy; private modules require credentials; modules removed from
+proxy can be gone).</li>
+<li><code>in_use_hazard</code>: running
+builds/<code>go list</code>/gopls lose sources; a build fails with
+missing module until re-download; offline machines cannot recover
+(<code>GOFLAGS=-mod=mod</code>/<code>GOPROXY=off</code> setups
+especially).</li>
+<li><code>sources</code>: https://go.dev/ref/mod (module cache,
+<code>-modcacherw</code>) ; https://pkg.go.dev/cmd/go</li>
+<li><code>verification</code>: V(discover: ran-command / default-paths:
+official-docs + ran-command / clean: official-docs)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="gopls">gopls</h2>
+<ul>
+<li><code>name</code>: gopls; <code>ecosystem</code>: Go (language
+server)</li>
+<li><code>detect</code>: <code>gopls</code> on PATH or
+<code>$GOPATH/bin/gopls</code>.</li>
+<li><code>locations</code>: on-disk cache under the user cache dir,
+<code>gopls</code> subdirectory (macOS
+<code>~/Library/Caches/gopls</code>, Linux <code>~/.cache/gopls</code>)
+- <code>unverified</code> (not fetched). <code>discover</code>: no known
+command (<code>gopls</code> has no documented path command;
+<code>unverified</code>). Env override: none known
+(<code>unverified</code>).</li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>du</code> of the path.
+<code>clean</code>: delete directory; no native command known
+(<code>unverified</code>). <code>regenerable</code>: <code>yes</code>
+(re-indexed). <code>in_use_hazard</code>: a running editor session holds
+the index open; stop/restart the language server.</li>
+<li><code>sources</code>: none fetched. <code>verification</code>: all
+<code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="golangci-lint">golangci-lint</h2>
+<ul>
+<li><code>name</code>: golangci-lint; <code>ecosystem</code>: Go</li>
+<li><code>detect</code>: <code>golangci-lint</code> on PATH.</li>
+<li><code>locations</code>:
+<ol>
+<li>Cache directory. Default: a <code>golangci-lint</code> subdirectory
+of Go&#39;s <code>os.UserCacheDir()</code> (macOS
+<code>~/Library/Caches/golangci-lint</code>, Linux
+<code>~/.cache/golangci-lint</code>, derived from
+<code>os.UserCacheDir</code> semantics, literal paths
+<code>unverified</code>). Override env <code>GOLANGCI_LINT_CACHE</code>
+(must be an absolute path). <code>discover</code>:
+<code>golangci-lint cache status</code> (documented as &quot;shows the cache
+status&quot;; whether it prints the path/size is
+<code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: global. <code>measure</code>: <code>du</code> of
+the path.</li>
+<li><code>clean</code>: <code>golangci-lint cache clean</code>
+(official). No prune variant documented.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code>.
+<code>in_use_hazard</code>: concurrent lint run loses cache entries
+(cache only used by <code>golangci-lint run</code>, official); low
+risk.</li>
+<li><code>sources</code>:
+https://golangci-lint.run/docs/configuration/cli/</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs for rule, unverified for literal / clean:
+official-docs)</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="ccache">ccache</h2>
+<ul>
+<li><code>name</code>: ccache; <code>ecosystem</code>: C/C++</li>
+<li><code>detect</code>: <code>ccache</code> on PATH; or directory
+exists.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>cache_dir</code>. <code>discover</code>:
+<code>ccache -k cache_dir</code> (<code>--get-config cache_dir</code>,
+official); <code>ccache -p</code> / <code>--show-config</code> lists all
+values and their source; <code>ccache -s</code> shows it too. Override:
+env <code>CCACHE_DIR</code> or <code>-d PATH</code>; config file
+location env <code>CCACHE_CONFIGPATH</code>. Default (non-Windows, first
+match): <code>$HOME/.ccache</code> if that directory exists (legacy);
+else <code>$XDG_CACHE_HOME/ccache</code> if <code>XDG_CACHE_HOME</code>
+set; else <code>$HOME/Library/Caches/ccache</code> on macOS,
+<code>$HOME/.cache/ccache</code> elsewhere. <code>max_size</code>
+default 5 GiB (<code>CCACHE_MAXSIZE</code>). A <code>ccache.conf</code>
+may live in the cache dir; <code>-C</code> keeps config.</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>ccache -s</code>
+(<code>--show-stats</code>; <code>-v</code> for more detail) reports
+cache size and hit rate; or <code>du -sk &lt;cache_dir&gt;</code>.</li>
+<li><code>clean</code>: full wipe <code>ccache -C</code>
+(<code>--clear</code>: removes all cached files, keeps configuration).
+Prune-unused: <code>ccache -c</code> (<code>--cleanup</code>: removes
+less recently used files until limits are met, recalculates totals).
+Reset counters only: <code>ccache -z</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code>.</li>
+<li><code>in_use_hazard</code>: concurrent compiles through ccache while
+clearing - concurrency safety is <code>unverified</code> (not in fetched
+manual section); expect only cache misses.</li>
+<li><code>sources</code>: https://ccache.dev/manual/latest.html</li>
+<li><code>verification</code>: V(discover: official-docs /
+default-paths: official-docs / clean: official-docs)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="conan-v2">conan
+(v2)</h2>
+<ul>
+<li><code>name</code>: Conan 2; <code>ecosystem</code>: C/C++ package
+manager</li>
+<li><code>detect</code>: <code>conan</code> on PATH;
+<code>~/.conan2</code> exists.</li>
+<li><code>locations</code>:
+<ol>
+<li>Conan home: <code>CONAN_HOME</code> env; default
+<code>&lt;user home&gt;/.conan2</code> (official). Contains profiles,
+remotes config, settings, and the package cache (<code>p/</code>
+subfolder, <code>unverified</code>). <code>discover</code>:
+<code>conan config home</code> (<code>unverified</code>; the fetched
+page did not cover it). Default macOS/Linux:
+<code>~/.conan2</code>.</li>
+<li>Download cache (optional): configured by
+<code>core.download:download_cache</code> (<code>unverified</code>); no
+default.</li>
+</ol></li>
+<li><code>scope</code>: global</li>
+<li><code>measure</code>: <code>du -sk &lt;conan home&gt;/p</code>
+(<code>unverified</code> path); per-package:
+<code>conan cache path &lt;reference&gt; [--folder {export_source,source,build,metadata}]</code>
+(official syntax; takes a reference).</li>
+<li><code>clean</code>: <code>conan cache clean [pattern]</code> with
+options <code>-s/--source</code>, <code>-b/--build</code>,
+<code>-d/--download</code>, <code>-t/--temp</code>,
+<code>-bs/--backup-sources</code>, <code>-l/--list LIST</code>,
+<code>-p/--package-query</code> (all official). This removes temporary
+folders (build/source/download/temp), not complete packages. Removing
+packages: <code>conan remove &lt;pattern&gt;</code> (page fetched only
+showed <code>conan remove --list pkglist.json</code>; full syntax incl.
+confirm flag <code>-c</code> is <code>unverified</code>).
+<code>conan cache check-integrity</code> exists (official).
+<ul>
+<li>Notes: the home also holds user configuration (profiles,
+<code>remotes.json</code>, <code>global.conf</code>): do not delete the
+whole home.</li>
+</ul></li>
+<li><code>regenerable</code>: build/source/download/temp folders
+<code>yes-but-slow-rebuild</code> or <code>yes</code>; packages in the
+cache <code>yes-but-large-download</code> EXCEPT packages created
+locally (<code>conan create</code>/<code>export</code>) and never
+uploaded to a remote: <code>no — contains user data</code> (locally
+built recipes and binaries not available elsewhere).</li>
+<li><code>in_use_hazard</code>: the package cache is not safe for
+concurrent processes (official: &quot;not concurrent&quot;; use separate
+<code>CONAN_HOME</code> per parallel job), so cleaning during a
+<code>conan install/create</code> can corrupt it.</li>
+<li><code>sources</code>:
+https://docs.conan.io/2/reference/commands/cache.html ;
+https://docs.conan.io/2/reference/environment.html</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs (<code>~/.conan2</code>; <code>&lt;home&gt;/p</code>
+unverified) / clean: official-docs for <code>conan cache clean</code>,
+unverified for <code>conan remove</code> flags)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="conan-v1">conan
+(v1)</h2>
+<ul>
+<li><code>name</code>: Conan 1.x; <code>ecosystem</code>: C/C++</li>
+<li><code>detect</code>: <code>conan --version</code> major 1;
+<code>~/.conan</code> exists.</li>
+<li><code>locations</code>: home <code>~/.conan</code> (override
+<code>CONAN_USER_HOME</code>, which sets the parent of
+<code>.conan</code>; <code>unverified</code>), package storage
+<code>~/.conan/data</code> (<code>unverified</code>), configurable via
+<code>storage.path</code> in <code>conan.conf</code> /
+<code>CONAN_STORAGE_PATH</code> (<code>unverified</code>). Short-path
+build dirs (<code>short_paths</code>, Windows) not relevant.
+<code>discover</code>: <code>conan config home</code>
+(<code>unverified</code>), <code>conan config get storage.path</code>
+(<code>unverified</code>).</li>
+<li><code>scope</code>: global. <code>measure</code>:
+<code>du</code>.</li>
+<li><code>clean</code>: <code>conan remove &quot;*&quot; -f</code> (all packages),
+<code>conan remove &quot;*&quot; --builds --src -f</code> (build and source
+folders only) - <code>unverified</code> (docs page returned 404).</li>
+<li><code>regenerable</code>: same as v2:
+<code>yes-but-large-download</code>, locally created packages are
+<code>no — contains user data</code>.</li>
+<li><code>in_use_hazard</code>: as v2.</li>
+<li><code>sources</code>: https://docs.conan.io/1/ (page for config
+returned 404; not read). <code>verification</code>: all
+<code>unverified</code>.</li>
+<li>Contract note: v1 and v2 are both binary <code>conan</code>; the
+registry must branch on <code>conan --version</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="vcpkg">vcpkg</h2>
+<ul>
+<li><code>name</code>: vcpkg; <code>ecosystem</code>: C/C++</li>
+<li><code>detect</code>: <code>vcpkg</code> on PATH or
+<code>VCPKG_ROOT</code> env set / directory with <code>vcpkg</code>
+bootstrap.</li>
+<li><code>locations</code>:
+<ol>
+<li>Default binary cache (archives of built packages). Default
+(official, non-Windows, first valid):
+<code>$VCPKG_DEFAULT_BINARY_CACHE</code>, then
+<code>$XDG_CACHE_HOME/vcpkg/archives</code>, then
+<code>$HOME/.cache/vcpkg/archives</code>. This applies to macOS too (it
+is listed as &quot;Non-Windows&quot;; macOS does NOT use
+<code>~/Library/Caches</code>). No <code>discover</code> command known
+(<code>vcpkg help binarycaching</code> prints in-tool help; whether it
+prints the resolved path is <code>unverified</code>). Caches configured
+via <code>VCPKG_BINARY_SOURCES</code> can point elsewhere (NuGet, cloud)
+(<code>unverified</code>).</li>
+<li>In the vcpkg root (a git clone, must not be deleted whole):
+<code>downloads/</code> (source tarballs and tools),
+<code>buildtrees/</code> (build working dirs and logs),
+<code>packages/</code> (staging) - names <code>unverified</code>;
+<code>installed/</code> (installed packages used by projects in classic
+mode) is not cache.</li>
+<li>Manifest mode: per project <code>vcpkg_installed/</code> next to
+<code>vcpkg.json</code> (<code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: binary cache global; root dirs global (location
+of root from <code>VCPKG_ROOT</code>); <code>vcpkg_installed</code>
+per-project (marker: sibling <code>vcpkg.json</code>,
+<code>unverified</code>).</li>
+<li><code>measure</code>: <code>du -sk</code>.</li>
+<li><code>clean</code>: no native command to clear the binary cache
+found; delete directory. <code>vcpkg remove &lt;port&gt;</code> removes
+installed ports (<code>unverified</code>).
+<code>buildtrees</code>/<code>downloads</code>: delete contents
+(<code>unverified</code>).</li>
+<li><code>regenerable</code>: binary cache
+<code>yes-but-slow-rebuild</code>; downloads
+<code>yes-but-large-download</code>; <code>installed/</code>
+<code>yes-but-slow-rebuild</code>.</li>
+<li><code>in_use_hazard</code>: deleting <code>installed/</code> or the
+binary cache during a CMake configure/build using the vcpkg toolchain
+file breaks it.</li>
+<li><code>sources</code>:
+https://learn.microsoft.com/en-us/vcpkg/users/binarycaching</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs for binary cache, unverified for root subdirs / clean:
+unverified)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="bazel-and-bazelisk">bazel
+(and bazelisk)</h2>
+<ul>
+<li><code>name</code>: Bazel / Bazelisk; <code>ecosystem</code>: C/C++
+and polyglot build</li>
+<li><code>detect</code>: <code>bazel</code> or <code>bazelisk</code> on
+PATH; <code>WORKSPACE</code>/<code>MODULE.bazel</code> in a project
+(marker <code>unverified</code>).</li>
+<li><code>locations</code>:
+<ol>
+<li>Output base (per workspace; build outputs, execroot, external
+repositories). <code>discover</code>:
+<code>bazel info output_base</code> (official definition: &quot;absolute path
+to the base output directory that this Bazel instance uses for the
+current user and workspace&quot;); must be run inside the workspace.
+Override: startup option <code>--output_base</code>. Default per docs
+generated text:
+<code>${OUTPUT_ROOT}/blaze${USER}/${MD5_OF_WORKSPACE_ROOT}</code> (the
+reference&#39;s generic form); concrete OS paths (Linux
+<code>~/.cache/bazel/_bazel_$USER/&lt;md5&gt;</code>, macOS
+<code>/private/var/tmp/_bazel_$USER/&lt;md5&gt;</code>) are
+<code>unverified</code>. <code>--output_user_root</code> sets the parent
+(&quot;user-specific directory under which all build outputs are written&quot;,
+official).</li>
+<li>Repository cache (downloaded external archives). Default
+<code>{--output_user_root}/cache/repos/v1</code> (official); override
+<code>--repository_cache</code> (empty string disables).
+<code>bazel info repository_cache</code> is
+<code>unverified</code>.</li>
+<li>Disk cache (opt-in action cache).
+<code>--disk_cache=&lt;path&gt;</code>; a bare <code>--disk_cache</code>
+uses <code>&lt;outputUserRoot&gt;/cache/disk</code> (official). Bazel
+7.4+ can garbage-collect it via
+<code>--experimental_disk_cache_gc_max_size</code> /
+<code>--experimental_disk_cache_gc_max_age</code> while idle (default
+idle delay 5 minutes, official). Configured usually in
+<code>.bazelrc</code> (<code>~/.bazelrc</code>, workspace
+<code>.bazelrc</code>), so the path can only be learned by reading rc
+files (<code>unverified</code>).</li>
+<li>Bazelisk binary downloads: macOS
+<code>~/Library/Caches/bazelisk</code>, Linux
+<code>~/.cache/bazelisk</code>, override <code>BAZELISK_HOME</code>
+(<code>unverified</code>).</li>
+</ol>
+<ul>
+<li>Workspace root contains <code>bazel-bin</code>,
+<code>bazel-out</code>, <code>bazel-&lt;workspace&gt;</code> convenience
+symlinks into the output base (<code>unverified</code>).</li>
+</ul></li>
+<li><code>scope</code>: output base is <code>global</code> in storage
+(under the user root) but keyed per workspace via md5 of path - it
+cannot be found by walking project directories and a deleted project
+leaves an orphan; must be asked via <code>bazel info</code> from each
+workspace, or enumerated under the output user root. Repository cache:
+<code>global</code>. Disk cache: <code>global</code> (if
+configured).</li>
+<li><code>measure</code>:
+<code>du -sk &quot;$(bazel info output_base)&quot;</code>; <code>du</code> of
+repository/disk cache.</li>
+<li><code>clean</code>: <code>bazel clean</code> (official: deletes
+output directories for all build configurations; keeps the output base
+and the repository cache); <code>bazel clean --expunge</code> (official:
+removes the entire output base tree, including build output and all temp
+files, and stops the server); <code>bazel clean --expunge_async</code>
+(official: runs the expunge in the background). Repository and disk
+caches: delete directory (Bazel has no native wipe for them; GC flags
+above for disk cache). <code>bazel shutdown</code> stops the server
+(<code>unverified</code> command text; <code>--expunge</code> stops it
+implicitly).</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (output
+base), <code>yes-but-large-download</code> (repository cache; external
+archives that are no longer hosted cannot be refetched).</li>
+<li><code>in_use_hazard</code>: a Bazel server (daemon) is bound to each
+output base and holds a lock (&quot;each Bazel server process can handle at
+most one invocation at a time&quot;); deleting the output base under a live
+server breaks it. Stop with <code>bazel shutdown</code> or use
+<code>clean --expunge</code> which stops it.</li>
+<li><code>sources</code>: https://bazel.build/docs/user-manual ;
+https://bazel.build/reference/command-line-reference ;
+https://bazel.build/remote/caching ;
+https://bazel.build/run/scripts</li>
+<li><code>verification</code>: V(discover: official-docs
+(<code>info output_base</code>) / default-paths: official-docs for
+repository and disk cache, unverified for OS-specific output root and
+bazelisk / clean: official-docs)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="buck2">buck2</h2>
+<ul>
+<li><code>name</code>: Buck2; <code>ecosystem</code>: C/C++ and
+polyglot</li>
+<li><code>detect</code>: <code>buck2</code> on PATH; project marker
+<code>.buckconfig</code> at the repo root (official: Buck2 reads
+<code>.buckconfig</code>).</li>
+<li><code>locations</code>:
+<ol>
+<li><code>buck-out</code> directory in the project root (official).
+Layout is unstable; do not assume paths inside.</li>
+<li>Daemon state under <code>.buckd</code> (official mentions it as the
+daemon&#39;s directory); precise location
+(<code>buck-out/&lt;isolation&gt;/...</code> vs home)
+<code>unverified</code>.</li>
+</ol></li>
+<li><code>scope</code>: <code>per-project</code> (marker:
+<code>.buckconfig</code> sibling of <code>buck-out</code>).
+<code>discover</code>: path is fixed relative to the project root;
+<code>buck2 root</code> prints the root (<code>unverified</code>).</li>
+<li><code>measure</code>: <code>du -sk buck-out</code>.</li>
+<li><code>clean</code>: <code>buck2 clean</code> (official: deletes
+generated files and caches; also kills the buck2 daemon). Options
+(official): <code>--dry-run</code>, <code>--background</code>,
+<code>--stale &lt;DURATION&gt;</code> (deletes stale artifacts without
+killing the daemon: the prune-unused variant),
+<code>--tracked-only</code>,
+<code>--adaptive-low-disk-threshold &lt;PERCENT&gt;</code>,
+<code>--adaptive-min-ttl &lt;DURATION&gt;</code> (default 12h),
+<code>--adaptive-unmaterialize-active</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (remote
+cache may repopulate it).</li>
+<li><code>in_use_hazard</code>: the daemon holds <code>buck-out</code>;
+<code>buck2 clean</code> handles that by killing it (except
+<code>--stale</code>). Raw <code>rm -rf buck-out</code> under a running
+daemon is unsafe. Whether it is safe to delete <code>buck-out</code> at
+all is not stated on the concepts page.</li>
+<li><code>sources</code>: https://buck2.build/docs/users/commands/clean/
+; https://buck2.build/docs/concepts/buck_out/ ;
+https://buck2.build/docs/concepts/buckconfig/</li>
+<li><code>verification</code>: V(discover: official-docs (path fixed) /
+default-paths: official-docs / clean: official-docs)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="cmake-fetchcontent--cpm">cmake
+FetchContent / CPM</h2>
+<ul>
+<li><code>name</code>: CMake FetchContent and CPM.cmake;
+<code>ecosystem</code>: C/C++</li>
+<li><code>detect</code>: <code>cmake</code> on PATH; per-project
+<code>CMakeCache.txt</code>; CPM: env
+<code>CPM_SOURCE_CACHE</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li>FetchContent default: <code>&lt;build-dir&gt;/_deps</code>
+(<code>FETCHCONTENT_BASE_DIR</code> defaults to
+<code>${CMAKE_BINARY_DIR}/_deps</code>) - <code>unverified</code> (not
+fetched). Per build directory, marker: <code>CMakeCache.txt</code>
+beside <code>_deps/</code> (<code>unverified</code>).</li>
+<li>CPM source cache: <code>CPM_SOURCE_CACHE</code> (env var, or
+<code>-DCPM_SOURCE_CACHE=&lt;path&gt;</code> which overrides env;
+official). NO default: official page states none, only the example
+<code>export CPM_SOURCE_CACHE=$HOME/.cache/CPM</code>. Directory per
+package named by a hash of the <code>CPMAddPackage()</code> arguments.
+<code>discover</code>: env var only; or the cached variable in a
+project&#39;s <code>CMakeCache.txt</code> (<code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: FetchContent <code>per-project</code> (build
+dirs; build dirs can be anywhere, e.g. <code>build/</code>,
+<code>cmake-build-*</code>, found by <code>CMakeCache.txt</code>); CPM
+<code>global</code>, but exists only if the user set the variable.</li>
+<li><code>measure</code>: <code>du</code>.</li>
+<li><code>clean</code>: no native command (CPM docs give no cleanup
+instructions - official). Delete directory. FetchContent: delete
+<code>_deps</code> or the build directory.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>.
+<code>in_use_hazard</code>: a configure/build in progress reads sources
+from there; deleting breaks the build; patched sources in
+<code>_deps</code> lost.</li>
+<li><code>sources</code>: https://github.com/cpm-cmake/CPM.cmake ;
+FetchContent doc not fetched.</li>
+<li><code>verification</code>: V(discover: official-docs for CPM env /
+default-paths: official-docs (CPM none), unverified (FetchContent) /
+clean: official-docs (no command))</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="zig">zig</h2>
+<ul>
+<li><code>name</code>: Zig; <code>ecosystem</code>: Zig</li>
+<li><code>detect</code>: <code>zig</code> on PATH; per-project
+<code>build.zig</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li>Local cache <code>.zig-cache</code> in the project root (official;
+older releases used <code>zig-cache</code>, <code>unverified</code>).
+Official: it &quot;can be completely deleted at any time with no
+consequences&quot; (it only speeds up builds). Override:
+<code>--cache-dir [path]</code> (official: &quot;Override path to local Zig
+cache directory&quot;); env <code>ZIG_LOCAL_CACHE_DIR</code>
+(<code>unverified</code>).</li>
+<li>Global cache (compiled artifacts of std/libc, and the dependency
+package cache <code>p/</code>): <code>discover</code>:
+<code>zig env</code> prints <code>global_cache_dir</code>
+(<code>unverified</code>). Override: <code>--global-cache-dir</code>
+flag (appears in logged commands only, e.g.
+<code>/home/ci/.cache/zig</code>) or env
+<code>ZIG_GLOBAL_CACHE_DIR</code> (<code>unverified</code>). Defaults:
+Linux <code>~/.cache/zig</code>, macOS <code>~/Library/Caches/zig</code>
+(<code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: local <code>per-project</code> (marker: sibling
+<code>build.zig</code>, <code>unverified</code>); global
+<code>global</code>.</li>
+<li><code>measure</code>: <code>du</code>. <code>clean</code>: delete
+directory (no native command; <code>zig build</code> has none that is
+documented here). <code>regenerable</code>: local
+<code>yes-but-slow-rebuild</code>; global cache
+<code>yes-but-large-download</code> (package <code>p/</code> fetched
+again; hashes verify).</li>
+<li><code>in_use_hazard</code>: concurrent <code>zig build</code> uses
+file-lock-protected cache entries; deleting mid-build can fail the build
+(<code>unverified</code>).</li>
+<li><code>sources</code>: https://ziglang.org/learn/build-system/ ;
+https://ziglang.org/documentation/master/ (cache section not present in
+fetched text)</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs for <code>.zig-cache</code>, unverified for global /
+clean: official-docs (safe to delete local))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nim--nimble">nim
+/ nimble</h2>
+<ul>
+<li><code>name</code>: Nim and Nimble; <code>ecosystem</code>: Nim</li>
+<li><code>detect</code>: <code>nim</code> on PATH;
+<code>~/.nimble</code> exists.</li>
+<li><code>locations</code>:
+<ol>
+<li>nimcache: official: Posix
+<code>$XDG_CACHE_HOME/nim/$projectname(_r|_d)</code> else
+<code>~/.cache/nim/$projectname(_r|_d)</code> (<code>_r</code> release,
+<code>_d</code> debug). On macOS this is <code>~/.cache/nim/...</code>
+too, not <code>Library/Caches</code>. Windows
+<code>$HOME\nimcache\...</code> (out of scope). Override
+<code>--nimcache:PATH</code>. One directory per project name (names
+collide for same-named projects), all under one global parent.</li>
+<li>Nimble: <code>~/.nimble</code> (packages in
+<code>pkgs</code>/<code>pkgs2</code>, executables in <code>bin</code>)
+and env <code>NIMBLE_DIR</code> - <code>unverified</code>.
+<code>bin</code> holds user-installed tools; packages are user-chosen
+dependencies.</li>
+</ol></li>
+<li><code>scope</code>: nimcache <code>global</code> parent with
+per-project children (not discoverable by walking projects; enumerate
+children). Nimble <code>global</code>.</li>
+<li><code>measure</code>: <code>du</code>. <code>clean</code>: nimcache:
+delete directory (official: keeping generated files in one place &quot;makes
+it easy to delete all generated files&quot;). Nimble:
+<code>nimble uninstall &lt;pkg&gt;</code>
+(<code>unverified</code>).</li>
+<li><code>regenerable</code>: nimcache <code>yes-but-slow-rebuild</code>
+(C compile); nimble packages <code>yes-but-large-download</code>,
+<code>bin/</code> <code>no — user installed tools</code>.</li>
+<li><code>in_use_hazard</code>: running compile of that project.</li>
+<li><code>sources</code>: https://nim-lang.org/docs/nimc.html</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs (nimcache), unverified (nimble) / clean: official-docs
+(delete))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="haskell-stack">haskell
+stack</h2>
+<ul>
+<li><code>name</code>: Stack; <code>ecosystem</code>: Haskell</li>
+<li><code>detect</code>: <code>stack</code> on PATH;
+<code>~/.stack</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li>Stack root. <code>discover</code>:
+<code>stack path --stack-root</code> (official). Override: env
+<code>STACK_ROOT</code>, flag <code>--stack-root</code>;
+<code>STACK_XDG</code> non-empty switches to
+<code>&lt;XDG_DATA_HOME&gt;/stack</code> (default
+<code>~/.local/share/stack</code>). Default: Unix <code>~/.stack</code>
+(official). Holds snapshots, installed GHCs under <code>programs/</code>
+(<code>unverified</code>), Pantry package cache
+(<code>unverified</code>), <code>config.yaml</code> (user config),
+<code>global-project</code>.</li>
+<li><code>.stack-work</code> per project (build output). Official page
+covers <code>.stack-work</code> only for the global project in the root;
+the per-project meaning and marker (sibling <code>stack.yaml</code>) is
+<code>unverified</code>. <code>stack path --dist-dir</code> exists
+(official mention).</li>
+</ol></li>
+<li><code>scope</code>: root <code>global</code>;
+<code>.stack-work</code> <code>per-project</code>.</li>
+<li><code>measure</code>: <code>du</code>. <code>clean</code>: per
+project <code>stack clean [PACKAGE]</code> (project <code>dist</code>
+dirs), <code>stack clean --full</code> (deletes the Stack work
+directories of the project and its packages), <code>--omit-this</code>
+(official). For the root: delete <code>programs/</code> or snapshots by
+hand (no native command found; <code>unverified</code>).</li>
+<li><code>regenerable</code>: project <code>yes-but-slow-rebuild</code>;
+root <code>yes-but-large-download</code> (GHC downloads);
+<code>config.yaml</code> is user config (do not delete).</li>
+<li><code>in_use_hazard</code>: running build; deleting a GHC under
+<code>programs/</code> that a project resolves breaks until
+re-install.</li>
+<li><code>sources</code>:
+https://docs.haskellstack.org/en/stable/topics/stack_root/ ;
+https://docs.haskellstack.org/en/stable/commands/clean_command/</li>
+<li><code>verification</code>: V(discover: official-docs /
+default-paths: official-docs (root), unverified (subdirs) / clean:
+official-docs (<code>stack clean</code>))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="haskell-cabal">haskell
+cabal</h2>
+<ul>
+<li><code>name</code>: Cabal; <code>ecosystem</code>: Haskell</li>
+<li><code>detect</code>: <code>cabal</code> on PATH;
+<code>~/.cabal</code> or XDG dirs.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>cabal path</code> prints directories for cache, remote
+repository cache, logs, store, config file and installed binaries
+(official); <code>cabal path --output-format=json</code>; one directory
+via a single path option such as <code>--installdir</code>. Example in
+docs shows <code>store-dir: /home/alice/.cabal/store</code>. Default
+roots: legacy <code>~/.cabal</code> (official example) and XDG layout
+<code>~/.config/cabal</code>, <code>~/.cache/cabal</code>,
+<code>~/.local/state/cabal</code> (<code>unverified</code>); env
+<code>CABAL_DIR</code> (<code>unverified</code>). Script builds under
+<code>$XDG_CACHE_HOME/cabal/script-builds/</code> (official).</li>
+<li><code>dist-newstyle</code> per project (official).</li>
+</ol></li>
+<li><code>scope</code>: global dirs + <code>per-project</code>
+<code>dist-newstyle</code> (marker: sibling <code>cabal.project</code>
+or <code>*.cabal</code>, <code>unverified</code>).</li>
+<li><code>measure</code>: <code>du</code> of paths from
+<code>cabal path</code>. <code>clean</code>: <code>cabal clean</code>
+(removes <code>dist-newstyle</code>; with <code>--save-config</code>
+keeps configuration and caches and removes only build artifacts,
+official); <code>cabal clean path/to/script</code> for script artifacts
+(official). Global store: delete directory (no native gc known,
+<code>unverified</code>). Do not delete <code>~/.cabal/bin</code>
+(installed executables) or the <code>config</code> file.</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> (store,
+dist); remote repo cache <code>yes</code> (index re-download).</li>
+<li><code>in_use_hazard</code>: running build; deleting store entries of
+a GHC version used by installed executables does not break those
+executables (statically linked, <code>unverified</code>).</li>
+<li><code>sources</code>:
+https://cabal.readthedocs.io/en/stable/cabal-commands.html</li>
+<li><code>verification</code>: V(discover: official-docs
+(<code>cabal path</code>) / default-paths: official-docs (partial) /
+clean: official-docs (<code>cabal clean</code>))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ghcup">ghcup</h2>
+<ul>
+<li><code>name</code>: GHCup; <code>ecosystem</code>: Haskell toolchain
+manager</li>
+<li><code>detect</code>: <code>ghcup</code> on PATH;
+<code>~/.ghcup</code>.</li>
+<li><code>locations</code>: root <code>~/.ghcup</code> (implied by
+official docs; override <code>GHCUP_INSTALL_BASE_PREFIX</code> is
+<code>unverified</code>). <code>~/.ghcup/cache</code> download cache
+(official: &quot;All cached files end up in ~/.ghcup/cache by default&quot;;
+tarballs cached only with <code>ghcup --cache</code> or
+<code>ghcup config set cache true</code>; metadata cached 5 minutes).
+Installed toolchains (GHC, cabal, stack, HLS) in subdirectories
+(<code>unverified</code>).</li>
+<li><code>scope</code>: global. <code>measure</code>: <code>du</code>.
+<code>clean</code>: <code>ghcup gc --cache</code> (official; the other
+gc flags <code>--ghc-old</code>, <code>--profiling-libs</code>,
+<code>--share-dir</code>, <code>--hls-no-ghc</code>,
+<code>--tmpdirs</code> are <code>unverified</code>). Toolchains:
+<code>ghcup rm ghc &lt;version&gt;</code> (<code>unverified</code>),
+list with <code>ghcup list</code> (official).</li>
+<li><code>regenerable</code>: cache <code>yes</code>; toolchains
+<code>no</code> as a user choice (<code>yes-but-large-download</code>
+technically).</li>
+<li><code>in_use_hazard</code>: removing the set GHC breaks cabal/stack
+builds that use it.</li>
+<li><code>sources</code>: https://www.haskell.org/ghcup/guide/</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs (cache), unverified (root override) / clean: official-docs
+(<code>gc --cache</code>))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="opam">opam</h2>
+<ul>
+<li><code>name</code>: opam; <code>ecosystem</code>: OCaml</li>
+<li><code>detect</code>: <code>opam</code> on PATH;
+<code>~/.opam</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li>opam root: default <code>~/.opam</code> (official), override env
+<code>OPAMROOT</code> or <code>--root</code>. <code>discover</code>:
+global variable <code>root</code> (official: &quot;the current opam root&quot;);
+the <code>opam var root</code> command form is
+<code>unverified</code>.</li>
+<li><code>$OPAMROOT/download-cache</code> (downloaded files),
+<code>$OPAMROOT/archives</code> (obsolete), <code>$OPAMROOT/repo</code>
+(repository mirrors), logs dir (all official). Switches
+<code>$OPAMROOT/&lt;switch&gt;</code> hold installed compilers/packages
+- user environments, not cache. Local switches: <code>_opam/</code>
+inside a project directory (official), marker sibling
+<code>*.opam</code> / <code>dune-project</code>
+(<code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: global root; local switches
+<code>per-project</code> (<code>_opam</code>).</li>
+<li><code>measure</code>: <code>du</code>;
+<code>opam clean --dry-run</code> shows removal commands without
+executing (official).</li>
+<li><code>clean</code>: <code>opam clean</code> (default =
+<code>--logs --download-cache --switch-cleanup</code>). Flags
+(official): <code>-a/--all-switches</code>,
+<code>-c/--download-cache</code>, <code>--dry-run</code>,
+<code>--logs</code>, <code>-r/--repo-cache</code> (rebuilt when needed),
+<code>-s/--switch-cleanup</code> (removes backups, build dirs,
+uncompressed sources of non-dev packages, local metadata of previously
+pinned packages), <code>--untracked</code> (removes untracked files and
+directories: risky), <code>--unused-repositories</code>. Never run
+<code>--untracked</code> automatically.</li>
+<li><code>regenerable</code>: download cache
+<code>yes-but-large-download</code>; repo cache <code>yes</code>;
+switches <code>no — user environments</code>.</li>
+<li><code>in_use_hazard</code>: running opam commands lock the root; an
+<code>opam install</code> in progress uses build dirs that
+<code>--switch-cleanup</code> removes.</li>
+<li><code>sources</code>: https://opam.ocaml.org/doc/man/opam-clean.html
+; https://opam.ocaml.org/doc/Manual.html</li>
+<li><code>verification</code>: V(discover: official-docs (partial) /
+default-paths: official-docs / clean: official-docs)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="elixir-hex--mix">elixir
+hex / mix</h2>
+<ul>
+<li><code>name</code>: Mix and Hex; <code>ecosystem</code>:
+Elixir/Erlang</li>
+<li><code>detect</code>: <code>mix</code> on PATH; <code>~/.mix</code>,
+<code>~/.hex</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>MIX_HOME</code> default <code>~/.mix</code> (official);
+<code>MIX_ARCHIVES</code> default <code>~/.mix/archives</code>
+(installed archives such as Hex, Phoenix installer: user-installed);
+<code>MIX_XDG</code> (opt-in XDG layout; precedence:
+<code>MIX_HOME</code> wins; exact XDG paths not stated, official).</li>
+<li>Hex package cache and Hex home <code>~/.hex</code>
+(<code>HEX_HOME</code>, <code>~/.hex/packages</code>):
+<code>unverified</code> (the Hex page fetched did not mention
+them).</li>
+<li>Per project <code>_build</code> and <code>deps</code> (env
+<code>MIX_BUILD_PATH</code> / <code>MIX_DEPS_PATH</code> exist,
+<code>MIX_BUILD_ROOT</code> recommended for CI, official; default names
+<code>_build</code>/<code>deps</code> and marker sibling
+<code>mix.exs</code> <code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: homes global;
+<code>_build</code>/<code>deps</code> <code>per-project</code>. The
+location can change with env, so discovery needs env inspection;
+<code>mix</code> has no documented path-printing command here
+(<code>unverified</code>).</li>
+<li><code>measure</code>: <code>du</code>. <code>clean</code>:
+<code>mix clean</code> and <code>mix deps.clean --all</code>
+(<code>unverified</code>); else delete <code>_build</code> /
+<code>deps</code>. Do not delete <code>~/.mix/archives</code>
+blindly.</li>
+<li><code>regenerable</code>: <code>_build</code>
+<code>yes-but-slow-rebuild</code>; <code>deps</code>
+<code>yes-but-large-download</code> (<code>mix deps.get</code>; path/git
+deps pinned in <code>mix.lock</code>); archives
+<code>no — user installed</code>.</li>
+<li><code>in_use_hazard</code>: running <code>mix</code>/IEx/phoenix
+server (code reloader) breaks when <code>_build</code> disappears.</li>
+<li><code>sources</code>: https://mix.hexdocs.pm/Mix.html ;
+https://hex.hexdocs.pm/Mix.Tasks.Hex.html</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs (<code>~/.mix</code>), unverified (Hex) / clean:
+unverified)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="rebar3-erlang">rebar3
+(Erlang)</h2>
+<ul>
+<li><code>name</code>: rebar3; <code>ecosystem</code>:
+Erlang/Elixir</li>
+<li><code>detect</code>: <code>rebar3</code> on PATH;
+<code>~/.cache/rebar3</code>.</li>
+<li><code>locations</code>:
+<ol>
+<li><code>~/.cache/rebar3</code> cache (official), override env
+<code>REBAR_CACHE_DIR</code>; Hex package cache subpath inside is
+<code>unverified</code>.</li>
+<li><code>~/.config/rebar3</code> global configuration (official),
+override <code>REBAR_GLOBAL_CONFIG_DIR</code>; holds user config
+(<code>rebar.config</code>, Hex credentials - <code>unverified</code>) -
+NOT a cache. Both can also be moved with
+<code>{global_rebar_dir, &quot;path&quot;}</code>.</li>
+<li><code>_build</code> per project (<code>base_dir</code> option,
+default <code>_build</code>; env <code>REBAR_BASE_DIR</code>, official;
+marker sibling <code>rebar.config</code>, <code>unverified</code>).</li>
+</ol></li>
+<li><code>scope</code>: global + per-project. <code>measure</code>:
+<code>du</code>. <code>clean</code>: <code>rebar3 clean</code> flags
+(<code>--all</code>, <code>--profile</code>) <code>unverified</code>;
+else delete <code>_build</code>, delete
+<code>~/.cache/rebar3</code>.</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code> (deps)
+/ <code>yes-but-slow-rebuild</code>. <code>in_use_hazard</code>: running
+compile/shell.</li>
+<li><code>sources</code>:
+https://rebar3.org/docs/configuration/configuration/</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+official-docs / clean: unverified)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="crystal-shards">crystal
+shards</h2>
+<ul>
+<li><code>name</code>: Shards; <code>ecosystem</code>: Crystal</li>
+<li><code>detect</code>: <code>shards</code> on PATH; per-project
+<code>shard.yml</code> (<code>unverified</code>).</li>
+<li><code>locations</code>: <code>lib/</code> per project (official:
+<code>shards install</code> installs into the <code>lib</code> folder).
+Global cache <code>~/.cache/shards</code> and env
+<code>SHARDS_CACHE_PATH</code>: <code>unverified</code> (the man page
+returned no information on it).</li>
+<li><code>scope</code>: <code>per-project</code> (marker:
+<code>shard.yml</code> + <code>shard.lock</code>,
+<code>unverified</code>) and global cache.</li>
+<li><code>measure</code>: <code>du</code>. <code>clean</code>:
+<code>shards prune</code> (official: removes unused dependencies from
+the <code>lib</code> folder, i.e. the prune variant); full wipe: delete
+<code>lib/</code> and the global cache directory (no native
+command).</li>
+<li><code>regenerable</code>: <code>yes-but-large-download</code>
+(<code>shards install</code>). <code>in_use_hazard</code>: running
+<code>crystal build</code>/spec compile reads <code>lib/</code>.</li>
+<li><code>sources</code>:
+https://crystal-lang.org/reference/latest/man/shards/index.html</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+unverified / clean: official-docs (<code>shards prune</code>))</li>
+</ul>
+<h2 class="unnumbered unlisted" id="dub-d">dub
+(D)</h2>
+<ul>
+<li><code>name</code>: dub; <code>ecosystem</code>: D</li>
+<li><code>detect</code>: <code>dub</code> on PATH; per-project
+<code>dub.json</code> / <code>dub.sdl</code>
+(<code>unverified</code>).</li>
+<li><code>locations</code>: fetched packages &quot;user wide shared location&quot;
+(official; exact <code>~/.dub/packages</code> <code>unverified</code>;
+<code>--cache=local|system|user</code> selects the location class,
+official). Per-project build cache <code>.dub/</code>
+(<code>unverified</code>).</li>
+<li><code>scope</code>: global + <code>per-project</code>.
+<code>measure</code>: <code>du</code>.</li>
+<li><code>clean</code>: <code>dub clean [package]</code> (official:
+removes cached build files of the package, keeps the final target and
+copyFiles); <code>dub clean-caches</code> (official: removes cached
+metadata, e.g. package list and latest versions);
+<code>dub remove &lt;package&gt;</code> (official: removes a package
+cached on the local system); <code>dub list</code> lists local packages
+(official).</li>
+<li><code>regenerable</code>: <code>yes-but-slow-rebuild</code> /
+<code>yes-but-large-download</code>. <code>in_use_hazard</code>: running
+<code>dub build</code>/<code>dub run</code>.</li>
+<li><code>sources</code>: https://dub.pm/cli-reference/dub/</li>
+<li><code>verification</code>: V(discover: unverified / default-paths:
+unverified / clean: official-docs)</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="contract-observations">Contract
+observations</h2>
+<p>Patterns the registry contract must express that a &quot;path + rm -rf&quot;
+entry cannot:</p>
+<ol>
+<li><strong>Path discoverable only by running a tool, with a documented
+override chain.</strong> <code>go env GOCACHE</code>,
+<code>go env GOMODCACHE</code>, <code>rustup show home</code>,
+<code>sccache --show-stats</code> (&quot;Cache location&quot; line),
+<code>ccache -k cache_dir</code>, <code>stack path --stack-root</code>,
+<code>cabal path --output-format=json</code>,
+<code>bazel info output_base</code>. Each entry needs
+<code>discover</code> as an argv command plus a parse rule (plain
+stdout, a labelled line, a JSON field), the env/config override, and
+per-OS defaults only as a fallback (state when the fallback is allowed:
+only if the tool is absent, never when the tool is present but failed -
+fail closed).</li>
+<li><strong>Scope decided at runtime, not by the tool.</strong> Cargo
+<code>target</code> is per-project by default but one global directory
+when <code>build.target-dir</code>/<code>CARGO_TARGET_DIR</code> is set
+(all projects then share it). The effective path comes from a
+per-project command
+(<code>cargo metadata --format-version 1 --no-deps</code> -&gt;
+<code>target_directory</code>, run with the project as cwd) and the
+contract must allow the resolved path to be (a) inside the project, (b)
+outside every project, (c) shared by N projects, then dedupe by resolved
+path. A shared directory has no sibling <code>Cargo.toml</code>, so a
+project walker never finds it. <code>cargo clean</code> in any one
+project wipes the shared directory for all of them.</li>
+<li><strong>Per-project instances need a marker, and some per-workspace
+state lives outside the workspace.</strong> Markers: sibling
+<code>Cargo.toml</code>, <code>CACHEDIR.TAG</code>
+(<code>unverified</code> for Cargo), <code>.buckconfig</code>,
+<code>build.zig</code>, <code>stack.yaml</code>, <code>mix.exs</code>,
+<code>shard.yml</code>, <code>CMakeCache.txt</code>. Bazel&#39;s output base
+is keyed by workspace path but stored under the user root, so it must be
+asked per workspace (<code>bazel info output_base</code>) and orphans of
+deleted workspaces cannot be found by walking projects; Nim puts
+per-project caches as children of one global directory.</li>
+<li><strong>Read-only files defeat plain deletion.</strong> Go&#39;s module
+cache is created read-only unless <code>GOFLAGS=-modcacherw</code>; the
+native <code>go clean -modcache</code> works either way. Contract needs
+<code>clean.native</code> preferred over <code>delete directory</code>,
+and a <code>needs_chmod_before_delete</code> flag for the fallback.</li>
+<li><strong>A daemon or lock must be stopped first.</strong> sccache
+(<code>sccache --stop-server</code>), Bazel (server per output base;
+<code>clean --expunge</code> stops it), Buck2 (<code>buck2 clean</code>
+kills the daemon, <code>--stale</code> does not), Conan 2 (cache not
+concurrent), gopls and rust-analyzer. Contract needs
+<code>pre_clean</code> (command) and <code>in_use_probe</code>
+(process/lock detection), plus a &quot;native command handles it&quot;
+marker.</li>
+<li><strong>A directory that mixes cache with user data or
+configuration.</strong> <code>$CARGO_HOME</code> (cache
+<code>registry/</code>, <code>git/</code> vs <code>bin/</code>,
+<code>config.toml</code>, <code>credentials.toml</code>), Conan home
+(cache vs profiles/remotes), <code>~/.config/rebar3</code>,
+<code>~/.mix/archives</code>, <code>~/.stack</code> (config.yaml,
+installed GHCs), opam root (switches), <code>~/.cabal</code> (config,
+<code>bin/</code>), <code>~/.nimble/bin</code>. A location must be an
+explicit list of subpaths (or a native command that prunes only the
+cache), never the root.</li>
+<li><strong>Regenerable is a spectrum with a &quot;user choice&quot;
+class.</strong> <code>yes</code>, <code>yes-but-slow-rebuild</code>,
+<code>yes-but-large-download</code>, and <code>no</code> (rustup
+toolchains/ghcup GHCs/opam switches/cargo-installed binaries/Conan
+packages created locally and never uploaded). A &quot;no&quot; entry must default
+to report-only, and require explicit per-item selection (e.g. one
+toolchain by name), not bulk clean.</li>
+<li><strong>Multiple cleaning granularities per location.</strong> Full
+wipe vs prune-unused vs partial scope:
+<code>go clean -cache|-testcache|-fuzzcache|-modcache</code>,
+<code>ccache -C|-c</code>, <code>cargo clean</code> with
+<code>-p|--release|--profile|--doc|--dry-run</code>,
+<code>buck2 clean --stale</code>, <code>opam clean</code> flag set,
+<code>stack clean|--full</code>, <code>cabal clean --save-config</code>,
+<code>dub clean|clean-caches|remove</code>. The contract needs a list of
+named actions per location, each with argv, effect description, and
+<code>dry_run</code> support (<code>cargo clean --dry-run</code>,
+<code>opam clean --dry-run</code>,
+<code>buck2 clean --dry-run</code>).</li>
+<li><strong>Tool-managed garbage collection.</strong> Cargo auto-GC
+(3-month/1-month thresholds, frequency 1 day), Go trims unused entries,
+sccache and ccache enforce a max size, Bazel 7.4+ disk-cache GC. The
+contract should record <code>self_pruning</code> and the config key, so
+the UI can say &quot;already bounded to N&quot;.</li>
+<li><strong>Tool present but no native clean, or the tool is absent
+while its directory exists.</strong> sccache, vcpkg binary cache, Zig,
+Nim, CPM, rustup <code>downloads</code>, gopls have only
+<code>delete directory</code>; <code>detect</code> must therefore allow
+&quot;directory exists&quot; without the binary on PATH, and the registry must
+tell apart &quot;no native command, deletion is the documented method&quot; from
+&quot;no command known (unverified)&quot;.</li>
+<li><strong>Same binary, different major version or layout.</strong>
+Conan 1 vs 2 (<code>~/.conan</code> vs <code>~/.conan2</code>, different
+commands); Cabal legacy <code>~/.cabal</code> vs XDG dirs; Mix opt-in
+<code>MIX_XDG</code>; Stack <code>STACK_XDG</code>; ccache legacy
+<code>~/.ccache</code> winning over XDG if present.
+<code>discover</code> must be version-aware or ask the tool.</li>
+<li><strong>Defaults differ between macOS and Linux
+inconsistently.</strong> Go, ccache, sccache and likely Zig use
+<code>~/Library/Caches/...</code> on macOS; vcpkg, Nim, rebar3 use
+<code>~/.cache/...</code> on macOS too. Defaults must be per-OS data,
+not derived from a rule.</li>
+<li><strong>Location may be optional or remote.</strong> sccache with a
+remote backend (nothing local), CPM (no default - exists only if
+<code>CPM_SOURCE_CACHE</code> is set), Bazel disk cache (opt-in, path in
+<code>.bazelrc</code>), <code>GOCACHEPROG</code>. The contract needs
+&quot;not present&quot; as a normal outcome, distinct from &quot;discovery
+failed&quot;.</li>
+<li><strong>Config-derived paths with relative-path semantics.</strong>
+Cargo resolves a relative <code>build.target-dir</code> against the
+parent of the <code>.cargo</code> directory that defines it, but
+env/<code>--config</code> values against the cwd; a reimplementation
+must replicate this, which is why delegating to
+<code>cargo metadata</code> is preferred.</li>
+<li><strong>Verification state must be carried in the registry.</strong>
+Many entries above are <code>unverified</code>; the schema should hold
+per-field verification status so unverified clean commands are never
+executed by default (a wrong clean command in a public tool destroys
+data).</li>
+</ol>
+</body>
+</html>

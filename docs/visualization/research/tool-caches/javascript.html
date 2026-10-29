@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>JavaScript / TypeScript and browser-automation tool
+caches</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="javascript--typescript-and-browser-automation-tool-caches">JavaScript
+/ TypeScript and browser-automation tool caches</h1>
+<p>Raw facts for the <code>ccc</code> registry contract. 27 tools are
+covered. Verification labels: <code>official-docs</code> (read on the
+vendor page listed in <code>sources</code> during this research),
+<code>ran-command</code> (confirmed by running a read-only command),
+<code>unverified</code> (written from memory or only inferred). Nothing
+in this file was cleaned or deleted; every clean command below is
+documented, not executed. Tools that could not be run (yarn, deno, fnm,
+volta, n, cypress, electron-builder) have discover commands that are
+<code>official-docs</code> at best. Where a vendor page did not state a
+default path, the field is marked <code>unverified</code> and the doc
+gap is stated.</p>
+<hr />
+<h2 class="unnumbered unlisted" id="npm">npm</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>npm</code> on PATH; or <code>~/.npm</code>
+exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>cache <code>_cacache</code> (content-addressable tarballs + index) —
+discover: <code>npm config get cache</code> (prints the cache root,
+<code>~/.npm</code> by default; real cache is
+<code>&lt;that&gt;/_cacache</code>); override: env
+<code>npm_config_cache</code> / <code>NPM_CONFIG_CACHE</code>,
+<code>.npmrc</code> key <code>cache</code>, <code>--cache</code>; macOS
+default <code>~/.npm</code>; Linux default <code>~/.npm</code>.</li>
+<li><code>_npx</code> (npx-installed package trees) — same parent as
+cache (<code>&lt;cache&gt;/_npx</code>); same override.</li>
+<li><code>_logs</code> (debug logs) — <code>&lt;cache&gt;/_logs</code>;
+separate override <code>logs-dir</code> config key (unverified); same
+default parent.</li>
+</ol></li>
+<li>measure: <code>du -sk &quot;$(npm config get cache)&quot;</code> (covers all
+three). Native: none for size (<code>npm cache ls</code> lists entries
+only).</li>
+<li>clean: full wipe: <code>npm cache clean --force</code> (docs:
+<code>clean</code> requires <code>--force</code>). Does not clearly
+remove <code>_npx</code> / <code>_logs</code> (docs say nothing about
+them) -&gt; for those, <code>delete directory</code> of
+<code>&lt;cache&gt;/_npx</code> and <code>&lt;cache&gt;/_logs</code>.
+Prune variant: <code>npm cache verify</code> (removes unneeded/corrupt
+data, offline). Needs npm installed.</li>
+<li>regenerable: yes (re-downloaded). <code>_npx</code> re-fetched at
+next <code>npx</code>.</li>
+<li>in_use_hazard: concurrent <code>npm install</code> may fail with
+cache integrity/ENOENT errors; npm cache is concurrency-safe by design
+but deleting the dir mid-install is not.</li>
+<li>sources: https://docs.npmjs.com/cli/v10/commands/npm-cache</li>
+<li>verification: discover <code>ran-command</code>; default paths
+<code>official-docs</code> (macOS/Linux <code>~/.npm</code>;
+<code>_logs</code>/<code>_npx</code> names <code>ran-command</code>,
+seen under <code>~/.npm</code>); clean <code>official-docs</code>
+(<code>--force</code> requirement); <code>logs-dir</code> key
+<code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="yarn-classic-v1">Yarn
+Classic (v1)</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>yarn</code> on PATH with <code>yarn --version</code>
+starting <code>1.</code>.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>global package cache — discover: <code>yarn cache dir</code>;
+override: env <code>YARN_CACHE_FOLDER</code>,
+<code>yarn config set cache-folder</code>, <code>--cache-folder</code>,
+<code>.npmrc</code> <code>cache=</code>; macOS default
+<code>~/Library/Caches/Yarn</code> (unverified; docs only say &quot;in your
+user directory&quot;); Linux default <code>~/.cache/yarn</code> (unverified;
+Next.js CI doc lists <code>$HOME/.cache/yarn</code>).</li>
+</ol></li>
+<li>measure: <code>du -sk &quot;$(yarn cache dir)&quot;</code>.</li>
+<li>clean: <code>yarn cache clean</code> (all) or
+<code>yarn cache clean &lt;module...&gt;</code>. No prune variant. Needs
+yarn installed.</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: running install concurrently can fail on missing
+tarballs.</li>
+<li>sources: https://classic.yarnpkg.com/en/docs/cli/cache</li>
+<li>verification: discover <code>official-docs</code> (not run, yarn
+absent); default paths <code>unverified</code>; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="yarn-berry-v2">Yarn
+Berry (v2+)</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>yarn --version</code> &gt;= 2, or
+<code>.yarnrc.yml</code> / <code>.yarn/</code> in project; global dir
+<code>~/.yarn/berry</code>.</li>
+<li>scope: global (cache + metadata) AND per-project
+(<code>.yarn/cache</code> when <code>enableGlobalCache: false</code>,
+<code>.yarn/</code> internals); per-project marker:
+<code>.yarnrc.yml</code> or <code>package.json</code> with
+<code>packageManager: yarn@2+</code>. NOTE: <code>.yarn/cache</code> is
+often committed to git (zero-installs); must not be wiped blindly.</li>
+<li>locations:
+<ol>
+<li>global folder <code>globalFolder</code> (global cache under
+<code>&lt;globalFolder&gt;/cache</code>, metadata cache) — discover:
+<code>yarn config get globalFolder</code>; override:
+<code>globalFolder</code> in rc, env <code>YARN_GLOBAL_FOLDER</code>;
+default (all OS) <code>~/.yarn/berry</code> (docs state
+<code>${HOME}/.yarn/berry</code>; no macOS/Linux difference).</li>
+<li>project cache <code>.yarn/cache</code> — discover:
+<code>yarn config get cacheFolder</code>; override env
+<code>YARN_CACHE_FOLDER</code>; used only when
+<code>enableGlobalCache</code> is false (default true).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of discovered paths.</li>
+<li>clean: <code>yarn cache clean</code> removes local cache by default;
+<code>--mirror</code> removes the global cache; <code>--all</code>
+removes both. No prune variant. Needs yarn (berry) installed. Local
+<code>.yarn/cache</code> may be committed -&gt; deleting shows as git
+changes.</li>
+<li>regenerable: yes (re-downloaded; with zero-install the committed
+cache is the offline source).</li>
+<li>in_use_hazard: with PnP + zero-install, wiping
+<code>.yarn/cache</code> makes the project unrunnable until
+<code>yarn install</code>.</li>
+<li>sources: https://yarnpkg.com/features/caching ,
+https://yarnpkg.com/cli/cache/clean ,
+https://yarnpkg.com/configuration/yarnrc</li>
+<li>verification: discover <code>official-docs</code>; default paths
+<code>official-docs</code> (<code>~/.yarn/berry</code>,
+<code>./.yarn/cache</code>); clean <code>official-docs</code>; env var
+<code>YARN_GLOBAL_FOLDER</code> by naming rule
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pnpm">pnpm</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>pnpm</code> on PATH.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>content-addressable store — discover: <code>pnpm store path</code>
+(prints the store path, e.g. <code>~/Library/pnpm/store/v10</code> on
+macOS; note the version suffix <code>v10</code> inside storeDir);
+override: <code>storeDir</code> config / <code>--store-dir</code>, env
+<code>PNPM_HOME</code> (-&gt; <code>$PNPM_HOME/store</code>),
+<code>XDG_DATA_HOME</code> (-&gt;
+<code>$XDG_DATA_HOME/pnpm/store</code>); macOS default
+<code>~/Library/pnpm/store</code>; Linux default
+<code>~/.local/share/pnpm/store</code>. Falls back to
+<code>&lt;volume root&gt;/.pnpm-store</code> or
+<code>node_modules/.pnpm-store</code> when home is on a different
+filesystem than the project (store is hard-linked into projects).</li>
+<li>metadata/dlx cache — discover:
+<code>pnpm config get cache-dir</code> prints <code>undefined</code>
+when the key is not set (the default is not printed); override:
+<code>cacheDir</code> setting, <code>XDG_CACHE_HOME</code>; macOS
+default <code>~/Library/Caches/pnpm</code>; Linux default
+<code>~/.cache/pnpm</code>. Holds package metadata,
+<code>pnpm dlx</code> cache, install verification results.</li>
+</ol></li>
+<li>measure: <code>du -sk &quot;$(pnpm store path)&quot;</code>. Caveat: files are
+hard-linked into projects, so du overstates reclaimable space;
+unreferenced-only size is not reported without pruning.
+<code>pnpm store status</code> checks integrity, not size.</li>
+<li>clean: store: <code>pnpm store prune</code> (removes packages no
+project references; docs say safe). No documented full-wipe command
+-&gt; <code>delete directory</code> (breaks nothing permanently but
+projects with hard links keep their files; node_modules remain intact
+because they are hard links, but pnpm may need <code>pnpm install</code>
+to repopulate the store). Cache dir: <code>delete directory</code> (no
+native command documented).</li>
+<li>regenerable: yes (re-downloaded).</li>
+<li>in_use_hazard: deleting the store while an install runs breaks it;
+existing <code>node_modules</code> keep working (hard links) but
+<code>pnpm install --offline</code> / reinstall needs refetch.</li>
+<li>sources: https://pnpm.io/cli/store , https://pnpm.io/settings/store
+, https://pnpm.io/settings/other</li>
+<li>verification: discover <code>ran-command</code> (store path);
+<code>config get cache-dir</code> <code>ran-command</code> (undefined);
+default paths <code>official-docs</code>; clean
+<code>official-docs</code> (prune) / <code>unverified</code> for &quot;no
+full wipe command&quot; beyond the doc not describing one.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="bun-install-cache">Bun
+(install cache)</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>bun</code> on PATH; <code>~/.bun</code> exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>install cache — discover: <code>bun pm cache</code> (must run inside
+a directory with package.json: from <code>/tmp</code> it errored
+<code>No package.json was found</code>; docs describe it as printing the
+path); override: env <code>BUN_INSTALL_CACHE_DIR</code>,
+<code>bunfig.toml</code> <code>[install.cache] dir</code>; macOS default
+<code>~/.bun/install/cache</code>; Linux default
+<code>~/.bun/install/cache</code> (docs give one path, no per-OS split;
+<code>BUN_INSTALL</code> env may also relocate <code>~/.bun</code>,
+unverified).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of path from
+<code>bun pm cache</code>.</li>
+<li>clean: <code>bun pm cache rm</code> (full wipe; no flags
+documented). No prune variant. Needs bun installed.</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: concurrent install may fail; bun
+hard-links/clonefiles from cache into node_modules, so existing
+node_modules unaffected.</li>
+<li>sources: https://bun.sh/docs/install/cache ,
+https://bun.sh/docs/pm/cli/pm</li>
+<li>verification: discover <code>ran-command</code> (failure mode
+observed: requires package.json cwd) + <code>official-docs</code>;
+default paths <code>official-docs</code>; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="deno">Deno</h2>
+<ul>
+<li>ecosystem: javascript/typescript</li>
+<li>detect: <code>deno</code> on PATH.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>DENO_DIR (remote modules <code>deps/</code>, compiled TS
+<code>gen/</code>, npm packages, etc.) — discover:
+<code>deno info</code> prints &quot;DENO_DIR location&quot;
+(<code>deno info --json</code> also has <code>denoDir</code>,
+unverified); override: env <code>DENO_DIR</code>; macOS default
+<code>~/Library/Caches/deno</code> (docs example); Linux default
+<code>~/.cache/deno</code> (inferred from sample output, docs do not
+state it).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of DENO_DIR.</li>
+<li>clean: <code>deno clean</code> (full wipe; <code>--dry-run</code>
+preview); prune variant:
+<code>deno clean --except &lt;entrypoint...&gt;</code> keeps data needed
+by the named entry points. Needs deno installed.</li>
+<li>regenerable: yes (re-downloaded; offline projects lose offline
+ability).</li>
+<li>in_use_hazard: running <code>deno run</code> / LSP may fail to
+resolve cached modules; <code>--cached-only</code> setups break.</li>
+<li>sources: https://docs.deno.com/runtime/reference/cli/clean/ ,
+https://docs.deno.com/runtime/reference/cli/info/</li>
+<li>verification: discover <code>official-docs</code>; default paths
+macOS <code>official-docs</code> (example only), Linux
+<code>unverified</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="corepack">Corepack</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>corepack</code> on PATH (shipped in the Node bin
+directory, e.g. under the nvm-managed node).</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>COREPACK_HOME (downloaded yarn/pnpm shims&#39; package manager versions)
+— discover:
+<code>echo &quot;${COREPACK_HOME:-$HOME/.cache/node/corepack}&quot;</code> (no
+native print command found); override: env <code>COREPACK_HOME</code>;
+macOS default <code>~/.cache/node/corepack</code>; Linux default
+<code>~/.cache/node/corepack</code> (README: all non-Windows
+systems).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of path.</li>
+<li>clean: <code>corepack cache clean</code> (README also lists
+<code>corepack cache clear</code>, same description). Needs corepack
+installed.</li>
+<li>regenerable: yes (re-downloaded on next use).</li>
+<li>in_use_hazard: low; a running <code>yarn</code>/<code>pnpm</code>
+shim would re-download.</li>
+<li>sources: https://github.com/nodejs/corepack#readme</li>
+<li>verification: discover <code>unverified</code> (derived); default
+paths <code>official-docs</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nvm-installed-node-versions--cache">nvm
+(installed Node versions + cache)</h2>
+<ul>
+<li>ecosystem: javascript (version manager)</li>
+<li>detect: <code>$NVM_DIR</code> set (shell function, not on PATH:
+<code>command -v nvm</code> is empty in non-interactive shells);
+directory <code>~/.nvm</code> exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>installed Node versions — <code>$NVM_DIR/versions/node/vX.Y.Z</code>
+(inferred from README paths); discover: <code>nvm ls</code> (shell
+function, needs <code>. &quot;$NVM_DIR/nvm.sh&quot;</code>); override: env
+<code>NVM_DIR</code>; default <code>~/.nvm</code> (or
+<code>$XDG_CONFIG_HOME/nvm</code> when set at install); same on macOS
+and Linux. These are USER-CHOSEN toolchains, not a cache: removal
+changes what <code>node</code> resolves to.</li>
+<li>download cache <code>$NVM_DIR/.cache</code> — discover:
+<code>echo &quot;$NVM_DIR/.cache&quot;</code> (docs do not mention
+<code>nvm cache dir</code>); same defaults.</li>
+</ol></li>
+<li>measure:
+<code>du -sk &quot;$NVM_DIR/versions/node&quot;/* &quot;$NVM_DIR/.cache&quot;</code>.</li>
+<li>clean: cache: <code>nvm cache clear</code> (docs). Versions:
+<code>nvm uninstall &lt;version&gt;</code> per version; no bulk prune.
+Both require nvm sourced into a shell (cannot run from a plain exec of
+<code>ccc</code> without
+<code>bash -c &#39;. $NVM_DIR/nvm.sh &amp;&amp; ...&#39;</code>). Uninstalling
+the active/default version breaks the shell&#39;s <code>node</code>.</li>
+<li>regenerable: cache yes; versions <code>yes-but-large-download</code>
+and only if the user remembers which versions they need (global npm
+packages installed under a version are LOST, they live in
+<code>versions/node/&lt;v&gt;/lib/node_modules</code>).</li>
+<li>in_use_hazard: uninstalling a version in use by a running
+process/dev server; global CLIs installed for that version vanish.</li>
+<li>sources: https://github.com/nvm-sh/nvm#readme</li>
+<li>verification: discover <code>unverified</code> for cache path;
+<code>nvm ls</code> <code>official-docs</code> (not run, shell
+function); default paths <code>official-docs</code>
+(<code>~/.nvm</code>; <code>~/.nvm/versions/node</code>
+<code>ran-command</code>: per-version directories); clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="fnm">fnm</h2>
+<ul>
+<li>ecosystem: javascript (version manager)</li>
+<li>detect: <code>fnm</code> on PATH ; dir
+<code>~/.local/share/fnm</code> or
+<code>~/Library/Application Support/fnm</code>.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>fnm dir (Node versions under <code>node-versions/</code>, aliases) —
+discover: <code>fnm env</code> output contains <code>FNM_DIR</code>
+(docs do not state this); override: env <code>FNM_DIR</code> (existence
+from memory), <code>XDG_DATA_HOME</code>; macOS default
+<code>~/Library/Application Support/fnm</code>; Linux default
+<code>~/.local/share/fnm</code> (or
+<code>$XDG_DATA_HOME/fnm</code>).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of dir.</li>
+<li>clean: per-version <code>fnm uninstall &lt;version&gt;</code>
+(command exists per fnm docs/commands.md; not on README, so
+<code>unverified</code>); whole tool: <code>delete directory</code>. No
+cache-only clean.</li>
+<li>regenerable: <code>yes-but-large-download</code>; user-chosen
+toolchains, global npm packages lost.</li>
+<li>in_use_hazard: removing the active version breaks <code>node</code>
+in open shells.</li>
+<li>sources: https://github.com/Schniz/fnm#readme</li>
+<li>verification: discover <code>unverified</code>; default paths
+<code>official-docs</code>; clean <code>unverified</code> for
+<code>fnm uninstall</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="volta">Volta</h2>
+<ul>
+<li>ecosystem: javascript (toolchain manager)</li>
+<li>detect: <code>volta</code> on PATH; <code>~/.volta</code>
+exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>VOLTA_HOME (<code>tools/</code> inventory + image of Node/npm/yarn
+versions, <code>cache/</code> downloaded archives, shims,
+<code>bin/</code>) — discover:
+<code>echo &quot;${VOLTA_HOME:-$HOME/.volta}&quot;</code> (derived); override: env
+<code>VOLTA_HOME</code>; default <code>~/.volta</code> on macOS and
+Linux (from memory).</li>
+</ol></li>
+<li>measure: <code>du -sk &quot;$VOLTA_HOME/tools&quot; &quot;$VOLTA_HOME/cache&quot;</code>
+(unverified subdirectory names).</li>
+<li>clean: no cache-clean command documented;
+<code>volta uninstall &lt;tool&gt;</code> removes installed tools. Cache
+subdir: <code>delete directory</code>. Do not delete <code>bin/</code>
+(shims).</li>
+<li>regenerable: cache yes; installed tools
+<code>yes-but-large-download</code>; <code>VOLTA_HOME/bin</code> shims
+are needed for the tool to work.</li>
+<li>in_use_hazard: removing tools pinned by projects makes Volta
+re-download on next use.</li>
+<li>sources: https://docs.volta.sh/guide/understanding</li>
+<li>verification: all path/discover fields <code>unverified</code> (docs
+page did not state them); clean <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="n">n</h2>
+<ul>
+<li>ecosystem: javascript (version manager)</li>
+<li>detect: <code>n</code> on PATH; <code>/usr/local/n</code>
+exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>version cache
+<code>&lt;N_CACHE_PREFIX or N_PREFIX&gt;/n/versions</code> — discover:
+<code>n ls</code> lists cached versions; path derived; override: env
+<code>N_PREFIX</code> (moves install root, default
+<code>/usr/local</code>), <code>N_CACHE_PREFIX</code> (moves downloads);
+default <code>/usr/local/n/versions</code> (docs: &quot;with the default
+prefix&quot;) on both macOS and Linux (Homebrew-installed <code>n</code> uses
+same).</li>
+</ol></li>
+<li>measure: <code>du -sk /usr/local/n/versions</code>.</li>
+<li>clean: prune: <code>n prune</code> (removes all cached versions
+except the installed one); specific: <code>n rm &lt;version&gt;</code>;
+<code>n uninstall</code> removes installed Node, leaves cache. May
+require <code>sudo</code> when prefix is <code>/usr/local</code>.</li>
+<li>regenerable: yes-but-large-download (but the installed version is
+retained by prune).</li>
+<li>in_use_hazard: <code>n rm</code> of the installed version breaks
+<code>node</code>.</li>
+<li>sources: https://github.com/tj/n#readme</li>
+<li>verification: discover <code>official-docs</code>; default paths
+<code>official-docs</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="node-gyp-headersdevdir-cache">node-gyp
+(headers/devdir cache)</h2>
+<ul>
+<li>ecosystem: javascript (native addons)</li>
+<li>detect: dir exists (node-gyp is bundled with npm;
+<code>node-gyp</code> rarely on PATH).</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>devdir (Node headers per version) — discover: none native; derive
+from env/default; override: <code>--devdir</code>,
+<code>node_gyp_devdir</code> in package.json <code>config</code>; macOS
+default <code>~/Library/Caches/node-gyp</code>
+(<code>ran-command</code>: per-version directories); Linux default
+<code>~/.cache/node-gyp</code> (unverified; docs say only &quot;OS cache
+directory&quot;).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of path.</li>
+<li>clean: <code>node-gyp remove &lt;version&gt;</code> removes headers
+for a version (docs mention, syntax unverified); otherwise
+<code>delete directory</code>.</li>
+<li>regenerable: yes (re-downloaded at next native build; requires
+network).</li>
+<li>in_use_hazard: an in-flight <code>npm install</code> compiling an
+addon fails if headers vanish mid-build.</li>
+<li>sources: https://github.com/nodejs/node-gyp#readme</li>
+<li>verification: discover <code>unverified</code>; default paths macOS
+<code>ran-command</code>, Linux <code>unverified</code>; clean
+<code>unverified</code> for exact syntax.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="electron-download-cache-electronget">Electron
+download cache (@electron/get)</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: dir exists (no binary).</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>Electron zip download cache — discover: none native; override: env
+<code>ELECTRON_CACHE</code> / <code>electron_config_cache</code>
+(unverified, README did not mention it); macOS default
+<code>~/Library/Caches/electron/</code>; Linux default
+<code>$XDG_CACHE_HOME</code> if set else
+<code>~/.cache/electron/</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code>.</li>
+<li>regenerable: yes-but-large-download (~100 MB per version/arch).</li>
+<li>in_use_hazard: low; running <code>npm install electron</code>
+re-downloads.</li>
+<li>sources: https://github.com/electron/get#readme</li>
+<li>verification: discover <code>unverified</code>; default paths
+<code>official-docs</code>; clean <code>unverified</code> (no command
+exists as far as docs show).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="electron-builder-cache">electron-builder
+cache</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: dir exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>builder cache (winCodeSign, nsis, appimage, fpm tools) — discover:
+none native; override: env <code>ELECTRON_BUILDER_CACHE</code>; macOS
+default <code>~/Library/Caches/electron-builder</code>; Linux default
+<code>~/.cache/electron-builder</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code>.</li>
+<li>regenerable: yes-but-large-download.</li>
+<li>in_use_hazard: an in-flight <code>electron-builder</code> build
+fails.</li>
+<li>sources: attempted https://www.electron.build/ pages; the fetched
+pages gave no content.</li>
+<li>verification: ALL fields <code>unverified</code> (from memory; docs
+pages 404 or empty).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="playwright-browsers">Playwright
+browsers</h2>
+<ul>
+<li>ecosystem: browser-automation</li>
+<li>detect: <code>playwright</code> bin (via
+<code>npx playwright</code>) or dir exists (macOS
+<code>~/Library/Caches/ms-playwright</code>).</li>
+<li>scope: global (plus one nuance: per-project
+<code>node_modules/playwright*</code> are separate).</li>
+<li>locations:
+<ol>
+<li>browser binaries (chromium-NNNN, firefox-NNNN, webkit-NNNN,
+ffmpeg-NNNN, headless shell) — discover:
+<code>echo &quot;${PLAYWRIGHT_BROWSERS_PATH:-&lt;default&gt;}&quot;</code> (no
+native path command; <code>npx playwright install --list</code> lists
+browsers from all installations); override: env
+<code>PLAYWRIGHT_BROWSERS_PATH</code> (value <code>0</code> = inside
+node_modules); macOS default
+<code>~/Library/Caches/ms-playwright</code>; Linux default
+<code>~/.cache/ms-playwright</code>.</li>
+<li><code>ms-playwright-go</code> (Go bindings driver) —
+<code>~/Library/Caches/ms-playwright-go</code> (macOS); its role/clean
+command <code>unverified</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code> (native:
+<code>npx playwright install --list</code> lists but gives no sizes —
+sizes are <code>unverified</code>).</li>
+<li>clean: <code>npx playwright uninstall</code> (browsers of the
+current installation); <code>npx playwright uninstall --all</code>
+(every installation). Prune: Playwright auto-removes unused versions on
+install (disable with <code>--no-remove</code> or
+<code>PLAYWRIGHT_SKIP_BROWSER_GC=1</code>). Needs a Playwright install
+reachable (npx may download playwright itself).</li>
+<li>regenerable: yes-but-large-download (hundreds of MB per
+browser).</li>
+<li>in_use_hazard: running tests/MCP servers launching the browser fail
+with &quot;Executable doesn&#39;t exist&quot;; installed-version pinning means other
+projects need <code>npx playwright install</code> again.</li>
+<li>sources: https://playwright.dev/docs/browsers</li>
+<li>verification: discover <code>official-docs</code>; default paths
+<code>official-docs</code> + macOS <code>ran-command</code>; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="puppeteer-browsers">Puppeteer
+browsers</h2>
+<ul>
+<li>ecosystem: browser-automation</li>
+<li>detect: dir <code>~/.cache/puppeteer</code> (contains
+<code>chrome-headless-shell</code> among other downloads).</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>browser cache (<code>chrome/</code>,
+<code>chrome-headless-shell/</code>, <code>firefox/</code>) — discover:
+none native; override: <code>cacheDirectory</code> in
+<code>.puppeteerrc.*</code>, env <code>PUPPETEER_CACHE_DIR</code>
+(<code>unverified</code>, docs page did not mention); default (all OS
+incl. macOS and Linux) <code>~/.cache/puppeteer</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code> (no native command documented;
+<code>npx @puppeteer/browsers clear</code> is not verified and must not
+be used).</li>
+<li>regenerable: yes-but-large-download.</li>
+<li>in_use_hazard: running scripts/MCP tools fail &quot;Could not find
+Chrome&quot;.</li>
+<li>sources: https://pptr.dev/guides/configuration</li>
+<li>verification: discover <code>unverified</code>; default paths
+<code>official-docs</code> + <code>ran-command</code> (dir exists);
+clean <code>unverified</code> (none exists in docs read).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="cypress-binary-cache">Cypress
+binary cache</h2>
+<ul>
+<li>ecosystem: browser-automation / testing</li>
+<li>detect: <code>cypress</code> bin (project-local) or dir exists.</li>
+<li>scope: global</li>
+<li>locations:
+<ol>
+<li>binary cache <code>&lt;cache&gt;/&lt;version&gt;</code> — discover:
+<code>cypress cache path</code> (needs cypress CLI, e.g.
+<code>npx cypress cache path</code>); override: env
+<code>CYPRESS_CACHE_FOLDER</code>; macOS default
+<code>~/Library/Caches/Cypress</code>; Linux default
+<code>~/.cache/Cypress</code>.</li>
+</ol></li>
+<li>measure: <code>cypress cache list --size</code>.</li>
+<li>clean: full wipe: <code>cypress cache clear</code>; prune:
+<code>cypress cache prune</code> (deletes all versions except the
+current one). Needs cypress installed (project npm package).</li>
+<li>regenerable: yes-but-large-download (~500 MB per version).</li>
+<li>in_use_hazard: running <code>cypress run/open</code> fails with
+binary-not-found.</li>
+<li>sources:
+https://docs.cypress.io/app/references/advanced-installation</li>
+<li>verification: discover <code>official-docs</code>; default paths
+<code>official-docs</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="turborepo-local-cache">Turborepo
+(local cache)</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>turbo.json</code> in project (and <code>turbo</code>
+bin).</li>
+<li>scope: per-project; marker: <code>turbo.json</code> sibling of
+<code>.turbo/</code>; when <code>cacheDir</code> unset, docs mention Git
+worktree cache sharing so the path may be shared (unverified
+where).</li>
+<li>locations:
+<ol>
+<li>task cache <code>.turbo/cache</code> — discover: none native;
+override: <code>cacheDir</code> in <code>turbo.json</code>,
+<code>--cache-dir</code>; default (all OS)
+<code>&lt;project&gt;/.turbo/cache</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code> (docs read describe no clear
+command).</li>
+<li>regenerable: yes (rebuilt by re-running tasks; may be slow).</li>
+<li>in_use_hazard: running <code>turbo</code> task writes cache;
+deleting mid-run loses just that entry.</li>
+<li>sources:
+https://turborepo.dev/docs/crafting-your-repository/caching</li>
+<li>verification: discover <code>unverified</code>; default paths
+<code>official-docs</code>; clean <code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nx">Nx</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>nx.json</code> in project.</li>
+<li>scope: per-project; marker: <code>nx.json</code>.</li>
+<li>locations:
+<ol>
+<li>local task cache — discover: none native; override:
+<code>cacheDirectory</code> in <code>nx.json</code> (docs: default
+<code>~/.nx/&lt;id&gt;/cache</code>, shared by every checkout of the
+workspace, in newer Nx; older Nx used <code>.nx/cache</code> /
+<code>node_modules/.cache/nx</code>, unverified); also env
+<code>NX_CACHE_DIRECTORY</code> (not in docs read, unverified). Default
+therefore depends on Nx version: a registry entry must resolve it per
+project.</li>
+<li>workspace data / daemon state — <code>.nx/workspace-data</code>
+(unverified path), cleaned by reset.</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of resolved path (resolution rule
+uncertain).</li>
+<li>clean: <code>nx reset</code> (all: clears cache, workspace data,
+stops daemon); granular: <code>nx reset --onlyCache</code>,
+<code>--onlyDaemon</code>, <code>--onlyWorkspaceData</code>,
+<code>--onlyCloud</code>. Remote cache is not touched.</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: daemon is shut down; running <code>nx</code> command
+may be interrupted.</li>
+<li>sources: https://nx.dev/docs/reference/nx-commands ,
+https://nx.dev/docs/reference/nx-json</li>
+<li>verification: discover <code>unverified</code>; default paths
+<code>official-docs</code> for the newer default only; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nextjs-next">Next.js
+(<code>.next</code>)</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>next</code> in <code>package.json</code> /
+<code>next.config.*</code>.</li>
+<li>scope: per-project; marker: <code>package.json</code> (with
+<code>next</code>) or <code>next.config.{js,mjs,ts}</code> sibling of
+<code>.next</code>.</li>
+<li>locations:
+<ol>
+<li><code>.next</code> build output (incl. <code>.next/cache</code>:
+webpack/swc/image cache) — discover: none; override:
+<code>distDir</code> in <code>next.config.*</code>; default
+<code>&lt;project&gt;/.next</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code> (<code>.next/cache</code> only
+for cache-only; whole <code>.next</code> also removes build
+output).</li>
+<li>regenerable: yes (rebuilt by <code>next dev</code> /
+<code>next build</code>).</li>
+<li>in_use_hazard: deleting <code>.next</code> under a running
+<code>next dev</code> breaks the server (500s, missing chunks) until
+restarted; a deployed <code>next start</code> from that dir breaks.</li>
+<li>sources: https://nextjs.org/docs/app/guides/ci-build-caching</li>
+<li>verification: discover n/a; default paths <code>official-docs</code>
+for <code>.next/cache</code>; <code>distDir</code>
+<code>unverified</code>; clean <code>unverified</code> (no native
+command).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="vite">Vite</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>vite.config.*</code> or <code>vite</code> in
+<code>package.json</code>.</li>
+<li>scope: per-project; marker: <code>package.json</code> sibling of
+<code>node_modules/.vite</code>.</li>
+<li>locations:
+<ol>
+<li>dep pre-bundle cache <code>node_modules/.vite</code> — discover:
+none; override: <code>cacheDir</code> in vite config; default
+<code>&lt;project&gt;/node_modules/.vite</code> (<code>.vite</code> if
+no package.json).</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code>, or run
+<code>vite --force</code> to re-bundle (docs).</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: deleting under a running dev server causes
+optimized-dep 504/outdated errors until restart.</li>
+<li>sources: https://vite.dev/config/shared-options.html</li>
+<li>verification: default paths <code>official-docs</code>; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="webpack--babel-loader--other-node_modulescache-users">webpack
+/ babel-loader / other <code>node_modules/.cache</code> users</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>node_modules/.cache</code> directory exists.</li>
+<li>scope: per-project; marker: <code>node_modules/.cache</code> inside
+a dir with <code>package.json</code>.</li>
+<li>locations:
+<ol>
+<li><code>node_modules/.cache/webpack</code> — override:
+<code>cache.cacheDirectory</code>; default
+<code>node_modules/.cache/webpack</code>.</li>
+<li><code>node_modules/.cache/babel-loader</code> — override:
+<code>cacheDirectory</code> loader option (default off; true -&gt; this
+path; falls back to OS temp dir if no node_modules).</li>
+<li>other tools (terser-webpack-plugin, eslint-loader,
+<code>find-cache-dir</code>-based tools, <code>.cache/prettier</code>,
+<code>.cache/@babel</code>) writing to
+<code>node_modules/.cache/&lt;tool&gt;</code> — names
+<code>unverified</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk node_modules/.cache</code>.</li>
+<li>clean: <code>delete directory</code> (webpack/babel docs describe no
+clean command).</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: running watch builds may rebuild from scratch;
+absolute paths are stored so moved projects invalidate anyway.</li>
+<li>sources: https://webpack.js.org/configuration/cache/ ,
+https://github.com/babel/babel-loader#readme</li>
+<li>verification: default paths <code>official-docs</code> (webpack,
+babel-loader); other users <code>unverified</code>; clean
+<code>unverified</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="parcel">Parcel</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>parcel</code> in <code>package.json</code>,
+<code>.parcelrc</code>.</li>
+<li>scope: per-project; marker: <code>package.json</code> sibling of
+<code>.parcel-cache</code>.</li>
+<li>locations:
+<ol>
+<li><code>.parcel-cache</code> — override:
+<code>--cache-dir &lt;path&gt;</code>; default
+<code>.parcel-cache</code> in project root.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>delete directory</code>.</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: <code>parcel watch/serve</code> running holds the
+LMDB cache open; deleting under it can crash or corrupt the watcher
+until restart.</li>
+<li>sources: https://parceljs.org/features/cli/</li>
+<li>verification: default paths <code>official-docs</code>; clean
+<code>unverified</code> (LMDB hazard from memory).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="eslint-cache">ESLint
+cache</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>.eslintcache</code> file exists.</li>
+<li>scope: per-project; marker: <code>package.json</code> / eslint
+config sibling of <code>.eslintcache</code>.</li>
+<li>locations:
+<ol>
+<li>cache file <code>.eslintcache</code> — override:
+<code>--cache-location &lt;file|dir&gt;</code>; default
+<code>.eslintcache</code> in cwd where eslint runs (dir form creates
+<code>.cache_&lt;hash of cwd&gt;</code>).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> / file size.</li>
+<li>clean: <code>delete directory</code> (a file); docs note running
+ESLint without <code>--cache</code> deletes the file.</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: none significant.</li>
+<li>sources:
+https://eslint.org/docs/latest/use/command-line-interface</li>
+<li>verification: default paths <code>official-docs</code>; clean
+<code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="jest-cache">Jest
+cache</h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: <code>jest</code> in <code>package.json</code> /
+<code>jest.config.*</code>.</li>
+<li>scope: global-ish (default cacheDirectory is under the OS temp dir,
+e.g. <code>/tmp/jest_*</code>, <code>unverified</code>) with per-project
+override.</li>
+<li>locations:
+<ol>
+<li>Jest cacheDirectory — discover: <code>npx jest --showConfig</code>
+(read <code>cacheDirectory</code>; docs-confirmed); override:
+<code>cacheDirectory</code> config / <code>--cacheDirectory</code>;
+default path <code>unverified</code> (docs say find it via
+<code>--showConfig</code>; macOS typically
+<code>/private/var/folders/.../jest_*</code>).</li>
+</ol></li>
+<li>measure: <code>du -sk</code> of the <code>cacheDirectory</code>
+value.</li>
+<li>clean: <code>npx jest --clearCache</code> (deletes cacheDirectory
+and exits). Needs jest installed in the project. Docs warn performance
+drops.</li>
+<li>regenerable: yes.</li>
+<li>in_use_hazard: jest <code>--watch</code> running
+slows/recomputes.</li>
+<li>sources: https://jestjs.io/docs/cli</li>
+<li>verification: discover <code>official-docs</code>; default paths
+<code>unverified</code>; clean <code>official-docs</code>.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="typescript-incremental-build-info">TypeScript
+incremental build info</h2>
+<ul>
+<li>ecosystem: typescript</li>
+<li>detect: <code>tsconfig.json</code>; <code>*.tsbuildinfo</code>
+files.</li>
+<li>scope: per-project; marker: <code>*.tsbuildinfo</code> next to
+<code>tsconfig*.json</code> / in <code>outDir</code>.</li>
+<li>locations:
+<ol>
+<li><code>*.tsbuildinfo</code> — override: <code>tsBuildInfoFile</code>,
+<code>outDir</code>; default <code>tsconfig.tsbuildinfo</code>
+(name/placement rules from memory, doc page was truncated); discover:
+<code>tsc --showConfig</code> (existence of key unverified).</li>
+<li><code>~/Library/Caches/typescript</code> (TypeScript Automatic Type
+Acquisition cache, ; <code>ran-command</code>) — Linux
+<code>~/.cache/typescript</code> (unverified); role
+<code>unverified</code>; clean <code>delete directory</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code>.</li>
+<li>clean: <code>tsc --build --clean</code> (removes outputs incl.
+buildinfo; may remove emitted JS/d.ts, not just cache -&gt; destructive
+for committed build output; documented only from memory) else
+<code>delete directory</code> of the <code>.tsbuildinfo</code>
+file.</li>
+<li>regenerable: yes (full re-typecheck).</li>
+<li>in_use_hazard: <code>tsc --watch</code> rebuilds.</li>
+<li>sources: https://www.typescriptlang.org/tsconfig/ (page truncated,
+relevant sections not read)</li>
+<li>verification: all <code>unverified</code> except the macOS
+<code>typescript</code> cache dir which <code>ran-command</code>
+exists.</li>
+</ul>
+<h2 class="unnumbered unlisted" id="project-node_modules">Project
+<code>node_modules</code></h2>
+<ul>
+<li>ecosystem: javascript</li>
+<li>detect: directory named <code>node_modules</code> containing...
+(walk projects).</li>
+<li>scope: per-project; marker: sibling <code>package.json</code>. Skip
+nested <code>node_modules</code> inside <code>node_modules</code>.</li>
+<li>locations:
+<ol>
+<li><code>&lt;project&gt;/node_modules</code> — no discover; override:
+pnpm <code>virtual-store-dir</code>, Yarn PnP (no node_modules), Deno
+<code>--node-modules-dir</code> (unverified); default
+<code>&lt;project&gt;/node_modules</code>.</li>
+</ol></li>
+<li>measure: <code>du -sk</code> (hard-link/clonefile layouts (pnpm,
+bun) overstate reclaimable space).</li>
+<li>clean: <code>delete directory</code> (reinstall via the project&#39;s
+manager: <code>npm ci</code>, <code>pnpm install</code>, etc.). No
+native &quot;clean node_modules&quot; command. Not applicable to read-only perms
+in general, but pnpm store hard links share inodes (deleting is
+safe).</li>
+<li>regenerable: yes-but-large-download; fails when offline or when
+lockfile missing/registry package withdrawn (<code>npm ci</code> needs
+lockfile).</li>
+<li>in_use_hazard: running dev servers, IDE language servers, git hooks
+(husky) break; locally patched dependencies (patch-package without
+committed patches) or <code>npm link</code>ed packages are lost.</li>
+<li>sources: https://docs.npmjs.com/cli/v10/commands/npm-ci (not
+fetched)</li>
+<li>verification: all <code>unverified</code> as documentation was not
+read.</li>
+</ul>
+<hr />
+<h2 class="unnumbered unlisted" id="contract-observations">Contract
+observations</h2>
+<ol>
+<li>Path discoverable only by running the tool: npm
+(<code>npm config get cache</code>), pnpm
+(<code>pnpm store path</code>), Yarn (<code>yarn cache dir</code>,
+<code>yarn config get globalFolder</code>), Bun
+(<code>bun pm cache</code>, which must run in a directory with a
+<code>package.json</code>), Cypress (<code>cypress cache path</code>),
+Jest (<code>jest --showConfig</code>), Deno (<code>deno info</code>).
+The contract needs a <code>discover</code> command with a
+working-directory requirement and a fallback chain: tool command -&gt;
+env var -&gt; OS default path.</li>
+<li>More than one location per tool, with different semantics: npm
+(<code>_cacache</code>, <code>_npx</code>, <code>_logs</code>), pnpm
+(store vs cache-dir), Yarn Berry (global vs <code>.yarn/cache</code>),
+nvm (versions vs <code>.cache</code>), Nx (cache vs workspace data).
+Each location needs its own measure/clean/regenerable/hazard fields, and
+the native clean command may cover only some of them
+(<code>npm cache clean --force</code> does not document
+<code>_npx</code>/<code>_logs</code>).</li>
+<li>Per-project instances found by walking directories with a marker
+file: <code>node_modules</code> (<code>package.json</code>),
+<code>.next</code>, <code>node_modules/.vite</code>,
+<code>node_modules/.cache</code>, <code>.parcel-cache</code>,
+<code>.turbo/cache</code>, <code>.nx</code>, <code>.eslintcache</code>,
+<code>*.tsbuildinfo</code>, <code>.yarn/cache</code>. The registry needs
+marker rules, walk-skip rules (do not descend into
+<code>node_modules</code>), and a way to tell committed content from
+cache (Yarn Berry zero-install <code>.yarn/cache</code>, possibly
+committed <code>.tsbuildinfo</code>).</li>
+<li>Clean actions of several kinds: a native full-wipe
+(<code>npm cache clean --force</code>, <code>deno clean</code>,
+<code>bun pm cache rm</code>, <code>cypress cache clear</code>,
+<code>nx reset</code>, <code>jest --clearCache</code>), a native
+prune-unused (<code>pnpm store prune</code>,
+<code>cypress cache prune</code>, <code>n prune</code>,
+<code>deno clean --except</code>, <code>npm cache verify</code>),
+per-item removal (<code>nvm uninstall &lt;v&gt;</code>,
+<code>n rm &lt;v&gt;</code>), flags that change the scope
+(<code>yarn cache clean --mirror/--all</code>,
+<code>nx reset --only*</code>) and <code>delete directory</code> with no
+native command (Puppeteer, Electron, Turborepo, Vite, Next.js, webpack).
+The contract must express &quot;native command preferred, else delete&quot; and
+the flag-selected scope.</li>
+<li>Clean command requires the tool installed and sometimes a project
+context or a shell function: <code>cypress cache clear</code> /
+<code>jest --clearCache</code> need the project package, nvm is a shell
+function (<code>. $NVM_DIR/nvm.sh</code>), <code>n</code> may need sudo
+for <code>/usr/local</code>, Playwright needs <code>npx</code>. Fallback
+when the tool is absent (e.g. browser caches left behind after the
+package was removed) is <code>delete directory</code>.</li>
+<li>Size not measurable by <code>du</code> alone: pnpm/bun/Yarn PnP use
+hard links or clonefile, so <code>du</code> overstates reclaimable
+space; some tools have a native size command
+(<code>cypress cache list --size</code>), others only list
+(<code>npx playwright install --list</code>). The contract needs
+<code>measure.kind = du | command</code> and a flag for &quot;du
+overstates&quot;.</li>
+<li>Version-manager &quot;caches&quot; (nvm, fnm, Volta, n versions, Node
+installs) are user-selected toolchains that also hold global npm
+packages; they must be marked separately from true caches
+(<code>regenerable: yes-but-large-download</code>, user state) and need
+a &quot;protect active/default version&quot; rule.</li>
+<li>In-use hazards that depend on running processes
+(<code>next dev</code>, <code>vite</code>, <code>parcel watch</code>,
+<code>jest --watch</code>, <code>nx</code> daemon, Playwright MCP
+servers); the registry needs a <code>blocking_processes</code> or
+similar hint plus a note field.</li>
+<li>Defaults that vary by version of the tool and by environment, so a
+hardcoded default is risky: Nx default cache dir changed to
+<code>~/.nx/&lt;id&gt;/cache</code> in newer versions vs
+<code>.nx/cache</code>; pnpm store location depends on
+<code>PNPM_HOME</code>, <code>XDG_DATA_HOME</code> and on the filesystem
+the project lives on (<code>.pnpm-store</code> fallback); versioned
+subdir <code>v10</code> appended; <code>XDG_CACHE_HOME</code> overrides
+on Linux for Electron, pnpm; Jest&#39;s default is temp-dir-based.</li>
+<li>Directories with the cache&#39;s parent shared with non-cache data:
+<code>~/.npm</code> (config in <code>~/.npmrc</code> is outside, but
+<code>_update-notifier-last-checked</code> is inside),
+<code>~/.bun</code> (holds the bun binary itself in
+<code>~/.bun/bin</code>, so removing <code>~/.bun</code> removes the
+tool), <code>~/.volta</code> (contains <code>bin/</code> shims),
+<code>~/.yarn/berry</code> (global folder holds config-ish state as well
+as cache). Clean must target the sub-path, never the parent.</li>
+</ol>
+</body>
+</html>

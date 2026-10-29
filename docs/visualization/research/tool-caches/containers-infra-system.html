@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Containers, VMs, Kubernetes, IaC and system package managers:
+cache catalog</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <style type="text/css">:root {
+--text: #213329;
+--muted: #5b6b57;
+--background: #f5f6f2;
+--surface: #fffefa;
+--border: #d5ddd1;
+--link: #315f83;
+--code-background: #ecefe7;
+--header-background: #eef2ea;
+--stripe: #f8f9f5;
+color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+:root {
+--text: #dde5da;
+--muted: #9aa898;
+--background: #151a17;
+--surface: #1c231f;
+--border: #34403a;
+--link: #8fbde0;
+--code-background: #26302a;
+--header-background: #232c27;
+--stripe: #202823;
+color-scheme: dark;
+}
+}
+* { box-sizing: border-box; }
+html { background: var(--background); }
+body {
+margin: 0 auto;
+max-width: 1200px;
+padding: 40px 48px 80px;
+font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+color: var(--text);
+background: var(--surface);
+min-height: 100vh;
+box-shadow: 0 0 0 1px var(--border);
+overflow-wrap: break-word;
+}
+h1, h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.8em 0 0.6em; scroll-margin-top: 16px; }
+h1 { font-size: 2em; margin-top: 0; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+h2 { font-size: 1.5em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1.05em; }
+h5, h6 { font-size: 1em; color: var(--muted); }
+p, ul, ol, dl, blockquote, pre, table, figure { margin: 0 0 1em; }
+li + li { margin-top: 0.25em; }
+li > p { margin-bottom: 0.4em; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+padding: 0.2em 1em;
+color: var(--muted);
+border-left: 4px solid var(--border);
+}
+hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+code, pre, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.875em; }
+:not(pre) > code { background: var(--code-background); padding: 0.15em 0.35em; border-radius: 4px; }
+pre {
+background: var(--code-background);
+padding: 14px 16px;
+border-radius: 6px;
+overflow-x: auto;
+line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 1em; }
+table {
+display: block;
+max-width: 100%;
+width: max-content;
+overflow-x: auto;
+border-collapse: collapse;
+font-size: 0.925em;
+}
+th, td { border: 1px solid var(--border); padding: 7px 12px; text-align: left; vertical-align: top; }
+thead th { background: var(--header-background); }
+tbody tr:nth-child(even) { background: var(--stripe); }
+img, svg, video { max-width: 100%; height: auto; }
+figure { text-align: center; }
+figcaption { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 700px) {
+body { padding: 20px 16px 48px; box-shadow: none; }
+h1 { font-size: 1.6em; }
+}
+@media print {
+body { max-width: none; padding: 0; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<h1 id="containers-vms-kubernetes-iac-and-system-package-managers-cache-catalog">Containers,
+VMs, Kubernetes, IaC and system package managers: cache catalog</h1>
+<p>Raw facts for deriving the <code>ccc</code> registry contract.
+Verification tags: <code>official-docs</code> = confirmed on an official
+page; <code>ran-command</code> = confirmed by running a read-only
+command; <code>unverified</code> = from memory or not confirmable from
+fetched pages, to be re-checked before shipping. Several fields for
+lesser tools are <code>unverified</code> because the official pages
+fetched did not state them; none of those commands should ship without
+checking. On Docker Desktop, <code>Docker.raw</code> is a sparse file
+whose apparent size is far larger than its allocated size
+(<code>du -sh</code> shows the allocated one), so
+<code>ls</code>/apparent size must never be used.</p>
+<p>Docker facts first, since they drive the contract.</p>
+<p>Docker command matrix (all need a running daemon; on macOS that means
+Docker Desktop&#39;s VM):</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th>Removes</th>
+<th>Volumes?</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docker system df</code> / <code>docker system df -v</code> /
+<code>docker system df --format json</code></td>
+<td>reports only. Columns TYPE, TOTAL, ACTIVE, SIZE, RECLAIMABLE for
+Images, Containers, Local Volumes, Build Cache. <code>-v</code> lists
+per item (images: SIZE, SHARED SIZE, UNIQUE SIZE; volumes: NAME, LINKS,
+SIZE). Reclaimable figure = RECLAIMABLE column.</td>
+<td>n/a</td>
+<td>official-docs + ran-command</td>
+</tr>
+<tr>
+<td><code>docker container prune</code></td>
+<td>all stopped containers</td>
+<td>no</td>
+<td>unverified (standard)</td>
+</tr>
+<tr>
+<td><code>docker image prune</code></td>
+<td>dangling images only; <code>-a</code> all images not used by a
+container</td>
+<td>no</td>
+<td>unverified (standard)</td>
+</tr>
+<tr>
+<td><code>docker network prune</code></td>
+<td>networks not used by any container (zero disk)</td>
+<td>no</td>
+<td>unverified (standard)</td>
+</tr>
+<tr>
+<td><code>docker builder prune</code></td>
+<td>dangling build cache; <code>-a/--all</code> all unused build cache;
+<code>--filter until=24h</code>; <code>--keep-storage</code>;
+<code>-f</code></td>
+<td>no</td>
+<td>official-docs</td>
+</tr>
+<tr>
+<td><code>docker buildx prune</code></td>
+<td>same for a buildx builder; <code>--all</code>,
+<code>--filter</code>, <code>--max-used-space</code>,
+<code>--builder</code>, <code>--verbose</code></td>
+<td>no</td>
+<td>official-docs</td>
+</tr>
+<tr>
+<td><code>docker volume prune</code></td>
+<td>unused ANONYMOUS volumes by default; <code>-a/--all</code> (API
+1.42+) also unused NAMED volumes; <code>--filter label=...</code></td>
+<td>YES</td>
+<td>official-docs</td>
+</tr>
+<tr>
+<td><code>docker system prune</code></td>
+<td>stopped containers, unused networks, dangling images, unused build
+cache</td>
+<td>no</td>
+<td>official-docs</td>
+</tr>
+<tr>
+<td><code>docker system prune -a</code></td>
+<td>above plus all unused (non-dangling) images</td>
+<td>no</td>
+<td>official-docs</td>
+</tr>
+<tr>
+<td><code>docker system prune --volumes</code></td>
+<td>above plus anonymous volumes (per the docs page wording)</td>
+<td>YES</td>
+<td>official-docs</td>
+</tr>
+<tr>
+<td><code>docker system prune -a --volumes</code></td>
+<td>everything unused</td>
+<td>YES</td>
+<td>official-docs</td>
+</tr>
+</tbody>
+</table>
+<p>Note: &quot;unused&quot; for images means no container (including stopped ones)
+references it, so pruning containers first makes more images
+reclaimable. Docker&#39;s own <code>RECLAIMABLE</code> for volumes counts
+volumes with no container link, i.e. exactly the ones a named-volume
+prune would delete. A safe ccc &quot;docker caches&quot; action is:
+<code>docker builder prune -f</code> plus
+<code>docker image prune -a -f</code> (plus optionally
+<code>docker container prune -f</code>), never any volume command.</p>
+<h2 class="unnumbered unlisted" id="docker-engine--docker-desktop">Docker
+Engine / Docker Desktop</h2>
+<ul>
+<li>name: docker; ecosystem: containers</li>
+<li>detect: <code>docker</code> on PATH. Needs a daemon: on macOS the
+Docker Desktop VM must be running (also OrbStack/Colima provide a
+compatible socket); <code>docker system df</code> fails otherwise.
+Contexts: <code>docker context ls</code> (Docker Desktop uses the
+<code>desktop-linux</code> context).</li>
+<li>locations:
+<ul>
+<li>images: layers of pulled/built images. discover:
+<code>docker system df</code> (Images row),
+<code>docker system df -v</code>. override:
+<code>DOCKER_HOST</code>/context. path: inside the VM disk (macOS) or
+<code>/var/lib/docker</code> (Linux; <code>docker info</code> reports
+&quot;Docker Root Dir&quot;, on Docker Desktop it reports
+<code>/var/lib/docker</code>, which is the path inside the VM).</li>
+<li>containers (stopped): writable layers. discover:
+<code>docker system df</code> Containers row.</li>
+<li>networks: no disk usage.</li>
+<li>build cache: BuildKit cache. discover: <code>docker system df</code>
+Build Cache row; <code>docker buildx du</code> (prints ID, RECLAIMABLE,
+SIZE, LAST ACCESSED; ran-command).</li>
+<li>volumes: named/anonymous volumes. discover:
+<code>docker system df -v</code> (Local Volumes). USER DATA
+(databases).</li>
+<li>Docker Desktop disk image: macOS
+<code>~/Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw</code>
+(ran-command; sparse file: apparent size far larger than allocated
+size). Location is configurable in Docker Desktop Resources &gt;
+Advanced (official-docs); Docker Desktop also has a &quot;Disk usage limit&quot;.
+Linux Docker Desktop path: unverified.</li>
+</ul></li>
+<li>scope: global (per machine/daemon)</li>
+<li>measure: <code>docker system df</code> (RECLAIMABLE column per
+category; sized by the daemon). Disk file: <code>du -sk</code> on
+Docker.raw (allocated size, NOT <code>ls -l</code> apparent size). A
+prune frees space inside the VM; whether the host file shrinks depends
+on Docker Desktop trimming/compacting the sparse file (not documented on
+the fetched page).</li>
+<li>clean: no full-wipe native command that is safe; use the prune
+matrix above. Full wipe of everything including volumes:
+<code>docker system prune -a --volumes</code> plus
+<code>docker volume prune -a</code>. Docker Desktop UI &quot;Clean / Purge
+data&quot; and &quot;Reset to factory defaults&quot; delete the disk image (unverified;
+destroys volumes). Notes: needs daemon running; per-daemon not
+per-user.</li>
+<li>regenerable: images yes-but-large-download (registry pull) or
+yes-but-slow-rebuild (locally built); build cache yes-but-slow-rebuild;
+stopped containers: writable layer data lost, mostly yes; volumes: no —
+contains user data (databases, uploaded files).</li>
+<li>in_use_hazard: prune only touches unused objects, but stopped
+containers removed lose their writable layer;
+<code>docker volume prune -a</code> removes named volumes of stopped
+stacks (e.g. a compose project that is down), i.e. destroys that
+database. Build cache prune during a running build can fail or slow it.
+Images used by a stopped-but-wanted container are lost after
+<code>container prune</code> + <code>image prune -a</code>.</li>
+<li>sources: https://docs.docker.com/reference/cli/docker/system/prune/
+; https://docs.docker.com/reference/cli/docker/system/df/ ;
+https://docs.docker.com/reference/cli/docker/builder/prune/ ;
+https://docs.docker.com/reference/cli/docker/volume/prune/ ;
+https://docs.docker.com/desktop/settings-and-maintenance/settings/</li>
+<li>verification: discover=ran-command; default paths=ran-command (macOS
+Docker.raw) / unverified (Linux Desktop); clean=official-docs
+(system/builder/volume prune), unverified (container/image/network prune
+individual pages, Desktop purge)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="docker-buildx">docker
+buildx</h2>
+<ul>
+<li>name: docker buildx; ecosystem: containers</li>
+<li>detect: <code>docker buildx version</code>; needs daemon for the
+default <code>docker</code> driver builder;
+<code>docker-container</code> driver builders live in a separate
+container (<code>buildx_buildkit_*</code>) with their own cache.</li>
+<li>locations: builder build cache (discover:
+<code>docker buildx ls</code> lists builders, ran-command;
+<code>docker buildx du [--builder NAME]</code>); buildx config/instances
+<code>~/.docker/buildx</code> (ran-command; override
+<code>BUILDX_CONFIG</code>, unverified), small.</li>
+<li>scope: global</li>
+<li>measure: <code>docker buildx du</code> (RECLAIMABLE, SIZE columns
+per record; ran-command output header: ID RECLAIMABLE SIZE LAST
+ACCESSED). <code>buildx du</code> flags not documented on fetched
+page.</li>
+<li>clean: <code>docker buildx prune</code> (<code>--all</code>,
+<code>--filter until=...</code>, <code>--max-used-space 2gb</code>,
+<code>--builder</code>, <code>-f</code> unverified for -f on this page).
+Full wipe: <code>docker buildx prune --all -f</code>. Needs the builder
+running.</li>
+<li>regenerable: yes-but-slow-rebuild</li>
+<li>in_use_hazard: pruning during an active build; cache mounts (e.g.
+package caches) are cleaned too.</li>
+<li>sources:
+https://docs.docker.com/reference/cli/docker/buildx/prune/</li>
+<li>verification: discover=ran-command; default paths=ran-command
+(~/.docker/buildx); clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="podman-and-podman-machine">Podman
+(and podman machine)</h2>
+<ul>
+<li>name: podman; ecosystem: containers</li>
+<li>detect: <code>podman</code> on PATH. On macOS commands need a
+running <code>podman machine</code> (ran-command:
+<code>podman system df</code> fails &quot;Cannot connect to Podman&quot; when the
+machine is stopped). Linux native podman is daemonless.</li>
+<li>locations:
+<ul>
+<li>containers/images/volumes/build containers: storage in the VM
+(macOS) or <code>~/.local/share/containers/storage</code> (Linux
+rootless; unverified). discover: <code>podman system df</code>
+(unverified output format).</li>
+<li>podman machine VM disk: discover <code>podman machine list</code>
+(ran-command: shows DISK SIZE as the configured limit, not allocated)
+and <code>podman machine inspect</code> (ran-command: shows
+<code>ConfigDir.Path</code>
+<code>~/.config/containers/podman/machine/applehv</code>, SSH identity
+<code>~/.local/share/containers/podman/machine/machine</code>). Disk
+image files under
+<code>~/.local/share/containers/podman/machine/&lt;provider&gt;</code>
+(ran-command: provider subdirectories such as <code>applehv</code>,
+<code>libkrun</code>).</li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>podman system df</code> (reclaimable column,
+unverified); VM disk: <code>du</code> of the machine image file.</li>
+<li>clean: <code>podman system prune</code> (stopped containers, pods,
+unused networks, dangling images); <code>-a/--all</code> (all unused
+images and recursive); <code>--volumes</code> (volumes not used by any
+container); <code>--build</code> (leftover build containers, unsafe
+during builds); <code>--external</code>;
+<code>--filter label=/until=</code>; <code>-f</code> (official-docs).
+Specific: <code>podman image prune -a</code>,
+<code>podman volume prune</code> (unverified). Machine wipe:
+<code>podman machine rm</code> (deletes the VM and its disk, volumes
+inside lost; unverified).</li>
+<li>regenerable: images yes-but-large-download; volumes no — contains
+user data; VM disk: no if it holds volumes.</li>
+<li>in_use_hazard: <code>--build</code> while builds run;
+<code>--volumes</code> deletes data volumes of stopped containers.</li>
+<li>sources:
+https://docs.podman.io/en/latest/markdown/podman-system-prune.1.html</li>
+<li>verification: discover=ran-command (machine list/inspect),
+unverified (system df); default paths=ran-command (macOS), unverified
+(Linux); clean=official-docs (system prune), unverified (machine
+rm)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="containerd--nerdctl">containerd
+/ nerdctl</h2>
+<ul>
+<li>name: containerd/nerdctl; ecosystem: containers</li>
+<li>detect: <code>nerdctl</code> or <code>ctr</code> on PATH; needs
+containerd daemon (usually root, Linux or inside Lima/Colima VM).</li>
+<li>locations: image/content store <code>/var/lib/containerd</code>
+(unverified); nerdctl data <code>/var/lib/nerdctl</code>
+(unverified).</li>
+<li>scope: global, system-wide, sudo.</li>
+<li>measure: <code>nerdctl system df</code> (unverified).</li>
+<li>clean: <code>nerdctl system prune [-a] [--volumes]</code>
+(unverified flags, mirrors docker).</li>
+<li>regenerable: images yes-but-large-download; volumes no — user
+data.</li>
+<li>in_use_hazard: as Docker.</li>
+<li>sources: none fetched.</li>
+<li>verification: discover=unverified; default paths=unverified;
+clean=unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="colima">Colima</h2>
+<ul>
+<li>name: colima; ecosystem: VMs/containers (Lima-based)</li>
+<li>detect: <code>colima</code> on PATH;
+<code>colima status</code>/<code>colima list</code> (unverified);
+commands inside need the VM running.</li>
+<li>locations: <code>~/.colima</code> (config and VM disk) and
+<code>~/.lima/colima</code> (instance dir including disk) (unverified:
+README page fetched did not cover this); Lima download cache
+<code>~/Library/Caches/lima</code> (official-docs for Lima).</li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of the instance directory (the disk is
+sparse; use allocated size); inside, <code>docker system df</code>.</li>
+<li>clean: <code>colima delete</code> (deletes the VM; destroys
+containers and volumes in it, unverified); <code>colima prune</code>
+removes cached assets (unverified). Prefer pruning through docker inside
+the VM.</li>
+<li>regenerable: VM yes-but-slow-rebuild; volumes inside no — user
+data.</li>
+<li>in_use_hazard: deleting while running destroys everything
+inside.</li>
+<li>sources: https://github.com/abiosoft/colima/blob/main/README.md
+(does not cover these)</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="lima">Lima</h2>
+<ul>
+<li>name: lima; ecosystem: VMs</li>
+<li>detect: <code>limactl</code> on PATH.</li>
+<li>locations: instances <code>$LIMA_HOME</code> default
+<code>~/.lima</code> (official-docs); each instance has a
+<code>disk</code> file (legacy <code>diffdisk</code>); download cache
+macOS <code>~/Library/Caches/lima</code>, Linux
+<code>$XDG_CACHE_HOME/lima</code> (usually <code>~/.cache/lima</code>)
+under <code>download/by-url-sha256/</code> (official-docs).</li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of the cache dir; <code>limactl list</code>
+shows instance disk sizes (unverified).</li>
+<li>clean: cache: delete directory <code>~/Library/Caches/lima</code>;
+<code>limactl prune</code> exists (listed in docs nav; behavior not
+described on fetched page, unverified: believed to remove cached
+downloads); instances: <code>limactl delete NAME</code> (unverified,
+destroys VM disk).</li>
+<li>regenerable: download cache yes-but-large-download; instance disks:
+no if they hold data.</li>
+<li>in_use_hazard: deleting the cache while an instance is starting
+breaks the download.</li>
+<li>sources: https://lima-vm.io/docs/dev/internals/</li>
+<li>verification: discover=unverified; default paths=official-docs;
+clean=unverified (delete directory for cache is plain fs)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="orbstack">OrbStack</h2>
+<ul>
+<li>name: orbstack; ecosystem: containers/VM (macOS only)</li>
+<li>detect: <code>orb</code> / <code>orbctl</code> on PATH,
+<code>/Applications/OrbStack.app</code>; docker socket via context
+<code>orbstack</code>. Needs app running.</li>
+<li>locations: data disk image under
+<code>~/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data</code>
+(unverified; the OrbStack docs page fetched did not cover storage).</li>
+<li>scope: global</li>
+<li>measure: <code>docker system df</code> against the orbstack context;
+OrbStack reports disk usage in its UI.</li>
+<li>clean: <code>docker system prune</code> family inside; OrbStack
+reclaims host space automatically as the image is dynamically sized
+(unverified).</li>
+<li>regenerable / in_use_hazard: as Docker; volumes no — user data.</li>
+<li>sources: https://docs.orbstack.dev/docker/ (not helpful)</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="minikube">minikube</h2>
+<ul>
+<li>name: minikube; ecosystem: kubernetes</li>
+<li>detect: <code>minikube</code> on PATH; <code>~/.minikube</code>
+exists; cluster VM/container may be stopped.</li>
+<li>locations: <code>~/.minikube</code> (default; override
+<code>MINIKUBE_HOME</code>, unverified; <code>--purge</code> deletes the
+<code>.minikube</code> folder in the user directory, official-docs)
+holding <code>cache/</code> (ISO, preloaded tarballs, images),
+<code>machines/</code>, <code>profiles/</code>.</li>
+<li>scope: global</li>
+<li>measure: <code>du ~/.minikube/cache</code> (cache only, unverified
+path); <code>du ~/.minikube/machines</code> for cluster disks.</li>
+<li>clean: <code>minikube delete</code> (current profile VM and all
+associated files); <code>minikube delete --all</code>;
+<code>--purge</code> additionally deletes <code>.minikube</code>
+(official-docs). Cache-only: delete directory
+<code>~/.minikube/cache</code> (unverified).</li>
+<li>regenerable: cache yes-but-large-download; cluster state no
+(workloads inside the cluster are lost).</li>
+<li>in_use_hazard: <code>delete</code> destroys the running cluster and
+any PVC data in it.</li>
+<li>sources: https://minikube.sigs.k8s.io/docs/commands/delete/</li>
+<li>verification: discover=unverified; default paths=unverified (partly
+official: .minikube); clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="kind">kind</h2>
+<ul>
+<li>name: kind; ecosystem: kubernetes</li>
+<li>detect: <code>kind</code> on PATH; needs a container runtime daemon
+(Docker/Podman).</li>
+<li>locations: no cache of its own; clusters are containers
+(<code>kind-control-plane</code>...) and use image
+<code>kindest/node</code> in Docker&#39;s image store; kubeconfig entries in
+<code>${HOME}/.kube/config</code> unless <code>KUBECONFIG</code>
+(official-docs). discover: <code>kind get clusters</code>
+(official-docs).</li>
+<li>scope: global (via Docker)</li>
+<li>measure: <code>docker system df</code> (node image) ; clusters are
+small containers.</li>
+<li>clean: <code>kind delete cluster [--name NAME]</code>
+(official-docs; deleting a nonexistent cluster is not an error).
+<code>kind delete clusters --all</code> is not confirmed. Node images
+are removed via docker image prune.</li>
+<li>regenerable: node image yes-but-large-download; cluster state
+no.</li>
+<li>in_use_hazard: deleting a cluster destroys its workloads.</li>
+<li>sources: https://kind.sigs.k8s.io/docs/user/quick-start/</li>
+<li>verification: discover=official-docs; default paths=official-docs
+(kubeconfig); clean=official-docs (<code>delete cluster</code>)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="k3d">k3d</h2>
+<ul>
+<li>name: k3d; ecosystem: kubernetes</li>
+<li>detect: <code>k3d</code> on PATH; needs Docker daemon.</li>
+<li>locations: clusters are Docker containers/volumes/networks
+(<code>k3d-&lt;name&gt;-*</code>); discover
+<code>k3d cluster list</code> (unverified).</li>
+<li>measure: <code>docker system df</code>.</li>
+<li>clean: <code>k3d cluster delete NAME</code> / <code>--all</code>
+(unverified).</li>
+<li>regenerable: images yes; cluster state no.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="helm">Helm</h2>
+<ul>
+<li>name: helm; ecosystem: kubernetes</li>
+<li>detect: <code>helm</code> on PATH.</li>
+<li>locations:
+<ul>
+<li>cache (downloaded charts, repo index): discover
+<code>helm env HELM_CACHE_HOME</code> (unverified command, official page
+lists the variables); override <code>HELM_CACHE_HOME</code>; macOS
+<code>$HOME/Library/Caches/helm</code>; Linux
+<code>$HOME/.cache/helm</code> (official-docs). Subdirs
+<code>repository</code>, <code>content</code> (flags
+<code>--repository-cache</code>, <code>--content-cache</code> default
+<code>~/.cache/helm/repository</code>,
+<code>~/.cache/helm/content</code>).</li>
+<li>config (repositories.yaml with repo list):
+<code>HELM_CONFIG_HOME</code>; macOS
+<code>$HOME/Library/Preferences/helm</code>; Linux
+<code>$HOME/.config/helm</code>. NOT cache.</li>
+<li>data (plugins): <code>HELM_DATA_HOME</code>; macOS
+<code>$HOME/Library/helm</code>; Linux
+<code>$HOME/.local/share/helm</code>. NOT cache (installed
+plugins).</li>
+</ul></li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of cache dir.</li>
+<li>clean: no native command (official docs list none): delete directory
+(cache dir only).</li>
+<li>regenerable: yes (re-fetched by
+<code>helm repo update</code>/<code>helm pull</code>)</li>
+<li>in_use_hazard: none for running releases; releases live in the
+cluster.</li>
+<li>sources: https://helm.sh/docs/helm/helm/</li>
+<li>verification: discover=unverified; default paths=official-docs;
+clean=official-docs (no native command)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="kubectl">kubectl</h2>
+<ul>
+<li>name: kubectl; ecosystem: kubernetes</li>
+<li>detect: <code>kubectl</code> on PATH.</li>
+<li>locations: <code>~/.kube/cache</code> (discovery and HTTP caches,
+subdirs <code>discovery</code>, <code>http</code>; unverified from
+docs); <code>~/.kube/config</code> is NOT cache (cluster credentials).
+Override: <code>--cache-dir</code> flag / <code>KUBECACHEDIR</code>
+(unverified).</li>
+<li>scope: global</li>
+<li>measure: <code>du ~/.kube/cache</code>.</li>
+<li>clean: delete directory <code>~/.kube/cache</code> only.</li>
+<li>regenerable: yes</li>
+<li>in_use_hazard: none (re-discovers API resources, slower next
+call).</li>
+<li>sources: none fetched.</li>
+<li>verification: discover=unverified; default paths=unverified;
+clean=unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="terraform">Terraform</h2>
+<ul>
+<li>name: terraform; ecosystem: IaC</li>
+<li>detect: <code>terraform</code> on PATH.</li>
+<li>locations:
+<ul>
+<li>global plugin cache: off unless <code>plugin_cache_dir</code> (CLI
+config) or <code>TF_PLUGIN_CACHE_DIR</code> is set; no default location;
+directory must already exist; Terraform never deletes from it
+(official-docs). Conventional <code>~/.terraform.d/plugin-cache</code>
+(docs example). discover: env var, else parse CLI config
+<code>~/.terraformrc</code> (unverified path) for
+<code>plugin_cache_dir</code>.</li>
+<li>per-project <code>.terraform/</code>: contains
+<code>providers/</code> (pure cache, re-downloaded by
+<code>terraform init</code>), <code>terraform.tfstate</code> (backend
+binding / cached backend config; not cache), <code>modules/</code>
+(downloaded modules, regenerable via init), <code>environment</code>.
+Override <code>TF_DATA_DIR</code> (not covered by fetched page,
+unverified).</li>
+</ul></li>
+<li>scope: global (plugin cache) and per-project
+(<code>.terraform</code>, marker: directory <code>.terraform</code> next
+to <code>*.tf</code> files; <code>.terraform.lock.hcl</code> should be
+kept).</li>
+<li>measure: <code>du</code>.</li>
+<li>clean: no native command: delete directory. For per-project clean
+only <code>.terraform/providers</code> (and optionally
+<code>.terraform/modules</code>); never delete the whole
+<code>.terraform</code> blindly (backend binding is lost, re-init needed
+and with local state this is data loss risk if state is stored inside,
+e.g. workspaces/local <code>terraform.tfstate</code> are in the project
+root, not <code>.terraform</code>, but
+<code>.terraform/terraform.tfstate</code> stores backend config).</li>
+<li>regenerable: yes-but-large-download (providers can be hundreds of
+MB)</li>
+<li>in_use_hazard: removing providers during an apply/plan breaks the
+running operation; next run needs <code>terraform init</code>.</li>
+<li>sources:
+https://developer.hashicorp.com/terraform/cli/config/config-file</li>
+<li>verification: discover=official-docs (env/config key); default
+paths=official-docs (no default; local confirms); clean=official-docs
+(no native command stated; <code>.terraform</code> internals
+unverified)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="terragrunt-cache">Terragrunt
+cache</h2>
+<ul>
+<li>name: terragrunt; ecosystem: IaC</li>
+<li>detect: <code>terragrunt</code> on PATH.</li>
+<li>locations: per-project <code>.terragrunt-cache/</code> directories
+next to <code>terragrunt.hcl</code> (contents: downloaded module sources
+and <code>.terraform</code> copies; unverified). Override:
+<code>TERRAGRUNT_DOWNLOAD</code> (unverified).</li>
+<li>scope: per-project; marker: <code>.terragrunt-cache</code> directory
+beside <code>terragrunt.hcl</code>.</li>
+<li>measure: <code>du</code>.</li>
+<li>clean: delete directory (commonly
+<code>find . -name .terragrunt-cache -type d -prune -exec rm -rf {} +</code>,
+but ccc should do the walk itself). No native command.</li>
+<li>regenerable: yes-but-large-download</li>
+<li>in_use_hazard: a running terragrunt run is working from this
+directory.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pulumi">Pulumi</h2>
+<ul>
+<li>name: pulumi; ecosystem: IaC</li>
+<li>detect: <code>pulumi</code> on PATH.</li>
+<li>locations: plugins <code>~/.pulumi/plugins</code> (override
+<code>PULUMI_HOME</code>; both unverified, fetched page does not state
+storage). discover: <code>pulumi plugin ls</code> (unverified).</li>
+<li>scope: global</li>
+<li>measure: <code>du ~/.pulumi/plugins</code>;
+<code>pulumi plugin ls</code> lists size column (unverified).</li>
+<li>clean: <code>pulumi plugin rm --all --yes</code> (official page is
+<code>pulumi plugin remove</code>; <code>rm</code> alias not confirmed;
+<code>-a/--all</code>, <code>-y/--yes</code>; with no args clears the
+entire download cache; <code>pulumi plugin rm KIND NAME [VERSION]</code>
+for targeted; downloaded again automatically when needed —
+official-docs). Warning: <code>~/.pulumi/credentials.json</code> (login)
+is not cache; do not delete <code>~/.pulumi</code> wholesale.</li>
+<li>regenerable: yes-but-large-download</li>
+<li>in_use_hazard: none for deployed stacks; next <code>pulumi up</code>
+redownloads.</li>
+<li>sources:
+https://www.pulumi.com/docs/iac/cli/commands/pulumi_plugin_rm/</li>
+<li>verification: discover=unverified; default paths=unverified;
+clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="packer">Packer</h2>
+<ul>
+<li>name: packer; ecosystem: IaC/images</li>
+<li>detect: <code>packer</code> on PATH.</li>
+<li>locations: <code>PACKER_CACHE_DIR</code> default current directory
+<code>./packer_cache</code> (docs page contradicts itself:
+<code>./packer_cache/</code> vs <code>.packer_cache</code>) —
+per-project, holds ISOs/large downloads; plugins in <code>plugins</code>
+subdirectory of <code>PACKER_CONFIG_DIR</code> (default
+<code>${HOME}/.config/packer/</code> on Unix) or
+<code>PACKER_PLUGIN_PATH</code> (official-docs). Docs do not say the
+cache is auto-cleaned.</li>
+<li>scope: both: plugins global; <code>packer_cache</code> per-project
+(marker: dir <code>packer_cache</code> next to
+<code>*.pkr.hcl</code>).</li>
+<li>measure: <code>du</code>.</li>
+<li>clean: no native command: delete directory.</li>
+<li>regenerable: yes-but-large-download (ISOs)</li>
+<li>in_use_hazard: running build uses cached ISO.</li>
+<li>sources: https://developer.hashicorp.com/packer/docs/configure</li>
+<li>verification: discover=official-docs (env vars); default
+paths=official-docs (with noted ambiguity); clean=official-docs
+(none)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="vagrant">Vagrant</h2>
+<ul>
+<li>name: vagrant; ecosystem: VMs</li>
+<li>detect: <code>vagrant</code> on PATH.</li>
+<li>locations: boxes in <code>VAGRANT_HOME</code> (default
+<code>~/.vagrant.d</code>, <code>boxes/</code> subdir; unverified,
+fetched page did not cover). discover: <code>vagrant box list</code>
+(official-docs).</li>
+<li>scope: global; per-project <code>.vagrant/</code> holds machine
+state (not cache; do not delete).</li>
+<li>measure: <code>du ~/.vagrant.d/boxes</code>.</li>
+<li>clean: <code>vagrant box prune</code> (old versions;
+<code>--dry-run</code>, <code>--provider</code>, <code>--name</code>,
+<code>--force</code>, <code>--keep-active-boxes</code>);
+<code>vagrant box remove NAME [--all] [--box-version V] [--force]</code>
+(official-docs). VM disks (VirtualBox/VMware) live outside Vagrant home
+and are removed by <code>vagrant destroy</code> (unverified).</li>
+<li>regenerable: boxes yes-but-large-download; VM disks no — may hold
+data.</li>
+<li>in_use_hazard: <code>--force</code> removes a box used by an active
+environment; prune asks when in use.</li>
+<li>sources: https://developer.hashicorp.com/vagrant/docs/cli/box</li>
+<li>verification: discover=official-docs; default paths=unverified;
+clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="ansible">Ansible</h2>
+<ul>
+<li>name: ansible; ecosystem: IaC/config</li>
+<li>detect: <code>ansible</code> / <code>ansible-galaxy</code> on
+PATH.</li>
+<li>locations: <code>ANSIBLE_HOME</code> default <code>~/.ansible</code>
+(official-docs); collections <code>~/.ansible/collections</code> plus
+<code>/usr/share/ansible/collections</code>
+(<code>COLLECTIONS_PATHS</code>, env
+<code>ANSIBLE_COLLECTIONS_PATH</code>); local temp
+<code>~/.ansible/tmp</code> (<code>ANSIBLE_LOCAL_TEMP</code>); fact
+cache: plugin <code>ANSIBLE_CACHE_PLUGIN</code> (docs show default
+<code>memory</code>), location from
+<code>ANSIBLE_CACHE_PLUGIN_CONNECTION</code> (default None), timeout
+86400 s. discover: <code>ansible-config dump</code> (unverified for
+these keys).</li>
+<li>scope: global; fact cache path user-configured.</li>
+<li>measure: <code>du</code>.</li>
+<li>clean: no native command: delete directory
+(<code>~/.ansible/tmp</code>, fact-cache dir). Collections are installed
+content, not cache: deleting needs reinstall via requirements; treat as
+<code>yes-but-large-download</code> only if a requirements file
+exists.</li>
+<li>regenerable: tmp and fact cache yes; collections
+yes-if-listed-in-requirements.</li>
+<li>in_use_hazard: playbook run in progress uses tmp.</li>
+<li>sources:
+https://docs.ansible.com/ansible/latest/reference_appendices/config.html</li>
+<li>verification: discover=unverified; default paths=official-docs;
+clean=official-docs (none)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="homebrew">Homebrew</h2>
+<ul>
+<li>name: brew; ecosystem: system packages (macOS/Linux)</li>
+<li>detect: <code>brew</code> on PATH.</li>
+<li>locations:
+<ul>
+<li>downloads cache: discover <code>brew --cache</code> (ran-command;
+prints the cache path); override <code>HOMEBREW_CACHE</code>; macOS
+<code>~/Library/Caches/Homebrew</code>; Linux
+<code>~/.cache/Homebrew</code> (unverified, docs page did not
+state).</li>
+<li>old versions (Cellar) and stale lock files: reported by
+<code>brew cleanup -n</code>.</li>
+<li>portable-ruby old versions under
+<code>/opt/homebrew/Library/Homebrew/vendor/portable-ruby</code>
+(reported by the dry run, ran-command).</li>
+<li>orphaned dependencies: <code>brew autoremove</code> (uninstalls
+formulae installed only as dependencies and no longer needed).</li>
+</ul></li>
+<li>scope: global (per user cache; the Cellar is system-wide per
+prefix)</li>
+<li>measure: <code>brew cleanup -n</code> / <code>--dry-run</code>
+prints &quot;Would remove: ...&quot; and a final line &quot;This operation would free
+approximately <size>&quot; (ran-command). That figure is the reclaimable
+size. Cache dir: <code>du</code>.</size></li>
+<li>clean: <code>brew cleanup</code> (removes stale lock files, outdated
+downloads, old versions of installed formulae; downloads older than 120
+days, <code>HOMEBREW_CLEANUP_MAX_AGE_DAYS</code>);
+<code>brew cleanup --prune=all</code> removes everything older than days
+(all); <code>-s/--scrub</code> also latest-version downloads except for
+installed; <code>--prune-prefix</code>; full wipe of cache
+<code>rm -rf &quot;$(brew --cache)&quot;</code> (official-docs, as stated on the
+manpage). <code>brew autoremove -n</code> for dry run
+(official-docs).</li>
+<li>regenerable: yes-but-large-download (bottles redownloaded when
+reinstalling); old versions are only needed for
+<code>brew switch</code>-style rollback.</li>
+<li>in_use_hazard: <code>brew cleanup</code> removes old formula
+versions; a running process from an old Cellar version can break; do not
+run concurrently with <code>brew install/upgrade</code>. Do not run
+autoremove automatically (it uninstalls packages).</li>
+<li>sources: https://docs.brew.sh/Manpage</li>
+<li>verification: discover=ran-command+official-docs; default
+paths=ran-command (macOS), unverified (Linux); clean=official-docs;
+dry-run output=ran-command</li>
+</ul>
+<h2 class="unnumbered unlisted" id="macports">MacPorts</h2>
+<ul>
+<li>name: macports; ecosystem: system packages (macOS)</li>
+<li>detect: <code>port</code> on PATH, <code>/opt/local</code>.</li>
+<li>locations: distfiles <code>/opt/local/var/macports/distfiles</code>,
+build dirs <code>/opt/local/var/macports/build</code>, inactive versions
+(all unverified).</li>
+<li>scope: global, system-wide, sudo.</li>
+<li>measure: <code>du</code>; <code>port installed inactive</code> lists
+old versions (unverified).</li>
+<li>clean: <code>sudo port clean --all installed</code> (work
+dirs/dist), <code>sudo port uninstall inactive</code>,
+<code>sudo port reclaim</code> (unverified).</li>
+<li>regenerable: yes-but-large-download</li>
+<li>in_use_hazard: not concurrently with port operations.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="nix">Nix</h2>
+<ul>
+<li>name: nix; ecosystem: system packages</li>
+<li>detect: <code>nix</code> on PATH, <code>/nix/store</code> exists;
+daemon (<code>nix-daemon</code>) typically needed on multi-user
+installs.</li>
+<li>locations: store <code>/nix/store</code> (all garbage collected
+paths); profile generations under <code>/nix/var/nix/profiles</code>
+(unverified); per-user <code>~/.cache/nix</code> (eval/tarball cache,
+unverified).</li>
+<li>scope: global, system-wide, often needs root for the system
+profile.</li>
+<li>measure: <code>nix store gc --dry-run</code> (official-docs: shows
+what would be done) ; <code>du -sh /nix/store</code>.</li>
+<li>clean: <code>nix store gc</code> (&quot;deletes unreachable paths in the
+Nix store&quot;; <code>--max N</code> stops after freeing N bytes;
+<code>--dry-run</code>; experimental command, official-docs). Classic:
+<code>nix-collect-garbage</code> and <code>nix-collect-garbage -d</code>
+(also deletes old profile generations; not covered on fetched page,
+unverified).</li>
+<li>regenerable: yes-but-large-download/rebuild; but <code>-d</code>
+removes rollback generations (not regenerable as a rollback
+target).</li>
+<li>in_use_hazard: GC only removes unreachable paths, i.e. not
+referenced by profiles, GC roots or running processes; a store path used
+only by an un-rooted dev shell can vanish.</li>
+<li>sources:
+https://nix.dev/manual/nix/stable/command-ref/new-cli/nix3-store-gc.html</li>
+<li>verification: discover=official-docs (gc dry-run); default
+paths=unverified; clean=official-docs (nix store gc), unverified
+(collect-garbage -d)</li>
+</ul>
+<h2 class="unnumbered unlisted" id="apt">apt</h2>
+<ul>
+<li>name: apt; ecosystem: system packages (Debian/Ubuntu, Linux
+only)</li>
+<li>detect: <code>apt-get</code> on PATH.</li>
+<li>locations: downloaded .deb <code>/var/cache/apt/archives</code>;
+package lists <code>/var/lib/apt/lists</code> (re-fetched by
+<code>apt update</code>) (unverified: man page fetch failed).</li>
+<li>scope: global, system-wide, sudo.</li>
+<li>measure: <code>du -sh /var/cache/apt/archives</code>;
+<code>apt-get clean -s</code> simulate (unverified).</li>
+<li>clean: <code>sudo apt-get clean</code> (removes all cached .debs),
+<code>sudo apt-get autoclean</code> (only no-longer-downloadable),
+<code>sudo apt-get autoremove</code> (uninstalls unneeded packages; not
+cache).</li>
+<li>regenerable: yes-but-large-download</li>
+<li>in_use_hazard: do not run during an apt/dpkg operation (lock).</li>
+<li>sources: https://man7.org/linux/man-pages/man8/apt-get.8.html (fetch
+failed)</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="dnf--yum">dnf
+/ yum</h2>
+<ul>
+<li>name: dnf; ecosystem: system packages (Fedora/RHEL, Linux only)</li>
+<li>detect: <code>dnf</code> or <code>yum</code>.</li>
+<li>locations: <code>/var/cache/dnf</code> (or
+<code>/var/cache/yum</code>) (unverified).</li>
+<li>scope: global, sudo.</li>
+<li>measure: <code>du -sh /var/cache/dnf</code>.</li>
+<li>clean: <code>sudo dnf clean all</code> (also
+<code>dnf clean packages</code>, <code>metadata</code>);
+<code>sudo dnf autoremove</code> is uninstall, not cache
+(unverified).</li>
+<li>regenerable: yes</li>
+<li>in_use_hazard: not during transactions.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="pacman">pacman</h2>
+<ul>
+<li>name: pacman; ecosystem: system packages (Arch, Linux only)</li>
+<li>detect: <code>pacman</code>.</li>
+<li>locations: <code>/var/cache/pacman/pkg</code> (unverified; Arch wiki
+blocked).</li>
+<li>scope: global, sudo.</li>
+<li>measure: <code>du -sh /var/cache/pacman/pkg</code>;
+<code>paccache -d</code> dry run (from pacman-contrib, unverified).</li>
+<li>clean: <code>sudo paccache -r</code> (keeps last 3 versions),
+<code>sudo pacman -Sc</code> (removes uninstalled packages from cache),
+<code>sudo pacman -Scc</code> (removes all; loses downgrade ability)
+(unverified).</li>
+<li>regenerable: yes-but-large-download; but cached old versions are the
+only offline downgrade source.</li>
+<li>in_use_hazard: not during pacman operation.</li>
+<li>sources: https://wiki.archlinux.org/title/Pacman (blocked)</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="snap">snap</h2>
+<ul>
+<li>name: snap; ecosystem: system packages (Linux only)</li>
+<li>detect: <code>snap</code>.</li>
+<li>locations: old revisions kept (default 3 revisions of each snap)
+under <code>/var/lib/snapd/snaps</code>; per-user <code>~/snap/*/</code>
+data (user data, not cache).</li>
+<li>scope: global, sudo.</li>
+<li>measure: <code>snap list --all</code> lists disabled revisions;
+<code>du /var/lib/snapd/snaps</code>.</li>
+<li>clean: for each disabled revision
+<code>sudo snap remove NAME --revision=N</code>;
+<code>sudo snap set system refresh.retain=2</code> to lower retention
+(all unverified).</li>
+<li>regenerable: yes (disabled revisions are rollback copies).</li>
+<li>in_use_hazard: only remove disabled revisions.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="flatpak">flatpak</h2>
+<ul>
+<li>name: flatpak; ecosystem: system packages (Linux only)</li>
+<li>detect: <code>flatpak</code>.</li>
+<li>locations: installs in <code>/var/lib/flatpak</code> (system) and
+<code>~/.local/share/flatpak</code> (user); app data
+<code>~/.var/app</code> is user data.</li>
+<li>scope: global (system and user).</li>
+<li>measure: <code>du</code>.</li>
+<li>clean: <code>flatpak uninstall --unused</code> (removes unused
+runtimes), <code>flatpak repair</code> (unverified).
+<code>~/.var/app</code> is not cache.</li>
+<li>regenerable: yes-but-large-download (runtimes)</li>
+<li>in_use_hazard: unused runtimes only.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="asdf">asdf</h2>
+<ul>
+<li>name: asdf; ecosystem: version manager</li>
+<li>detect: <code>asdf</code> on PATH, <code>~/.asdf</code>.</li>
+<li>locations: <code>$ASDF_DATA_DIR</code> default <code>~/.asdf</code>:
+<code>installs/</code> (installed tool versions: not cache),
+<code>downloads/</code> (cached downloads), <code>plugins/</code>
+(unverified).</li>
+<li>scope: global</li>
+<li>measure: <code>du ~/.asdf/downloads</code>.</li>
+<li>clean: no native clean command known (unverified): delete
+<code>downloads/</code> directory; uninstall versions with
+<code>asdf uninstall NAME VERSION</code>.</li>
+<li>regenerable: downloads yes; installs yes-but-slow-rebuild.</li>
+<li>in_use_hazard: do not delete <code>installs</code> of versions
+pinned in <code>.tool-versions</code>.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="mise">mise</h2>
+<ul>
+<li>name: mise; ecosystem: version manager</li>
+<li>detect: <code>mise</code> on PATH.</li>
+<li>locations: cache directory (<code>MISE_CACHE_DIR</code>; defaults
+macOS <code>~/Library/Caches/mise</code>, Linux
+<code>~/.cache/mise</code> — unverified); data dir (installs)
+<code>~/.local/share/mise</code> (unverified). discover:
+<code>mise doctor</code> or <code>mise cache</code> subcommands
+(unverified).</li>
+<li>scope: global</li>
+<li>measure: <code>du</code> of the cache dir.</li>
+<li>clean: <code>mise cache clear</code> (aliases <code>c</code>,
+<code>clean</code>; no args deletes the whole cache directory, cached
+environment and task artifacts; <code>mise cache clear node</code> only
+that tool&#39;s cached data; installed tools are NOT removed —
+official-docs).
+<code>mise prune [-n|--dry-run] [--tools] [--configs] [TOOL]</code>
+removes installed tool versions no tracked config uses; keeps versions
+of running processes (official-docs); <code>mise ls --prunable</code>
+lists them.</li>
+<li>regenerable: cache yes; pruned installs yes-but-large-download/slow
+rebuild.</li>
+<li>in_use_hazard: <code>prune</code> removes versions that no tracked
+config selects, including ones used ad hoc via
+<code>mise exec</code>.</li>
+<li>sources: https://mise.jdx.dev/cli/cache/clear.html ;
+https://mise.jdx.dev/cli/prune.html</li>
+<li>verification: discover=unverified; default paths=unverified;
+clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="aws-cli--sam">AWS
+CLI / SAM</h2>
+<ul>
+<li>name: aws, sam; ecosystem: cloud CLI</li>
+<li>detect: <code>aws</code>, <code>sam</code> on PATH.</li>
+<li>locations: <code>~/.aws/cli/cache</code> (assume-role credential
+cache, short-lived JSON) and <code>~/.aws/sso/cache</code> (SSO tokens:
+deleting forces re-login) (unverified; docs page fetched did not
+confirm). Override: none known. <code>~/.aws/credentials</code> and
+<code>~/.aws/config</code> are NOT cache. SAM build artifacts
+<code>.aws-sam/</code> per project (marker: dir <code>.aws-sam</code>
+beside <code>template.yaml</code>; contains <code>build/</code> and
+<code>cache/</code>, unverified).</li>
+<li>scope: global (aws cache); per-project (<code>.aws-sam</code>).</li>
+<li>measure: <code>du</code> (tiny).</li>
+<li>clean: delete directory; no native command. Practically negligible
+size; low value.</li>
+<li>regenerable: yes (re-authentication needed for SSO)</li>
+<li>in_use_hazard: deleting SSO cache logs the user out.</li>
+<li>sources:
+https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html</li>
+<li>verification: all unverified. Candidate to drop (no real growth
+problem).</li>
+</ul>
+<h2 class="unnumbered unlisted" id="gcloud">gcloud</h2>
+<ul>
+<li>name: gcloud; ecosystem: cloud CLI</li>
+<li>detect: <code>gcloud</code> on PATH.</li>
+<li>locations: config dir <code>~/.config/gcloud</code>
+(<code>CLOUDSDK_CONFIG</code>) with <code>logs/</code> (grows per
+invocation) and credentials; SDK install dir with component
+cache/backups (<code>.install/.backup</code>) (unverified; fetch was
+redirected and not read).</li>
+<li>scope: global</li>
+<li>measure: <code>du ~/.config/gcloud/logs</code>.</li>
+<li>clean: <code>gcloud components</code> has no cache clean
+(unverified); delete <code>logs/</code> directory. Never delete
+credentials/config.</li>
+<li>regenerable: logs not needed; credentials no (re-login).</li>
+<li>in_use_hazard: none for logs.</li>
+<li>sources:
+https://cloud.google.com/sdk/gcloud/reference/topic/configurations
+(redirect not followed)</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="serverless-framework">Serverless
+Framework</h2>
+<ul>
+<li>name: serverless; ecosystem: cloud tooling</li>
+<li>detect: <code>serverless</code> / <code>sls</code>.</li>
+<li>locations: per-project <code>.serverless/</code> (build packages,
+zip artifacts; marker <code>serverless.yml</code> beside it) and
+<code>~/.serverless</code> (global config/cache) (all unverified).</li>
+<li>scope: per-project</li>
+<li>clean: delete directory <code>.serverless</code>. No native command
+known.</li>
+<li>regenerable: yes-but-slow-rebuild (re-package)</li>
+<li>in_use_hazard: deployment in progress.</li>
+<li>sources: none fetched.</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="git-lfs">Git
+LFS</h2>
+<ul>
+<li>name: git-lfs; ecosystem: VCS</li>
+<li>detect: <code>git lfs version</code>.</li>
+<li>locations: per-repository <code>.git/lfs/objects</code> (default;
+<code>lfs.storage</code> config key overrides — official-docs reference
+to the key, default path not stated on fetched page); also tmp
+<code>.git/lfs/tmp</code>.</li>
+<li>scope: per-project; marker: <code>.git/lfs</code> directory inside a
+repo.</li>
+<li>measure: <code>du .git/lfs</code>;
+<code>git lfs prune --dry-run</code> reports what would be deleted
+(official-docs).</li>
+<li>clean: <code>git lfs prune</code> (deletes old local LFS files;
+keeps files referenced by current checkout, stashes, recent
+branches/commits, unpushed commits, other worktrees);
+<code>-d/--dry-run</code>, <code>-f/--force</code> (prunes everything
+except unpushed, implies <code>--recent</code>), <code>--recent</code>,
+<code>-c/--verify-remote</code>,
+<code>--when-unverified=&lt;halt,continue&gt;</code>, <code>-v</code>.
+Config: <code>lfs.pruneoffsetdays</code> (default 3),
+<code>lfs.fetchrecentrefsdays</code>,
+<code>lfs.pruneverifyremotealways</code>,
+<code>lfs.pruneremotetocheck</code> (default origin). Warning in docs:
+do not prune when repositories share a custom <code>lfs.storage</code>
+directory (official-docs). Without <code>--verify-remote</code>, if the
+only copy of an LFS object is local and it is unpushed it is kept;
+otherwise prune assumes the remote has it.</li>
+<li>regenerable: yes-but-large-download (git lfs fetch), provided remote
+has the objects; unpushed LFS objects: no.</li>
+<li>in_use_hazard: shared custom storage across repos.</li>
+<li>sources:
+https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-prune.adoc</li>
+<li>verification: discover=official-docs; default paths=unverified
+(<code>.git/lfs/objects</code>); clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="trivy">Trivy</h2>
+<ul>
+<li>name: trivy; ecosystem: security scanner</li>
+<li>detect: <code>trivy</code> on PATH.</li>
+<li>locations: cache dir (vulnerability DB, Java index DB,
+misconfiguration checks, VEX repositories, scan cache); set by
+<code>--cache-dir</code> (official-docs); default
+<code>~/.cache/trivy</code> on Linux and macOS (unverified); env
+<code>TRIVY_CACHE_DIR</code> (unverified).</li>
+<li>scope: global</li>
+<li>measure: <code>du</code>.</li>
+<li>clean: <code>trivy clean</code> with <code>--scan-cache</code>,
+<code>--vuln-db</code>, <code>--all</code> (official-docs); other flags
+(<code>--java-db</code>, <code>--checks-bundle</code>) not
+confirmed.</li>
+<li>regenerable: yes-but-large-download (DB tens to hundreds of MB;
+rate-limit failures possible when re-downloading from registry).</li>
+<li>in_use_hazard: concurrent scan; air-gapped machines cannot
+re-download the DB.</li>
+<li>sources: https://trivy.dev/latest/docs/configuration/cache/</li>
+<li>verification: discover=official-docs; default paths=unverified;
+clean=official-docs</li>
+</ul>
+<h2 class="unnumbered unlisted" id="act">act</h2>
+<ul>
+<li>name: act; ecosystem: CI tooling</li>
+<li>detect: <code>act</code> on PATH; needs Docker daemon.</li>
+<li>locations: cached actions and checkouts in <code>~/.cache/act</code>
+(unverified; docs page fetched did not state it); runner images in
+Docker&#39;s image store (<code>catthehacker/ubuntu:*</code>,
+<code>nektos/act-environments-*</code>), cleaned by docker image prune;
+job containers/volumes named <code>act-*</code>.</li>
+<li>scope: global</li>
+<li>measure: <code>du ~/.cache/act</code>;
+<code>docker system df</code>.</li>
+<li>clean: delete directory; <code>docker volume rm</code> for
+<code>act-*</code> volumes (unverified); no native command.</li>
+<li>regenerable: yes-but-large-download</li>
+<li>in_use_hazard: running <code>act</code> job.</li>
+<li>sources: https://nektosact.com/usage/index.html (does not
+cover)</li>
+<li>verification: all unverified</li>
+</ul>
+<h2 class="unnumbered unlisted" id="contract-observations">Contract
+observations</h2>
+<ol>
+<li>Size is sometimes only known by asking the tool:
+<code>docker system df</code>, <code>docker buildx du</code>,
+<code>brew cleanup -n</code> (free-form text with a trailing
+&quot;approximately X&quot; line), <code>git lfs prune --dry-run</code>,
+<code>nix store gc --dry-run</code>, <code>mise ls --prunable</code>.
+<code>du</code> of a path is wrong or absent for these. The contract
+needs a <code>measure</code> kind of <code>command</code> with a parser
+(column name, regex or JSON <code>--format json</code>) and a unit.</li>
+<li>One tool, several independently cleanable &quot;parts&quot; that are not
+directories: Docker images / containers / build cache / networks /
+volumes each have their own size, own prune command and own safety
+class. Parts need ids, per-part <code>measure</code>, per-part
+<code>clean</code>, and a per-part
+<code>safety</code>/<code>data_class</code> (cache vs user-data); the
+default selection must exclude user-data parts, and a &quot;wipe everything&quot;
+command (<code>docker system prune --volumes</code>,
+<code>volume prune -a</code>) must be a separately flagged, never
+default action.</li>
+<li>Commands that can delete user data must be declared on the command,
+not only on the part: <code>docker system prune --volumes</code>,
+<code>docker volume prune -a</code>,
+<code>podman system prune --volumes</code>, <code>colima delete</code>,
+<code>minikube delete</code>, <code>vagrant box remove --force</code>,
+<code>nix-collect-garbage -d</code>. The contract needs
+<code>may_delete_user_data: true</code> per command so a runner can
+refuse composite commands.</li>
+<li>A command needs a precondition: daemon/VM running (docker, podman
+machine, buildx, kind, k3d, act, colima), or sudo/root (apt, dnf,
+pacman, snap, flatpak system scope, nix multi-user, MacPorts). Contract
+fields: <code>requires_running: [daemon|vm]</code> with a probe command
+(<code>docker info</code>, <code>podman machine list</code>),
+<code>requires_privilege: sudo</code>, and a defined outcome &quot;not
+measurable / skipped&quot; rather than size 0 (a stopped Podman machine must
+not look like an empty cache).</li>
+<li>Reported size is not freed size: <code>Docker.raw</code> is sparse
+(apparent size far larger than allocated size), VM disks only shrink if
+the app compacts them, and Podman <code>DISK SIZE</code> is a limit.
+Measure must use allocated blocks (<code>du</code>, not apparent), and
+the registry must distinguish <code>inside_disk_image</code> size
+(daemon-reported) from <code>host_file</code> size, with a note that
+freeing inside does not guarantee host shrink.</li>
+<li>Mixed directories with cache next to state: <code>.terraform</code>
+(only <code>providers/</code> and <code>modules/</code> are cache; the
+backend binding is not), <code>~/.pulumi</code> (plugins vs
+credentials), <code>~/.aws</code> (cli/cache vs credentials/config),
+<code>~/.config/gcloud</code> (logs vs credentials),
+<code>~/.config/helm</code>/<code>Library/Preferences/helm</code> vs
+cache, <code>~/.asdf/installs</code> vs <code>downloads</code>,
+<code>~/.minikube</code> (cache vs machines), <code>~/.kube</code>
+(cache vs config). Locations must be subpaths with per-subpath class,
+and the walker must never offer the parent.</li>
+<li>Per-project instances found by marker: <code>.terraform</code>
+(beside <code>*.tf</code>), <code>.terragrunt-cache</code>,
+<code>packer_cache</code>, <code>.aws-sam</code>,
+<code>.serverless</code>, <code>.vagrant</code> (not cache),
+<code>.git/lfs</code>. The contract needs
+<code>scope: per-project</code>, a marker rule (dir name plus sibling
+file glob), and a walk-exclusion policy; and the clean action must be
+able to be per instance (<code>git lfs prune</code> runs inside each
+repo with cwd).</li>
+<li>Path discovery has an order: explicit env/config override
+(<code>HELM_CACHE_HOME</code>, <code>HOMEBREW_CACHE</code>,
+<code>TF_PLUGIN_CACHE_DIR</code>, <code>PACKER_CACHE_DIR</code>,
+<code>ANSIBLE_HOME</code>, <code>LIMA_HOME</code>,
+<code>lfs.storage</code>, <code>--cache-dir</code>), then a discover
+command (<code>brew --cache</code>), then OS defaults. A cache can be
+disabled by default (Terraform plugin cache, Ansible fact cache):
+discovery may legitimately return &quot;none&quot;.</li>
+<li>Dry-run is native for many tools (<code>brew cleanup -n</code>,
+<code>git lfs prune -d</code>, <code>nix store gc --dry-run</code>,
+<code>mise prune -n</code>, <code>vagrant box prune --dry-run</code>):
+the contract should have an optional <code>preview</code> command
+separate from <code>measure</code> and <code>clean</code>.</li>
+<li>Two clean tiers (prune-unused vs full wipe) exist per tool and have
+different safety: <code>brew cleanup</code> vs
+<code>--scrub</code>/<code>rm -rf $(brew --cache)</code>,
+<code>docker system prune</code> vs <code>-a</code>,
+<code>mise cache clear</code> vs <code>mise prune</code> (the latter
+removes installs). Cleaning also may remove things whose absence is not
+a cache miss (rollback generations in Nix, old versions in pacman cache,
+Homebrew old versions).</li>
+<li>Not-a-cache actions mixed into &quot;cleanup&quot; commands must be excluded:
+<code>brew autoremove</code>, <code>apt-get autoremove</code>,
+<code>dnf autoremove</code> uninstall packages;
+<code>snap</code>/<code>flatpak</code> unused runtime removal changes
+installed state.</li>
+<li>Machine-level resources (VMs, clusters) are state, not cache:
+<code>podman machine</code>, <code>colima</code>, <code>minikube</code>,
+<code>kind</code>, <code>k3d</code>, <code>lima</code> instances,
+<code>vagrant</code> machines. Only their download caches
+(<code>~/Library/Caches/lima</code>, <code>~/.minikube/cache</code>) are
+cache; instance deletion belongs behind an explicit destructive
+tier.</li>
+<li>Dropping candidates with no real cache problem: AWS CLI/SAM (tiny),
+gcloud (logs only), kubectl (tiny), Serverless (per-project build output
+only). Several fields for these and for the less-documented tools
+(OrbStack, k3d, containerd, MacPorts, apt, dnf, pacman, snap, flatpak,
+asdf, Colima) remain <code>unverified</code> and should be re-checked
+against the tool before they ship.</li>
+</ol>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Docker: build cache and images. Neither is a directory: only the daemon
+# can list them, so the places have no `path`.
+# Volumes and containers are not in this entry: volumes are user data.
+# Sources: https://docs.docker.com/reference/cli/docker/system/df/
+#          https://docs.docker.com/reference/cli/docker/builder/prune/
+#          https://docs.docker.com/reference/cli/docker/image/prune/
+
+kind = "tool"
+name = "docker"
+executable = "docker"
+
+[[places]]
+name = "build cache"
+holds = "cache"
+# Every docker command below talks to the daemon. When this one fails the
+# place is "not measured".
+# Not confirmed: the documentation does not state the exit status of
+# `docker info` when the daemon cannot be reached.
+measure.requires = "docker info"
+# Prints one line per type: "Images 1.2GB", "Build Cache 0B".
+# .Type and .Size are the keys of `docker system df --format json`.
+measure.command = "docker system df --format '{{.Type}} {{.Size}}'"
+measure.pattern = '^Build Cache (\S+)$'
+# --all: without it only dangling build cache is removed.
+# --force: without it the command waits for a confirmation on stdin.
+clean.command = "docker builder prune --all --force"
+
+[[places]]
+name = "images"
+holds = "cache"
+measure.requires = "docker info"
+measure.command = "docker system df --format '{{.Type}} {{.Size}}'"
+measure.pattern = '^Images (\S+)$'
+# --all: every image no container refers to, not only dangling ones.
+clean.command = "docker image prune --all --force"

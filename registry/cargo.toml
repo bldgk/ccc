@@ -1,0 +1,12 @@
+kind = "tool"
+name = "cargo"
+executable = "cargo"
+
+[[places]]
+name = "registry cache"
+holds = "cache"
+path.env = "CARGO_HOME"
+path.subdir = "registry"
+path.default.macos = "~/.cargo/registry"
+path.default.linux = "~/.cargo/registry"
+measure.by = "disk-usage"

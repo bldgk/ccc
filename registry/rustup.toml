@@ -1,0 +1,17 @@
+kind = "tool"
+name = "rustup"
+executable = "rustup"
+
+[[places]]
+name = "toolchains"
+holds = "versions"
+path.command = "rustup show home"
+path.env = "RUSTUP_HOME"
+path.subdir = "toolchains"
+path.default.macos = "~/.rustup/toolchains"
+path.default.linux = "~/.rustup/toolchains"
+list.command = "rustup toolchain list --quiet"
+list.pattern = '^(\S+)$'
+measure.by = "disk-usage"
+measure.path = "<path>/<version>"
+clean.command = "rustup toolchain uninstall <version>"

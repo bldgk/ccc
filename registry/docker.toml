@@ -1,0 +1,21 @@
+kind = "tool"
+name = "docker"
+executable = "docker"
+
+[[places]]
+name = "build cache"
+holds = "cache"
+requires.command = "docker info --format '{{.ServerVersion}}'"
+measure.by = "command"
+measure.command = "docker system df --format '{{.Type}} {{.Reclaimable}}'"
+measure.pattern = '^Build Cache (\S+)'
+clean.command = "docker builder prune --all --force"
+
+[[places]]
+name = "images"
+holds = "cache"
+requires.command = "docker info --format '{{.ServerVersion}}'"
+measure.by = "command"
+measure.command = "docker system df --format '{{.Type}} {{.Reclaimable}}'"
+measure.pattern = '^Images (\S+)'
+clean.command = "docker image prune --all --force"

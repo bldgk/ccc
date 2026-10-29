@@ -1,0 +1,12 @@
+kind = "tool"
+name = "sccache"
+executable = "sccache"
+
+[[places]]
+name = "cache"
+holds = "cache"
+# `sccache --show-stats` starts a background server, so it is not used to find the path.
+path.env = "SCCACHE_DIR"
+path.default.macos = "~/Library/Caches/Mozilla.sccache"
+path.default.linux = "~/.cache/sccache"
+measure.by = "disk-usage"

@@ -1,0 +1,24 @@
+kind = "tool"
+name = "npm"
+executable = "npm"
+
+[[places]]
+name = "package cache"
+holds = "cache"
+path.command = "npm config get cache"
+path.env = "npm_config_cache"
+path.subdir = "_cacache"
+path.default.macos = "~/.npm/_cacache"
+path.default.linux = "~/.npm/_cacache"
+measure.by = "disk-usage"
+clean.command = "npm cache clean --force"
+
+[[places]]
+name = "npx cache"
+holds = "cache"
+path.command = "npm config get cache"
+path.env = "npm_config_cache"
+path.subdir = "_npx"
+path.default.macos = "~/.npm/_npx"
+path.default.linux = "~/.npm/_npx"
+measure.by = "disk-usage"
